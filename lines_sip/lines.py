@@ -25,7 +25,7 @@ headers = {'User-Agent': 'Mozilla/5.0'}
 
 
 class Sippy:
-    def __init__(self, file_name='../data/nba2.csv', header=0, league=1):
+    def __init__(self, file_name='../data/write.csv', header=0, league=1):
         print("~~~~sippywoke~~~~")
         self.games = []
         self.links = []

@@ -1,12 +1,13 @@
 import gym
-import gym_sip
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt 
-import helpers as h
 import random
 import numpy as np
+
+import helpers as h
+import gym_sip
 
 EPOCHS = 50000
 
@@ -109,11 +110,11 @@ reward_list = []
 
 dqn = DQN()
 
-try:
-    dqn.eval_net.load_state_dict(torch.load('models/eval.ckpt'))
-    dqn.target_net.load_state_dict(torch.load('models/target.ckpt'))
-except FileNotFoundError:
-    pass
+# try:
+#     dqn.eval_net.load_state_dict(torch.load('models/eval.ckpt'))
+#     dqn.target_net.load_state_dict(torch.load('models/target.ckpt'))
+# except FileNotFoundError:
+#     pass
 
 num_games = 50
 

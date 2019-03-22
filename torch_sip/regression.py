@@ -72,7 +72,6 @@ if __name__ == "__main__":
 
     for i in range(EPOCHS):
         for j, x in enumerate(train_loader):
-            x = x.norm() 
             first_half = torch.reshape(x[0], (-1, 1))
             first_half = torch.squeeze(first_half)
 
@@ -80,49 +79,16 @@ if __name__ == "__main__":
             second_half = torch.squeeze(second_half)
 
             pred_second_half = net(first_half)
-            loss = calc_loss(second_half, pred_second_half) 
+            loss = calc_loss(pred_second_half, second_half) 
             if j % 10 == 1:
                 print('pred', end='')
                 with torch.no_grad():
-                    # params = [pred[0, 3].item(), pred[0, 4].item(), pred[0, 6].item(), pred[0, 7].item(), pred[0, 10].item(), pred[0, 11].item()]
                     print('pred_second: {}'.format(pred_second_half), end='\n\n')
-
-                    # real = [cur_data[0, 3].item(), cur_data[0, 4].item(), cur_data[0, 6].item(), cur_data[0, 7].item(), cur_data[0, 10].item(), cur_data[0, 11].item()]
                     print('actual second half: {}'.format(second_half))
-                    print('actual for ^', end='')
-
-                    # print('{0:.16f}'.format(cur_data[0, 1]))
                     print("loss: ", end='')
                     print(loss)
-
-            plt.scatter(steps, loss.item(), color='r', s=10, marker='o')
             
             running_loss += abs(loss)
-            print(running_loss / j)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            steps += 1
-            j += 1
-    torch.save(net.state_dict(), '6.ckpt')
-
-
-# def test(cur_data):
-#     with torch.no_grad():
-#         correct = 0
-#         total = 0
-#         for i in range(EPOCHS):
-#             for i, d in enumerate(train_loader):
-#                 prev_data = cur_data
-#                 cur_data = d
-#                 pred = net(prev_data.double())
-#                 loss = calc_loss(pred, cur_data)
-#                 total += 1
-#                 print('{0:.16f}'.format(cur_data[0, 1]))
-#                 print("loss: ", end='')
-#                 print(loss)
-
-# test(cur_data)
-
-
-# plt.show()

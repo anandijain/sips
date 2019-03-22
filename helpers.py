@@ -35,26 +35,14 @@ class DfGame(Dataset):
         self.game = self.games[0] 
         self.data_len = len(self.games)  # not padding aware because shape is constant
         self.game_len = len(self.games_dict[self.game_id])  # assuming all games same length
-        # print(self.data_len)
-        # print(self.game_len)
 
     def __getitem__(self, index):
         self.game = self.games[index]
-        # print(self.game)
-        first_half, second_half = self.split_game_in_half(self.game)
-        return first_half, second_half  # train, prediction
+        first_half, second_half = split_game_in_half(self.game)
+        return self.game
 
     def __len__(self):
         return self.data_len
-
-    def split_game_in_half(self, game):
-        first_half = game[:self.game_len//2, ]
-        second_half = game[self.game_len//2:, ]
-        print(first_half)
-        print(second_half)
-
-        return first_half, second_half
-
 
 headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
            'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines'
@@ -73,7 +61,6 @@ def get_df(fn='./data/nba2.csv'):
     raw = csv(fn)
     raw = drop_null_times(raw)
     df = one_hots(raw, ['league', 'a_team', 'h_team'])
-    df = df.drop(['sport', 'lms_date', 'lms_time'], axis=1)
     return df
 
 
@@ -86,7 +73,9 @@ def chunk(df, col='game_id'):
 
 def csv(fn='./data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
+    print(fn)
     df = pd.read_csv(fn)
+    df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
     return df.copy()
 
 
@@ -137,6 +126,13 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
     print('df after length: {}'.format(after_len))
     print('delta (lines removed): {}'.format(delta))
     return df
+
+
+def split_game_in_half(game):
+    game_len = len(game)
+    first_half = game[:game_len//2, ]
+    second_half = game[game_len//2:, ]
+    return first_half, second_half
 
 
 def apply_min_game_len(games, min_lines=500):
