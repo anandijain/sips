@@ -1,4 +1,4 @@
-import sippy_lines as sl
+import lines as rl
 import matplotlib.pyplot as plt 
 import threading
 import time
@@ -8,7 +8,7 @@ class Test:
         self.fn = file_name
         self.gt = game_type
         self.header = header
-        self.sip = sl.Sippy(self.fn, header, self.gt)
+        self.sip = rl.Sippy(self.fn, header, self.gt)
         self.sip.step()
         print('num_games: ' + str(len(self.sip.games)))
         if len(self.sip.games) > 0:
