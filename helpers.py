@@ -49,7 +49,7 @@ headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
            'num_markets', 'a_odds_ml', 'h_odds_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
 
 
-def get_games(fn='./data/nba2.csv'):
+def get_games(fn='../data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
     games = chunk(df, 'game_id')
@@ -57,7 +57,7 @@ def get_games(fn='./data/nba2.csv'):
     return games
 
 
-def get_df(fn='./data/nba2.csv'):
+def get_df(fn='../data/nba2.csv'):
     raw = csv(fn)
     raw = drop_null_times(raw)
     df = one_hots(raw, ['league', 'a_team', 'h_team'])
@@ -71,7 +71,7 @@ def chunk(df, col='game_id'):
     return games
 
 
-def csv(fn='./data/nba2.csv'):
+def csv(fn='../data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)

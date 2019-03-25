@@ -108,38 +108,39 @@ class Sippy:
                 self.games.remove(game)
 
     def set_league(self, league):
-        if league == 1:  # NBA
+        str_league = str(league).lower()
+        if league == 1 or str_league == 'nba':  # NBA
             self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
                           "description/basketball/nba?marketFilterId=def&liveOnly=true&lang=en",
                           "https://www.bovada.lv/services/sports/event/v2/events/" 
                           "A/description/basketball/nba?marketFilterId=def&preMatchOnly=true&lang=en"]
-        elif league == 2:  # College Bask
+        elif league == 2 or str_league == 'college':  # College Bask
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/basketball/college-basketball?marketFilterId=def&liveOnly=true&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/basketball/college-basketball?marketFilterId=def'
                           '&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 3:  # Hockey
+        elif league == 3 or str_league == 'hockey':  # Hockey
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/hockey?marketFilterId=def&liveOnly=true&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/hockey?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 4:  # Tennis
+        elif league == 4 or str_league == 'tennis':  # Tennis
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/tennis?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/tennis?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 5:  # Esports
+        elif league == 5 or str_league == 'esports':  # Esports
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/esports?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/esports?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 6:  # Football
+        elif league == 6 or str_league == 'football':  # Football
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/football?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/football?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 7:  # Volleyball
+        elif league == 7 or str_league == 'volleyball':  # Volleyball
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/volleyball?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
@@ -223,6 +224,15 @@ class Game:
         file.write(str(self.delta) + ',')
         self.lines.csv(file)
         file.write(str(self.start_time) + "\n")
+
+    def return_row(self):
+        self.time_diff()
+        row = [self.sport, self.league, self.game_id, self.a_team, self.h_team, str(time.time())]
+        row += self.score.jps
+        row.append(self.delta)
+        row += self.lines.jps
+        row.append(self.start_time)
+        return row
 
     def info(self):  # displays scores, lines
         print('\n' + self.desc + '\n')
@@ -372,12 +382,13 @@ class Lines:
                 file.write(str(0))
                 file.write(',')
 
-    def info(self):
+    def __repr__(self):
         for param in self.params:
             try:
                 print(str(param[-1]), end='|')
             except IndexError:
                 print('None', end='|')
+        print('\n')
 
     def odds(self):
         for elt in [self.last_mod_lines, self.a_odds_ml, self.h_odds_ml]:
