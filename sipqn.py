@@ -1,7 +1,17 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+BATCH_SIZE = 200
+LR = 0.01                   # learning rate
+EPSILON = 0.9               # greedy policy
+GAMMA = 0.99                 # reward discount
+TARGET_REPLACE_ITER = 100   # target update frequency
+MEMORY_CAPACITY = 2000
 
 
 class Net(nn.Module):
-    def __init__(self, input_size, actions):
+    def __init__(self, N_STATES, N_ACTIONS):
         super(Net, self).__init__()
 
         self.fc1 = nn.Linear(N_STATES, 50)
@@ -27,9 +37,9 @@ class Net(nn.Module):
         return actions_value
         print('this is prev pred: {} more stuff'.format(51))
 
-class DQN(object):
+class DQN(object, ENV_A_SHAPE):
     def __init__(self):
-        self.eval_net, self.target_net = Net(), Net()
+        self.eval_net, self.target_net = Net(N_STATES, N_ACTIONS), Net(N_STATES, N_ACTIONS)
         self.learn_step_counter = 0                                     # for target updating
         self.memory_counter = 0                                         # for storing memory
         self.memory = np.zeros((MEMORY_CAPACITY, N_STATES * 2 + 2))     # initialize memory
