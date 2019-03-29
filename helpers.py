@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class Df(Dataset):
+    # predicting next line in time
     def __init__(self, np_df, unscaled):
         self.data_len = len(np_df)
         self.data = np_df
@@ -27,6 +28,7 @@ class Df(Dataset):
 
 
 class DfGame(Dataset):
+    # given dictionary of padded games
     def __init__(self, games):
         self.games_dict = games
         self.games = list(self.games_dict.values())
@@ -44,12 +46,31 @@ class DfGame(Dataset):
     def __len__(self):
         return self.data_len
 
+
+class DfPastGames(Dataset):
+    # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
+    def __init__(self, df, train_columns=['a_pts', 'h_pts']):
+        self.df = df
+        self.train_columns = train_columns
+        self.data_len = len(self.df) 
+        self.labels = self.df[self.train_columns].values
+        self.data = self.df.drop(self.train_columns, axis=1).values
+
+    def __getitem__(self, index):
+        # self.game = self.games[index]
+        # first_half, second_half = split_game_in_half(self.game)
+        return self.data[index], self.labels[index]
+
+    def __len__(self):
+        return self.data_len        
+
+
 headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
            'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines'
            'num_markets', 'a_odds_ml', 'h_odds_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
 
 
-def get_games(fn='../data/nba2.csv'):
+def get_games(fn='./data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
     games = chunk(df, 'game_id')
@@ -57,10 +78,11 @@ def get_games(fn='../data/nba2.csv'):
     return games
 
 
-def get_df(fn='../data/nba2.csv'):
+def get_df(fn='./data/nba2.csv'):
     raw = csv(fn)
     raw = drop_null_times(raw)
-    df = one_hots(raw, ['league', 'a_team', 'h_team'])
+    # df = one_hots(raw, ['league', 'a_team', 'h_team'])
+    df = one_hots(raw, ['a_team', 'h_team'])
     return df
 
 
@@ -71,11 +93,12 @@ def chunk(df, col='game_id'):
     return games
 
 
-def csv(fn='../data/nba2.csv'):
+def csv(fn='./data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
-    df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
+    # df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
+    df = df.drop(['sport', 'league'], axis=1)
     return df.copy()
 
 
