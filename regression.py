@@ -9,24 +9,24 @@ import helpers as h
 # credit https://github.com/utkuozbulak/pytorch-custom-dataset-examples
 
 class Net(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_size, output_size):
         super(Net, self).__init__()
 
         self.l1 = nn.Linear(input_size, hidden_size)
-        self.l2 = nn.Linear(hidden_size, hidden_size)
-        self.l3 = nn.Linear(hidden_size, hidden_size)
-        self.l4 = nn.Linear(hidden_size, hidden_size)
+        # self.l2 = nn.Linear(hidden_size, hidden_size)
+        # self.l3 = nn.Linear(hidden_size, hidden_size)
+        # self.l4 = nn.Linear(hidden_size, hidden_size)
         self.l5 = nn.Linear(hidden_size, hidden_size)
         self.fc1 = nn.Linear(hidden_size, 1024)
-        self.fc2 = nn.Linear(1024, 1024)
-        self.fc3 = nn.Linear(1024, input_size)
+        self.fc2 = nn.Linear(1024, 256)
+        self.fc3 = nn.Linear(256, output_size)
 
     def forward(self, x):
         print(type(x))
         x = F.relu(self.l1(x.float()))
-        x = F.relu(self.l2(x))
-        x = F.relu(self.l3(x))
-        x = F.relu(self.l4(x))
+        # x = F.relu(self.l2(x))
+        # x = F.relu(self.l3(x))
+        # x = F.relu(self.l4(x))
         x = F.relu(self.l5(x))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -40,25 +40,26 @@ class Net(nn.Module):
             num_features *= s
         return num_features
 
+
 if __name__ == "__main__":
     batch_size = 1
     df = h.get_df()
     num_cols = df.shape[1]
-    train_df, test_df = h.train_test(df)
 
-    games = h.get_t_games(train_df)
-    test_games = h.get_t_games(test_df)
+    train_df, test_df = h.train_test(df, train_pct=0.3)
 
-    train = h.DfGame(games)
-    test = h.DfGame(test_games)
+    train = h.DfPastGames(train_df)
+    test = h.DfPastGames(test_df)
 
-    input_size = num_cols * train.game_len // 2
+    input_size = train.data_shape
+    output_size = 2
+
     hidden_size = 2048
 
     train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
 
-    net = Net(input_size, hidden_size)
+    net = Net(input_size, hidden_size, output_size)
     print(net)
 
     lr = 1e-4
@@ -70,23 +71,19 @@ if __name__ == "__main__":
     steps = 0
     running_loss = 0
 
-    for i in range(EPOCHS):
-        for j, x in enumerate(train_loader):
-            first_half = torch.reshape(x[0], (-1, 1))
-            first_half = torch.squeeze(first_half)
+    for epoch_num in range(EPOCHS):
+        for step_num, game in enumerate(train_loader):
+            data = game[0]
+            score_target = game[1].double()
 
-            second_half = torch.reshape(x[1], (-1, 1))
-            second_half = torch.squeeze(second_half)
-
-            pred_second_half = net(first_half)
-            loss = calc_loss(pred_second_half, second_half) 
-            if j % 10 == 1:
+            pred_score = net(data)
+            loss = calc_loss(pred_score, score_target) 
+            if step_num % 10 == 1:
                 print('pred', end='')
                 with torch.no_grad():
-                    print('pred_second: {}'.format(pred_second_half), end='\n\n')
-                    print('actual second half: {}'.format(second_half))
-                    print("loss: ", end='')
-                    print(loss)
+                    print('pred_second: {}'.format(pred_score), end='\n\n')
+                    print('actual second half: {}'.format(score_target))
+                    print('loss: {}'.format(loss))
             
             running_loss += abs(loss)
             optimizer.zero_grad()

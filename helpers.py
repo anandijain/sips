@@ -51,14 +51,19 @@ class DfPastGames(Dataset):
     # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
     def __init__(self, df, train_columns=['a_pts', 'h_pts']):
         self.df = df
+
         self.train_columns = train_columns
-        self.data_len = len(self.df) 
+        self.data_len = len(self.df)
+
         self.labels = self.df[self.train_columns].values
+        self.labels = torch.tensor(self.labels)
+        self.labels_shape = len(self.labels)
+
         self.data = self.df.drop(self.train_columns, axis=1).values
+        self.data = torch.tensor(self.data)
+        self.data_shape = len(self.data[0])
 
     def __getitem__(self, index):
-        # self.game = self.games[index]
-        # first_half, second_half = split_game_in_half(self.game)
         return self.data[index], self.labels[index]
 
     def __len__(self):
@@ -80,7 +85,6 @@ def get_games(fn='./data/nba2.csv'):
 
 def get_df(fn='./data/nba2.csv'):
     raw = csv(fn)
-    raw = drop_null_times(raw)
     # df = one_hots(raw, ['league', 'a_team', 'h_team'])
     df = one_hots(raw, ['a_team', 'h_team'])
     return df
@@ -97,8 +101,9 @@ def csv(fn='./data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
-    # df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
-    df = df.drop(['sport', 'league'], axis=1)
+    df = drop_null_times(df)
+    df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
+    # df = df.drop(['sport', 'league'], axis=1)
     return df.copy()
 
 
@@ -189,12 +194,12 @@ def label_split(df, col):
     # give column to be predicted given all others in csv
     # df is pd, col is string
     Y = df[col]
-    X = df
+    X = df.drop(col, axis=1)
     return X, Y
 
 
-def train_test(df):
-    test = df.sample(frac=0.5, random_state=None)
+def train_test(df, train_pct=0.5):
+    test = df.sample(frac=train_pct, random_state=None)
     train = df.drop(test.index)
     return train.copy(), test.copy()
 
