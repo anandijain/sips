@@ -36,13 +36,16 @@ class Sippy:
         self.set_league(self.league)
         self.json_events()
         self.counter = 0
+        
         if file_name is not None:
             self.file = open_file(file_name)
+            if header == 1:
+                self.write_header()
+
+            self.file.flush()
+
         access_time = time.time()
         self.init_games(access_time)
-        if header == 1:
-            self.write_header()
-        self.file.flush()
 
     def step(self):
         access_time = time.time()
