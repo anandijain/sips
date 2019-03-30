@@ -6,7 +6,6 @@ import random
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 
-
 class Df(Dataset):
     # predicting next line in time
     def __init__(self, np_df, unscaled):
@@ -51,15 +50,16 @@ class DfPastGames(Dataset):
     # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
     def __init__(self, df, train_columns=['a_pts', 'h_pts']):
         self.df = df
-
         self.train_columns = train_columns
         self.data_len = len(self.df)
 
         self.labels = self.df[self.train_columns].values
+        # self.labels= sk_scale(self.labels)
         self.labels = torch.tensor(self.labels)
         self.labels_shape = len(self.labels)
 
         self.data = self.df.drop(self.train_columns, axis=1).values
+        # self.data = sk_scale(self.data)
         self.data = torch.tensor(self.data)
         self.data_shape = len(self.data[0])
 
@@ -86,7 +86,7 @@ def get_games(fn='./data/nba2.csv'):
 def get_df(fn='./data/nba2.csv'):
     raw = csv(fn)
     # df = one_hots(raw, ['league', 'a_team', 'h_team'])
-    df = one_hots(raw, ['a_team', 'h_team'])
+    df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
     return df
 
 
@@ -101,9 +101,9 @@ def csv(fn='./data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
-    df = drop_null_times(df)
-    df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
-    # df = df.drop(['sport', 'league'], axis=1)
+    # df = drop_null_times(df)
+    # df = df.drop(['sport', 'league', 'lms_date', 'lms_time'], axis=1)
+    df = df.drop(['date'], axis=1)
     return df.copy()
 
 
@@ -187,7 +187,7 @@ def df_info(df):
 def random_game(games):
     game_id, game = random.choice(list(games.items()))
     print('game_id: {}'.format(game_id))
-    return game
+    return gam
 
 
 def label_split(df, col):
@@ -204,10 +204,11 @@ def train_test(df, train_pct=0.5):
     return train.copy(), test.copy()
 
 
+
 def sk_scale(data):
-    vals = data.to_numpy()
+    # vals = data.to_numpy()
     scaler = StandardScaler()
-    scaled = scaler.fit_transform(vals)
+    scaled = scaler.fit_transform(data)
     return scaled
 
 
