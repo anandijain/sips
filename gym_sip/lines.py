@@ -2,7 +2,7 @@ import time
 import os.path
 import requests
 import argparse
-# import helpers as h
+import helpers as h
 import matplotlib.pyplot as plt 
 import numpy as np
 
@@ -43,6 +43,8 @@ class Sippy:
                 self.write_header()
 
             self.file.flush()
+        else:
+            self.file = None
 
         access_time = time.time()
         self.init_games(access_time)
@@ -52,19 +54,25 @@ class Sippy:
         self.json_events()
         self.cur_games(access_time)
         time.sleep(1)
+
         print(str(self.counter) + ": time: " + str(time.localtime()) + '\n')
+        
         self.counter += 1
 
         if self.counter % 20 == 1:
             print("num games: " + str(len(self.games)))
             print('num events: ' + str(len(self.events)))
             self.update_games_list()
-            self.file.flush()
+            if self.file is not None:
+                self.file.flush()
 
         for game in self.games:
             if game.score.ended == 0:  # if game is not over
                 if game.lines.updated == 1 or game.score.new == 1:  # if lines updated or score updated
-                    game.write_game(self.file)  # write to csv
+                    
+                    if self.file is not None:
+                        game.write_game(self.file)  # write to csv
+
                     game.lines.updated = 0  # reset lines to not be updated
                     game.score.new == 0 
                 if game.score.a_win == 1 or game.score.h_win == 1:
@@ -191,7 +199,6 @@ class Sippy:
         self.file.write("h_odds_tot,a_deci_tot,h_deci_tot,a_hcap_tot,h_hcap_tot,")
         self.file.write("game_start_time\n")
 
-
     def __repr__(self):
         for game in self.games:
             print(game)
@@ -241,6 +248,7 @@ class Game:
         row.append(self.delta)
         row += self.lines.jps
         row.append(self.start_time)
+        print(row)
         return row
 
     def info(self):  # displays scores, lines
@@ -250,10 +258,10 @@ class Game:
         print(self.a_team, end='|')
         print(self.h_team, end='|')
         print('\nScores info: ')
-        self.score.info()
+        print(self.score)
         print('Game line info: ')
         print(str(self.delta), end='|')
-        self.lines.info()
+        print(self.lines)
         print(str(self.start_time) + "\n")
 
     def quick(self):
@@ -280,6 +288,9 @@ class Game:
     def league_fix(self):
         if self.league is not None:
             self.league = self.league.replace(',', '')
+
+    def __repr__(self):
+        self.info()
 
 
 class Lines:
@@ -391,6 +402,10 @@ class Lines:
                 file.write(str(0))
                 file.write(',')
 
+    def odds(self):
+        for elt in [self.last_mod_lines, self.a_odds_ml, self.h_odds_ml]:
+            print(str(elt), end='|')
+
     def __repr__(self):
         for param in self.params:
             try:
@@ -398,10 +413,6 @@ class Lines:
             except IndexError:
                 print('None', end='|')
         print('\n')
-
-    def odds(self):
-        for elt in [self.last_mod_lines, self.a_odds_ml, self.h_odds_ml]:
-            print(str(elt), end='|')
 
 
 class Score:
@@ -510,15 +521,15 @@ class Score:
             else:
                 file.write('0' + ',')
 
-    def info(self):
+    def json(self):
+        self.data = req(scores_url + self.game_id)
+
+    def __repr__(self):
         for param in self.params:
             if param is None:
                 param = 0
             print(str(param), end='|')
         print('\n')
-
-    def json(self):
-        self.data = req(scores_url + self.game_id)
 
 
 class Market:

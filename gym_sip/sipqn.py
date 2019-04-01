@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import numpy as np
+
 BATCH_SIZE = 200
 LR = 0.01                   # learning rate
 EPSILON = 0.9               # greedy policy
@@ -38,7 +40,7 @@ class Net(nn.Module):
         print('this is prev pred: {} more stuff'.format(51))
 
 class DQN(object):
-    def __init__(self, shape):
+    def __init__(self, N_STATES, N_ACTIONS, shape):
         self.shape = shape
         self.eval_net, self.target_net = Net(N_STATES, N_ACTIONS), Net(N_STATES, N_ACTIONS)
         self.learn_step_counter = 0                                     # for target updating

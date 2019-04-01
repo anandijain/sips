@@ -12,24 +12,26 @@ import sipqn
 # if __name__ == "__main__":
 
 env = gym.make('Sip-v0').unwrapped
-sip = ll.Sippy(file_name=None) # start scraper for nba, not writing to file
+sip = ll.Sippy(fn=None) # start scraper for nba, not writing to file
 
-print(sip)
+# print(sip)
 
-N_ACTIONS = env.action_space.n
 N_STATES = env.observation_space.shape[0]
+N_ACTIONS = env.action_space.n
 ENV_A_SHAPE = 0 if isinstance(env.action_space.sample(), int) else env.action_space.sample().shape     # to confirm the shape
 
 steps_done = 0
 
-dqn = sipqn.DQN(ENV_A_SHAPE)
-self.sip.step()
+dqn = sipqn.DQN(N_STATES, N_ACTIONS, ENV_A_SHAPE)
+
+sip.step()
 
 while True:
 	
-    # steps_done += 1
+    sip.step()
+    steps_done += 1
 
-    for game in self.sip.games:
+    for game in sip.games:
         game.__repr__()
         cur_state = game.return_row()
 

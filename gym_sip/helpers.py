@@ -60,6 +60,7 @@ class DfPastGames(Dataset):
 
         self.data = self.df.drop(self.train_columns, axis=1).values
         # self.data = sk_scale(self.data)
+        print(self.data)
         self.data = torch.tensor(self.data)
         self.data_shape = len(self.data[0])
 
@@ -85,8 +86,8 @@ def get_games(fn='../data/nba2.csv'):
 
 def get_df(fn='../data/nba2.csv'):
     raw = csv(fn)
-    df = one_hots(raw, ['league', 'a_team', 'h_team'])
-    # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
+    # df = one_hots(raw, ['league', 'a_team', 'h_team'])
+    df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
     return df
 
 
@@ -101,9 +102,9 @@ def csv(fn='../data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
-    df = drop_null_times(df)
-    df = df.drop(['sport', 'lms_date', 'lms_time'], axis=1)
-    # df = df.drop(['date'], axis=1)
+    # df = drop_null_times(df)
+    # df = df.drop(['sport', 'lms_date', 'lms_time'], axis=1)
+    df = df.drop(['date'], axis=1)
     return df.copy()
 
 
