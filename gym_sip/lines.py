@@ -414,7 +414,7 @@ class Lines:
                 print('None', end='|')
         print('\n')
 
-
+ 
 class Score:
     def __init__(self, game_id):
         self.new = 1

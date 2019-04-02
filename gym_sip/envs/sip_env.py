@@ -67,9 +67,11 @@ class SipEnv(gym.Env):
         self.games = h.get_games(fn)
         self.game = None
         self.game_id = 0
+
         self.init_a_bet = Bet(100, 0, (0, 0), None)
         self.init_h_bet = Bet(100, 1, (0, 0), None)
         self.new_game()
+        
         self.money = AUM
         self.last_bet = None  # 
         self.cur_state = self.game.cur_state  # need to store
