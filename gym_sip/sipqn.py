@@ -37,17 +37,19 @@ class Net(nn.Module):
         x = F.relu(x)
         actions_value = self.out(x)
         return actions_value
-        print('this is prev pred: {} more stuff'.format(51))
+        # print('this is prev pred: {} more stuff'.format(51))
 
 class DQN(object):
     def __init__(self, N_STATES, N_ACTIONS, shape):
         self.shape = shape
         self.eval_net, self.target_net = Net(N_STATES, N_ACTIONS), Net(N_STATES, N_ACTIONS)
         self.learn_step_counter = 0                                     # for target updating
-        self.memory_counter = 0                                         # for storing memory
+        self.memory_counter = 0                                        # for storing memory
         self.memory = np.zeros((MEMORY_CAPACITY, N_STATES * 2 + 2))     # initialize memory
         self.optimizer = torch.optim.Adam(self.eval_net.parameters(), lr=LR)
         self.loss_func = nn.MSELoss()
+        self.N_ACTIONS = N_ACTIONS
+        self.N_STATES = N_STATES
 
     def choose_action(self, x):
         x = torch.unsqueeze(torch.FloatTensor(x), 0)
@@ -56,7 +58,7 @@ class DQN(object):
             action = torch.max(actions_value, 1)[1].data.numpy()
             action = action[0] if self.shape == 0 else action.reshape(self.shape)  # return the argmax index
         else:   # random
-            action = np.random.randint(0, N_ACTIONS)
+            action = np.random.randint(0, self.N_ACTIONS)
             action = action if self.shape == 0 else action.reshape(self.shape)
         return action
 
@@ -73,19 +75,19 @@ class DQN(object):
 
         sample_index = np.random.choice(MEMORY_CAPACITY, BATCH_SIZE)
         b_memory = self.memory[sample_index, :]
-        b_s = torch.FloatTensor(b_memory[:, :N_STATES])
-        b_a = torch.LongTensor(b_memory[:, N_STATES:N_STATES+1].astype(int))
-        b_r = torch.FloatTensor(b_memory[:, N_STATES+1:N_STATES+2])
-        b_s_ = torch.FloatTensor(b_memory[:, -N_STATES:])
+        b_s = torch.FloatTensor(b_memory[:, :self.N_STATES])
+        b_a = torch.LongTensor(b_memory[:, self.N_STATES:self.N_STATES+1].astype(int))
+        b_r = torch.FloatTensor(b_memory[:, self.N_STATES+1:self.N_STATES+2])
+        b_s_ = torch.FloatTensor(b_memory[:, -self.N_STATES:])
 
         # q_eval w.r.t the action in experience
         q_eval = self.eval_net(b_s).gather(1, b_a)  # shape (batch, 1)
         q_next = self.target_net(b_s_).detach()     # detach from graph, don't backpropagate
         q_target = b_r + GAMMA * q_next.max(1)[0].view(BATCH_SIZE, 1)   # shape (batch, 1)
         loss = self.loss_func(q_eval, q_target)
-        print('q_eval: {}'.format(q_eval))
-        print('q_next: {}'.format(q_next))
-        print('q_target: {}'.format(q_target))
+        # print('q_eval: {}'.format(q_eval))
+        # print('q_next: {}'.format(q_next))
+        # print('q_target: {}'.format(q_target))
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

@@ -67,9 +67,11 @@ class SipEnv(gym.Env):
         self.games = h.get_games(fn)
         self.game = None
         self.game_id = 0
+
         self.init_a_bet = Bet(100, 0, (0, 0), None)
         self.init_h_bet = Bet(100, 1, (0, 0), None)
         self.new_game()
+        
         self.money = AUM
         self.last_bet = None  # 
         self.cur_state = self.game.cur_state  # need to store
@@ -82,10 +84,10 @@ class SipEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=-1e7, high=1e7, shape=(len(self.cur_state), 0))
                                                 # ,dtype=np.float32)
 
-    def step(self, action, cur_state):  # action given to us from test.py
+    def step(self, action):  # action given to us from test.py
         self.action = action   
         reward = 0 
-        self.cur_state, done = cur_state# self.game.next()  # goes to the next timestep in current game
+        self.cur_state, done = self.game.next()  # goes to the next timestep in current game
         self._odds()
         self.set_init_odds()
 
@@ -99,10 +101,13 @@ class SipEnv(gym.Env):
         if self.last_bet is not None:
             self.last_bet.wait_amt += 1
 
-        reward = self.act()
+        reward = self.act()  # MAIN ACTION CALL
 
         if reward == None:
             return self.cur_state, 0, True, self.odds
+        # place_in_game = self.game.index / self.game.game_len
+        # if reward > 0:
+        #     reward = reward / place_in_game
 
         return self.cur_state, reward, done, self.odds
 

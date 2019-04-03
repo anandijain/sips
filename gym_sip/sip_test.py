@@ -1,14 +1,15 @@
 import gym
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import matplotlib.pyplot as plt 
+import gym_sip
+
 import random
 import numpy as np
 
 import helpers as h
-import gym_sip.gym_sip
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import matplotlib.pyplot as plt 
 
 if __name__ == "__main__":
     EPOCHS = 50000

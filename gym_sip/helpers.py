@@ -80,15 +80,15 @@ def get_games(fn='../data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
     games = chunk(df, 'game_id')
-    games = remove_missed_wins(games)
+   # games = remove_missed_wins(games)
     return games
 
 
 def get_df(fn='../data/nba2.csv'):
     raw = csv(fn)
     # df = one_hots(raw, ['league', 'a_team', 'h_team'])
-    df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
-    return df
+    # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
+    return raw
 
 
 def chunk(df, col='game_id'):
@@ -104,8 +104,8 @@ def csv(fn='../data/nba2.csv'):
     df = pd.read_csv(fn)
     # df = drop_null_times(df)
     # df = df.drop(['sport', 'lms_date', 'lms_time'], axis=1)
-    df = df.drop(['date'], axis=1)
-    return df.copy()
+    # df = df.drop(['date'], axis=1)
+    return df
 
 
 def one_hots(df, cols):
@@ -301,6 +301,15 @@ def net(bet, bet2):
     else:
         return bet.amt * _eq(bet.h_odds) - bet2.amt
 
+def net_score(pick, pick2):
+    if pick.team == 0:
+        init_diff = pick.a_pts - pick.h_pts
+        final_diff = pick2.a_pts - pick2.h_pts
+    elif pick.team == 1:
+        init_diff = pick.h_pts - pick.a_pts
+        final_diff = pick2.h_pts - pick2.a_pts
+
+    return final_diff - init_diff
 
 def bet_amt(money):
     # return 0.05 * money + 100  # 100 is arbitrary
