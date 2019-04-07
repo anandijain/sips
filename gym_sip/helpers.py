@@ -80,15 +80,15 @@ def get_games(fn='../data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
     games = chunk(df, 'game_id')
-   # games = remove_missed_wins(games)
+    games = remove_missed_wins(games)
     return games
 
 
 def get_df(fn='../data/nba2.csv'):
     raw = csv(fn)
-    # df = one_hots(raw, ['league', 'a_team', 'h_team'])
+    df = one_hots(raw, ['league', 'a_team', 'h_team'])
     # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
-    return raw
+    return df
 
 
 def chunk(df, col='game_id'):
@@ -102,8 +102,9 @@ def csv(fn='../data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
-    # df = drop_null_times(df)
-    # df = df.drop(['sport', 'lms_date', 'lms_time'], axis=1)
+    df = drop_null_times(df)
+    df = dates(df)
+    df = df.drop('sport', axis=1)
     # df = df.drop(['date'], axis=1)
     return df
 
@@ -154,6 +155,26 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
 
     print('df after length: {}'.format(after_len))
     print('delta (lines removed): {}'.format(delta))
+    return df
+
+
+def dates(df):
+    # convert ['lms_date', 'lms_time'] into datetimes
+    df['datetime'] = df['lms_date'] + ' ' + df['lms_time']
+    # print(df['datetime'])
+    df['datetime'] = pd.to_datetime(df['datetime'], utc=True)
+    
+    dt = df['datetime'].dt
+    df['time_vals'] = pd.to_numeric(df['datetime'])
+    date_categories = [dt.year, dt.month, dt.week, dt.day, 
+                        dt.hour, dt.minute, dt.second, dt.dayofweek, dt.dayofyear]
+    col_names = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'dayofweek', 'dayofyear']
+    
+    for i in range(len(date_categories) - 1):
+        df[col_names[i]] = date_categories[i]
+
+    df = df.drop(['lms_date', 'lms_time', 'datetime'], axis=1)
+    # df = df.drop(df['datetime'], axis=1)
     return df
 
 
@@ -242,16 +263,6 @@ def get_t_games(df):
 def pad_tensor(game, length=1200):
     tensor = torch.from_numpy(game)
     return torch.cat([tensor, tensor.new(length - tensor.size(0), * tensor.size()[1:]).zero_()])
-
-
-def dates(df):
-    # convert ['lms_date', 'lms_time'] into datetimes
-    df['datetime'] = df['lms_date'] + ' ' + df['lms_time']
-    df['datetime'] = pd.to_datetime(df['datetime'], infer_datetime_format=True, errors='coerce')
-    df['datetime'] = pd.to_numeric(df['datetime'])
-    df = df.drop(['lms_date', 'lms_time'], axis=1)
-    # df = df.drop(df['datetime'], axis=1)
-    return df
 
 
 def _eq(odd):

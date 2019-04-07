@@ -63,7 +63,7 @@ class SippyState:
 class SipEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, fn='../data/nba2.csv'):
+    def __init__(self, fn):
         self.games = h.get_games(fn)
         self.game = None
         self.game_id = 0
