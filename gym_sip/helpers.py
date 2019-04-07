@@ -88,7 +88,6 @@ def get_games(fn='../data/nba2.csv'):
 def get_df(fn='../data/nba2.csv'):
     raw = csv(fn)
     df = one_hots(raw, ['league', 'a_team', 'h_team'])
-    print(df)
     # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
     return df
 
@@ -105,7 +104,6 @@ def csv(fn='../data/nba2.csv'):
     print(fn)
     df = pd.read_csv(fn)
     df = drop_null_times(df)
-    
     df = df.drop('sport', axis=1)
     # df = df.drop(['date'], axis=1)
     return df
@@ -131,10 +129,10 @@ def remove_missed_wins(games):
                 games.remove(elt)
     else:
         raise TypeError('games argument must be dict or list')
-
-    # if games_len != len(games):
-    #     print('before: {}'.format(games_len))
-    #     print('after: {}'.format(len(games)))
+        
+    if games_len != len(games):
+        print('before: {}'.format(games_len))
+        print('after: {}'.format(len(games)))
 
     return games
 
@@ -148,7 +146,6 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
     
     for col in columns:
         df[col] = df[col].replace('0', np.nan)
-        # df[col] = pd.to_datetime(df[col])  # TODO
 
     df = df.dropna()
 
