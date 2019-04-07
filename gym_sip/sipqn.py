@@ -16,25 +16,38 @@ class Net(nn.Module):
     def __init__(self, N_STATES, N_ACTIONS):
         super(Net, self).__init__()
 
-        self.fc1 = nn.Linear(N_STATES, 50)
+        self.fc1 = nn.Linear(N_STATES, 100)
         self.fc1.weight.data.normal_(0, 0.1)   
         
-        self.fc2 = nn.Linear(50, 25)
+        self.fc2 = nn.Linear(100, 100)
         self.fc2.weight.data.normal_(0, 0.1)
         
-        self.fc3 = nn.Linear(25, 10)
+        self.fc3 = nn.Linear(100, 100)
         self.fc3.weight.data.normal_(0, 0.1)   
+
+        self.fc4 = nn.Linear(100, 50)
+        self.fc4.weight.data.normal_(0, 0.1)   
+        
+        self.fc5 = nn.Linear(50, 25)
+        self.fc5.weight.data.normal_(0, 0.1)   
+
+        self.fc6 = nn.Linear(25, 25)
+        self.fc6.weight.data.normal_(0, 0.1) 
+        
+        self.fc7 = nn.Linear(25, 10)
+        self.fc7.weight.data.normal_(0, 0.1) 
         
         self.out = nn.Linear(10, N_ACTIONS)
         self.out.weight.data.normal_(0, 0.1)   
 
     def forward(self, x):
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = self.fc3(x)
-        x = F.relu(x)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        x = F.relu(self.fc5(x))
+        x = F.relu(self.fc6(x))
+        x = F.relu(self.fc7(x))
         actions_value = self.out(x)
         return actions_value
         # print('this is prev pred: {} more stuff'.format(51))

@@ -79,7 +79,8 @@ headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
 def get_games(fn='../data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
-    games = chunk(df, 'game_id')
+    df = dates(df)
+    games = chunk(df)
     games = remove_missed_wins(games)
     return games
 
@@ -87,6 +88,7 @@ def get_games(fn='../data/nba2.csv'):
 def get_df(fn='../data/nba2.csv'):
     raw = csv(fn)
     df = one_hots(raw, ['league', 'a_team', 'h_team'])
+    print(df)
     # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
     return df
 
@@ -103,7 +105,7 @@ def csv(fn='../data/nba2.csv'):
     print(fn)
     df = pd.read_csv(fn)
     df = drop_null_times(df)
-    df = dates(df)
+    
     df = df.drop('sport', axis=1)
     # df = df.drop(['date'], axis=1)
     return df
@@ -169,12 +171,13 @@ def dates(df):
     date_categories = [dt.year, dt.month, dt.week, dt.day, 
                         dt.hour, dt.minute, dt.second, dt.dayofweek, dt.dayofyear]
     col_names = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'dayofweek', 'dayofyear']
-    
+
     for i in range(len(date_categories) - 1):
         df[col_names[i]] = date_categories[i]
 
     df = df.drop(['lms_date', 'lms_time', 'datetime'], axis=1)
-    # df = df.drop(df['datetime'], axis=1)
+  
+    print('df after h.dates: {}'.format(df))
     return df
 
 

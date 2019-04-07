@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # except FileNotFoundError:
     #     pass
 
-    num_games = 50
+    num_games = 200
 
     x_axis = []
     y_axis = [] 
@@ -66,6 +66,7 @@ if __name__ == "__main__":
             print('\n')
 
         cur_state, d = env.next()
+        print(cur_state)
 
         i = 0
         while True:
@@ -120,23 +121,23 @@ if __name__ == "__main__":
 # torch.save(dqn.eval_net.state_dict(), 'models/eval.ckpt')
 # torch.save(dqn.target_net.state_dict(), 'models/target.ckpt')
 
-# print(env.money)
-# print(len(x_axis))
-# np_x_axis = np.array(x_axis)
-# np_reward_list = np.array(reward_list)
+print(env.money)
+print(len(x_axis))
+np_x_axis = np.array(x_axis)
+np_reward_list = np.array(reward_list)
 
-# np_homesales = np.array(homesales)
-# np_awaysales = np.array(awaysales)
-# np_money_list = np.array(money_list)
+np_homesales = np.array(homesales)
+np_awaysales = np.array(awaysales)
+np_money_list = np.array(money_list)
 
-# # np_rl = np.array(reward_list)
-# # np_rl = np_rl.astype(float)
+# np_rl = np.array(reward_list)
+# np_rl = np_rl.astype(float)
 
-# plt.scatter(np_x_axis, np_homesales, c='blue', s=1, alpha=0.3)
-# plt.scatter(np_x_axis, np_awaysales, c='green', s=1, alpha=0.3)
-# plt.scatter(np_x_axis, np_money_list, c='yellow', s=2.5, alpha=0.5)
-# plt.scatter(np_x_axis, np_reward_list, c='red', s=2.5, alpha=0.5)
+plt.scatter(np_x_axis, np_homesales, c='blue', s=1, alpha=0.3)
+plt.scatter(np_x_axis, np_awaysales, c='green', s=1, alpha=0.3)
+plt.scatter(np_x_axis, np_money_list, c='yellow', s=2.5, alpha=0.5)
+plt.scatter(np_x_axis, np_reward_list, c='red', s=2.5, alpha=0.5)
 
-# # plt.plot(np_x_axis, np_reward_list)
+# plt.plot(np_x_axis, np_reward_list)
 
-# plt.show()
+plt.show()

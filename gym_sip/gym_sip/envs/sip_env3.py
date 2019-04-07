@@ -3,7 +3,7 @@ import helpers as h
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
-class Scraper:
+class BovadaState:
 	def __init__(self):
 		self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
                   "description/basketball/nba?marketFilterId=def&liveOnly=true&lang=en",
@@ -33,7 +33,7 @@ class Scraper:
 
 class SipEnv3:
 	def __init__(self):
-        self.scraper = Scraper()
+        self.scraper = BovadaState()
         self.cur_states = None
 
     def step(self, action):
