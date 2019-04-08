@@ -1,6 +1,7 @@
 import requests 
 import helpers as h
 import time
+import tensorflow as tf
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -55,7 +56,7 @@ class BovadaState:
 			total = live_game[]
 
 			ordered_list = [0, 0, game_id, a_team, h_team, time, 0, 0, quarter, 0, a_pts, h_pts, 0, 0, 0, 0, last_updated, 0, a_ml, h_ml, a_odds_ps, h_odds_ps, 0, 0, a_spread, h_spread, u_odds_total, o_odds_total, 0, 0, total, total, 0] # zero for things we are missing got to check over under since on nba2 anand sillily put home and away
-
+			ordered_tensor = tf.convert_to_tensor(ordered_list)
 
 
 
@@ -75,7 +76,25 @@ class SipEnv3:
 
     def act(self):
     	r = 0
-    	return r
+    	if self.game_over == True:
+    		for bet in self.game_bets:
+    			if bet.team == winning_team:
+    				reward = bet.winning_amt / bet.risk_amt
+    				r += reward
+    			if bet.team == losing_team:
+    				reward = -1
+    				r += reward
+
+    	if self.game_over == False:
+    		if action == skip:
+    			r = 0 
+    		if action == buy_away:
+    			r = .01
+    		if action == buy_home:
+    			r = .01
+
+
+		return r
 
 
 def req(url):
