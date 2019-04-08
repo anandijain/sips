@@ -3,26 +3,19 @@ import matplotlib.pyplot as plt
 import threading
 import time
 
-class Scraper:
-    def __init__(self, file_name, header=0, game_type=1, run=1):
-        self.fn = file_name
+class Test:
+    def __init__(self, fn='nba2', header=0, game_type=1, run=1):
+        self.fn = fn
         self.gt = game_type
         self.header = header
-        self.sip = ll.Sippy(self.fn, header, self.gt)
+        self.sip = ll.Sippy(fn=self.fn, header=self.header, league=self.gt)
         self.sip.step()
         print('num_games: ' + str(len(self.sip.games)))
         if len(self.sip.games) > 0:
             self.game = self.sip.games[0]
-
-        if run:
+        if run != 0:
             self.run()
+        # self.game.info()
 
     def run(self):
-        while True:
-            self.sip.step()
-            # for game in self.sip.games:
-            #     action = sipqn.choose_action()
-
-    def game_states():
-        pass
-
+        self.sip.run()
