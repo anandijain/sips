@@ -12,8 +12,8 @@ register(
     kwargs={'fn': './data/bangout3.csv'}
 )
 
-register(
-    id='Sip-v2',
-    entry_point='gym_sip.envs:SipEnv3',
-    kwargs={}
-)
+# register(
+#     id='Sip-v2',
+#     entry_point='gym_sip.envs:SipEnv3',
+#     kwargs={}
+# )

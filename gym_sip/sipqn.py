@@ -70,6 +70,7 @@ class DQN(object):
             actions_value = self.eval_net.forward(x)
             action = torch.max(actions_value, 1)[1].data.numpy()
             action = action[0] if self.shape == 0 else action.reshape(self.shape)  # return the argmax index
+            print('nonrandom action')
         else:   # random
             action = np.random.randint(0, self.N_ACTIONS)
             action = action if self.shape == 0 else action.reshape(self.shape)
@@ -101,6 +102,8 @@ class DQN(object):
         # print('q_eval: {}'.format(q_eval))
         # print('q_next: {}'.format(q_next))
         # print('q_target: {}'.format(q_target))
+
+        print('loss: {}:'.format(loss))
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

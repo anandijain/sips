@@ -6,6 +6,24 @@ import random
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 
+
+teams = ['Atlanta Hawks', 'Boston Celtics',
+       'Brooklyn Nets', 'Charlotte Hornets',
+       'Chicago Bulls', 'Cleveland Cavaliers',
+       'Dallas Mavericks', 'Denver Nuggets',
+       'Detroit Pistons', 'Golden State Warriors',
+       'Houston Rockets', 'Indiana Pacers',
+       'Los Angeles Clippers', 'Los Angeles Lakers',
+       'Memphis Grizzlies', 'Miami Heat',
+       'Milwaukee Bucks', 'Minnesota Timberwolves',
+       'New Orleans Pelicans', 'New York Knicks',
+       'Oklahoma City Thunder', 'Orlando Magic',
+       'Philadelphia 76ers', 'Phoenix Suns',
+       'Portland Trail Blazers', 'Sacramento Kings',
+       'San Antonio Spurs', 'Toronto Raptors',
+       'Utah Jazz', 'Washington Wizards']
+
+
 class Df(Dataset):
     # predicting next line in time
     def __init__(self, np_df, unscaled):
@@ -24,7 +42,6 @@ class Df(Dataset):
 
     def __len__(self):
         return self.data_len
-
 
 
 class DfGame(Dataset):
@@ -77,7 +94,7 @@ headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
            'num_markets', 'a_odds_ml', 'h_odds_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
 
 
-def get_games(fn='../data/nba2.csv'):
+def get_games(fn='./data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
     df = dates(df)
@@ -86,7 +103,7 @@ def get_games(fn='../data/nba2.csv'):
     return games
 
 
-def get_df(fn='../data/nba2.csv'):
+def get_df(fn='./data/nba2.csv'):
     raw = csv(fn)
     df = one_hots(raw, ['league', 'a_team', 'h_team'])
     # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
@@ -100,7 +117,7 @@ def chunk(df, col='game_id'):
     return games
 
 
-def csv(fn='../data/nba2.csv'):
+def csv(fn='./data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)

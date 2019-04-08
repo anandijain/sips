@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # main_init()
     env = gym.make('Sip-v0').unwrapped
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     BATCH_SIZE = 200
     LR = 0.01                   # learning rate
@@ -38,13 +38,13 @@ if __name__ == "__main__":
 
     dqn = sipqn.DQN(N_STATES, N_ACTIONS, ENV_A_SHAPE)
 
-    # try:
-    #     dqn.eval_net.load_state_dict(torch.load('models/eval.ckpt'))
-    #     dqn.target_net.load_state_dict(torch.load('models/target.ckpt'))
-    # except FileNotFoundError:
-    #     pass
+    try:
+        dqn.eval_net.load_state_dict(torch.load('./models/eval.ckpt'))
+        dqn.target_net.load_state_dict(torch.load('./models/target.ckpt'))
+    except FileNotFoundError:
+        pass
 
-    num_games = 200
+    num_games = 1000
 
     x_axis = []
     y_axis = [] 
@@ -118,8 +118,8 @@ if __name__ == "__main__":
             else:
                 break
 
-# torch.save(dqn.eval_net.state_dict(), 'models/eval.ckpt')
-# torch.save(dqn.target_net.state_dict(), 'models/target.ckpt')
+torch.save(dqn.eval_net.state_dict(), './models/eval.ckpt')
+torch.save(dqn.target_net.state_dict(), './models/target.ckpt')
 
 print(env.money)
 print(len(x_axis))

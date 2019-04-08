@@ -1,7 +1,6 @@
 import requests 
 import helpers as h
 import time
-import tensorflow as tf
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -15,24 +14,33 @@ class BovadaState:
 		self.prev_states = []
 		self.cur_states = []
 		self.games = []  # parsed cur_states
-		self.get_cur_state()
-	def next(self):
-		self.prev_states = self.cur_states
+		self.events = []
+		self.jsons = []
 		self.get_cur_state()
 		self.parse()
+	def next(self):
+		# self.prev_states = self.cur_states
+		self.get_cur_state()
+		self.parse()
+		for event in self.events:
+			 exists = 0
+			 for state in self.cur_states:
+			 	if event['id'] == state[2]:  # third element is game_id 
+			 		if event
 		return self.cur_states
 	def get_cur_state(self):
-		jsons = []
+		self.jsons = []
 		json = None
 		for i, link in enumerate(self.links):
 			while json is None:
 				json = req(link)
 			if json is not None:
-				self.cur_states[i] = json
+				self.jsons.append(json)
 	def parse(self):
 		df = self.cur_states[0]
 		df = df[0]
 		live_games = df['events']
+		self.events = []
 		for live_game in live_games:
 			game_id = live_game['id']
 			h_team = live_game['competitors'][0]['name']
@@ -55,8 +63,11 @@ class BovadaState:
 			quarter = score_json['clock']['periodNumber']
 			total = live_game[]
 
-			ordered_list = [0, 0, game_id, a_team, h_team, time, 0, 0, quarter, 0, a_pts, h_pts, 0, 0, 0, 0, last_updated, 0, a_ml, h_ml, a_odds_ps, h_odds_ps, 0, 0, a_spread, h_spread, u_odds_total, o_odds_total, 0, 0, total, total, 0] # zero for things we are missing got to check over under since on nba2 anand sillily put home and away
-			ordered_tensor = tf.convert_to_tensor(ordered_list)
+			# zero for things we are missing got to check over under since on nba2 anand sillily put home and away
+			ordered_list = [0, 0, game_id, a_team, h_team, time, 0, 0, quarter, 0, a_pts, h_pts, 0, 0, 0, 0, 
+							last_updated, 0, a_ml, h_ml, a_odds_ps, h_odds_ps, 0, 0, a_spread, h_spread, 
+							u_odds_total, o_odds_total, 0, 0, total, total, 0] 
+			self.events.append(ordered_list)
 
 
 
