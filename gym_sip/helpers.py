@@ -26,6 +26,7 @@ class Df(Dataset):
         return self.data_len
 
 
+
 class DfGame(Dataset):
     # given dictionary of padded games
     def __init__(self, games):
@@ -129,7 +130,7 @@ def remove_missed_wins(games):
                 games.remove(elt)
     else:
         raise TypeError('games argument must be dict or list')
-        
+
     if games_len != len(games):
         print('before: {}'.format(games_len))
         print('after: {}'.format(len(games)))
@@ -342,3 +343,19 @@ def net_given_odds(bet, cur_odds):
         return bet.amt * _eq(bet.a_odds) - bet2_amt
     else:
         return bet.amt * _eq(bet.h_odds) - bet2_amt
+
+
+def onehot_teams(a_team, h_team):  #take in 2 teams playing and onehot to consistent format
+       one_hotted = []
+       for cur_team in [a_team, h_team]:
+
+              for index, elt in enumerate(teams):
+                     if cur_team == elt:
+                            onehot1 = pd.Series([0 for i in range(index)])
+                            onehotreal = pd.Series([1])
+                            onehot2 = pd.Series([0 for i in range(30-index-1)])
+                            y = onehot1.append(onehotreal)
+                            final = y.append(onehot2)
+                            final = final.reset_index(drop=True)
+                            one_hotted.append(final)
+       return one_hotted

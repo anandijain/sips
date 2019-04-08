@@ -66,11 +66,31 @@ class SipEnv3:
         self.scraper = BovadaState()
         self.cur_states = None
 
-    def step(self, action):
-    	self.cur_states = scraper.next()  # list of game rows, dtype=tensor
+    def step(self, actions):
+    	self.cur_states = self.scraper.next()  # list of game rows, dtype=tensor
+    	self.actions = actions
+    	rewards = []
+    	reward = 0
+    	game_ids = []
+    	current_num = len(self.cur_states)
+    	for cur_state in self.cur_states:
+    		for i in range(current_num):
+    			for action in self.actions:
+    				game_id = action[1]
+    				if game_id == cur_State[2]:
+    					self._odds()
+    					reward = self.act()
+    					rewards += reward
+    	return self.cur_states, rewards, done, self.odds
+
+
+
+    		if cur_state[2] ==
+    	self._odds()
+
     	rewards = []
     	for game in self.games:
-    		rewards.append(self.act(action))
+    		rewards.append(self.act(action[0]))
 
     	return next_states, rewards, d, misc
 
@@ -85,16 +105,24 @@ class SipEnv3:
     				reward = -1
     				r += reward
 
-    	if self.game_over == False:
-    		if action == skip:
+    	else:
+    		if action[0] == skip:
     			r = 0 
-    		if action == buy_away:
+
+    		else:
     			r = .01
-    		if action == buy_home:
-    			r = .01
+    			self._bet()
+
 
 
 		return r
+
+	def _bet(self):
+        # we don't update self.money because we don't want it to get a negative reward on _bet()
+        print("bet*")
+        bet = Bet(self.action, self.odds, self.cur_state)
+        self.game_bets.append(bet)
+
 
 
 def req(url):
@@ -117,3 +145,28 @@ def req(url):
     except ValueError:
         time.sleep(2)
         return
+
+
+class Bet:
+    # class storing bet info, will be stored in pair (hedged-bet)
+    # might want to add time into game so we can easily aggregate when it is betting in the game
+    # possibly using line numbers where they update -(1/(x-5)). x=5 is end of game
+    # maybe bets should be stored as a step (csv line) and the bet amt and index into game.
+    def __init__(self, action, odds, cur_state):
+        self.amt = amt
+        self.team = action  # 0 for away, 1 for home
+        self.a_odds = odds[0]
+        self.h_odds = odds[1]
+        self.cur_state = cur_state
+        self.wait_amt = 0
+
+    def reset_odds(self):
+        # reset both odds
+        self.a_odds = 0
+        self.h_odds = 0
+
+    def __repr__(self):
+        # simple console log of a bet
+        print(h.act(self.team))
+        print('bet amt: ' + str(self.amt) + ' | team: ' + str(self.team))
+        print('a_odds: ' + str(self.a_odds) + ' | h_odds: ' + str(self.h_odds))
