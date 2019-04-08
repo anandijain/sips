@@ -1,5 +1,6 @@
 import requests 
 import helpers as h
+import time
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -37,12 +38,25 @@ class BovadaState:
 			a_team = live_game['competitors'][1]['name']
 			a_ml = live_game['displayGroups'][0]['markets'][1]['outcomes'][0]['price']['american']
 			h_ml = live_game['displayGroups'][0]['markets'][1]['outcomes'][1]['price']['american']
-			a_spread = live_game['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
-			h_spread = live_game['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
+			a_spread = live_game['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['handicap']
+			h_spread = live_game['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['handicap']
+			a_odds_ps = live_game['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
+			h_odds_ps = live_game['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
+			u_odds_total = live_game['displayGroups'][0]['markets'][2]['outcomes'][1]['price']['american']
+			o_odds_total = live_game['displayGroups'][0]['markets'][2]['outcomes'][0]['price']['american']
+			total = live_game['displayGroups'][0]['markets'][2]['outcomes'][0]['price']['handicap']
+
 			score_json = req(self.scores_url + game_id) #includes baskets and times for future sync but for now are just getting current score
 			h_pts = score_json['latestScore']['home']
 			a_pts = score_json['latestScore']['away']
 			last_updated = score_json['lastUpdated']
+			time = time.time()
+			quarter = score_json['clock']['periodNumber']
+			total = live_game[]
+
+			ordered_list = [0, 0, game_id, a_team, h_team, time, 0, 0, quarter, 0, a_pts, h_pts, 0, 0, 0, 0, last_updated, 0, a_ml, h_ml, a_odds_ps, h_odds_ps, 0, 0, a_spread, h_spread, u_odds_total, o_odds_total, 0, 0, total, total, 0] # zero for things we are missing got to check over under since on nba2 anand sillily put home and away
+
+
 
 
 
