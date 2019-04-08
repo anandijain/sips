@@ -28,7 +28,22 @@ class BovadaState:
 			if json is not None:
 				self.cur_states[i] = json
 	def parse(self):
-		self.games = None
+		df = self.cur_states[0]
+		df = df[0]
+		live_games = df['events']
+		for live_game in live_games:
+			game_id = live_game['id']
+			h_team = live_game['competitors'][0]['name']
+			a_team = live_game['competitors'][1]['name']
+			a_ml = live_game['displayGroups'][0]['markets'][1]['outcomes'][0]['price']['american']
+			h_ml = live_game['displayGroups'][0]['markets'][1]['outcomes'][1]['price']['american']
+			a_spread = live_game['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
+			h_spread = live_game['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
+			score_json = req(self.scores_url + game_id) #includes baskets and times for future sync but for now are just getting current score
+			h_pts = score_json['latestScore']['home']
+			a_pts = score_json['latestScore']['away']
+			last_updated = score_json['lastUpdated']
+
 
 
 class SipEnv3:
