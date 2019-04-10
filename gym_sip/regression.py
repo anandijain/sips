@@ -42,20 +42,20 @@ class Net(nn.Module):
 
 if __name__ == "__main__":
 
-    batch_size = 1
+    batch_size = 128
     df = h.get_df()
     num_cols = df.shape[1]
 
     train_df, test_df = h.train_test(df, train_pct=0.3)
 
-    train = h.DfCols(train_df)
-    test = h.DfCols(test_df)
+    train = h.DfCols(train_df, train_cols=None)
+    test = h.DfCols(test_df, train_cols=None)
 
     input_size = len(train.data[0])
     output_size = len(train.labels[0])
     hidden_size = (input_size + output_size) // 2
 
-    train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
 
     net = Net(input_size, hidden_size, output_size)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     calc_loss = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters())
 
-    EPOCHS = 2
+    EPOCHS = 5
     steps = 0
     running_loss = 0
     correct = 0
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
             data = item[0]
             target = item[1].double()
-
+            # print(data.shape)
             pred = net(data)
 
             loss = calc_loss(pred, target)
@@ -87,9 +87,9 @@ if __name__ == "__main__":
             with torch.no_grad():
                 if step_num % 10 == 1:
                     print('step: {}'.format(step_num))
-                    print('input: {}'.format(data))
-                    print('pred: {}'.format(pred))
-                    print('target: {}'.format(target))
+                    # print('input: {}'.format(data))
+                    # print('pred: {}'.format(pred))
+                    # print('target: {}'.format(target))
                     print('loss: {}'.format(loss), end='\n\n')
             
             running_loss += abs(loss)
@@ -102,18 +102,18 @@ if __name__ == "__main__":
 
             test_data = test_item[0]
             target = test_item[1].double()
-        
             with torch.no_grad():
 
                 pred = net(test_data)
+                test_loss = calc_loss(pred, target)
 
-                if test_step % 10 == 1:
-                    print('step: {}'.format(step_num))
-                    print('input: {}'.format(test_data))
-                    print('pred: {}'.format(pred))
-                    print('target: {}'.format(target))
+                # if test_step % 10 == 1:
+                #     print('step: {}'.format(step_num))
+                #     print('input: {}'.format(test_data))
+                #     print('pred: {}'.format(pred))
+                #     print('target: {}'.format(target))
 
-                if abs(loss) < 20:
+                if abs(test_loss) < p_val:
                     correct += 1        
 
 print('correct guesses: {} / total guesses: {}'.format(correct, test_step))

@@ -120,8 +120,10 @@ class DfCols(Dataset):
         self.labels = torch.tensor(self.labels)
 
         self.labels_shape = len(self.labels)
-
-        self.data = self.df[self.train_cols]
+        if self.train_cols is None:
+            self.data = self.df.drop(self.label_cols, axis=1)
+        else:
+            self.data = self.df[self.train_cols]
         self.data = self.data.astype(float).values
         self.data = sk_scale(self.data)
         self.data = torch.tensor(self.data)
@@ -137,7 +139,7 @@ class DfCols(Dataset):
 
 headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
            'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines'
-           'num_markets', 'a_odds_ml', 'h_odds_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
+           'num_markets', 'a_ml', 'h_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
 
 
 def df_cols():

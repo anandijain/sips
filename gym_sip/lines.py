@@ -194,7 +194,7 @@ class Sippy:
     def write_header(self):
         self.file.write("sport,league,game_id,a_team,h_team,cur_time,")
         self.file.write("lms_date,lms_time,quarter,secs,a_pts,h_pts,status,a_win,h_win,last_mod_to_start,")
-        self.file.write("last_mod_lines,num_markets,a_odds_ml,h_odds_ml,a_deci_ml,h_deci_ml,")
+        self.file.write("last_mod_lines,num_markets,a_ml,h_ml,a_deci_ml,h_deci_ml,")
         self.file.write("a_odds_ps,h_odds_ps,a_deci_ps,h_deci_ps,a_hcap_ps,h_hcap_ps,a_odds_tot,")
         self.file.write("h_odds_tot,a_deci_tot,h_deci_tot,a_hcap_tot,h_hcap_tot,")
         self.file.write("game_start_time\n")
@@ -267,9 +267,9 @@ class Game:
     def quick(self):
         print(str(self.lines.last_mod_lines))
         print(self.a_team, end=': ')
-        print(str(self.score.a_pts) + ' ' + str(self.lines.a_odds_ml))
+        print(str(self.score.a_pts) + ' ' + str(self.lines.a_ml))
         print(self.h_team, end=': ')
-        print(str(self.score.h_pts) + ' ' + str(self.lines.h_odds_ml))
+        print(str(self.score.h_pts) + ' ' + str(self.lines.h_ml))
 
     def score(self):
         print(self.a_team + " " + str(self.score.a_pts))
@@ -299,13 +299,13 @@ class Lines:
         self.json = json
         self.jps = []
         self.mkts = []
-        [self.query_times, self.last_mod_lines, self.num_markets, self.a_odds_ml, self.h_odds_ml, self.a_deci_ml,
+        [self.query_times, self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
          self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps, self.a_hcap_ps,
          self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot, self.h_deci_tot, self.a_hcap_tot,
          self.h_hcap_tot] = ([] for i in range(19))
 
         self.params = [
-                     self.last_mod_lines, self.num_markets, self.a_odds_ml, self.h_odds_ml, self.a_deci_ml,
+                     self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
                      self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
                      self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
                      self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot
@@ -403,7 +403,7 @@ class Lines:
                 file.write(',')
 
     def odds(self):
-        for elt in [self.last_mod_lines, self.a_odds_ml, self.h_odds_ml]:
+        for elt in [self.last_mod_lines, self.a_ml, self.h_ml]:
             print(str(elt), end='|')
 
     def __repr__(self):
