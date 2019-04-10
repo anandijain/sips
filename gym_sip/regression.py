@@ -12,11 +12,11 @@ class Net(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(Net, self).__init__()
 
-        self.l1 = nn.Linear(input_size, input_size * 2)
-        self.l2 = nn.Linear(input_size * 2, hidden_size)
-        # self.l3 = nn.Linear(hidden_size, hidden_size)
-        # self.l4 = nn.Linear(hidden_size, hidden_size)
-        # self.l5 = nn.Linear(hidden_size, hidden_size)
+        self.l1 = nn.Linear(input_size, input_size * 4)
+        self.l2 = nn.Linear(input_size * 4, hidden_size)
+        self.l3 = nn.Linear(hidden_size, hidden_size)
+        self.l4 = nn.Linear(hidden_size, hidden_size)
+        self.l5 = nn.Linear(hidden_size, hidden_size)
         self.fc1 = nn.Linear(hidden_size, 8)
         self.fc2 = nn.Linear(8, 4)
         self.fc3 = nn.Linear(4, output_size)
@@ -24,12 +24,12 @@ class Net(nn.Module):
     def forward(self, x):
         x = F.relu(self.l1(x.float()))
         x = F.relu(self.l2(x))
-        # x = F.relu(self.l3(x))
-        # x = F.relu(self.l4(x))
-        # x = F.relu(self.l5(x))
+        x = F.relu(self.l3(x))
+        x = F.relu(self.l4(x))
+        x = F.relu(self.l5(x))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
+        x = self.fc3(x)
         return x.double()
 
     def num_flat_features(self, x):
@@ -45,25 +45,21 @@ if __name__ == "__main__":
     batch_size = 1
     df = h.get_df()
     num_cols = df.shape[1]
-    scaled = h.sk_scale(df)
 
-    train_df, test_df = h.train_test(scaled, train_pct=0.3)
+    train_df, test_df = h.train_test(df, train_pct=0.3)
 
     train = h.DfCols(train_df)
     test = h.DfCols(test_df)
 
-    input_size = train.data_shape
-    output_size = 2
-
-    hidden_size = 64
+    input_size = len(train.data[0])
+    output_size = len(train.labels[0])
+    hidden_size = (input_size + output_size) // 2
 
     train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
 
     net = Net(input_size, hidden_size, output_size)
     print(net)
-
-    #lr = 10
 
     calc_loss = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters())
@@ -76,10 +72,10 @@ if __name__ == "__main__":
 
     for epoch_num in range(EPOCHS):
 
-        for step_num, game in enumerate(train_loader):
+        for step_num, item in enumerate(train_loader):
 
-            data = game[0]
-            target = game[1].double()
+            data = item[0]
+            target = item[1].double()
 
             pred = net(data)
 
@@ -91,9 +87,9 @@ if __name__ == "__main__":
             with torch.no_grad():
                 if step_num % 10 == 1:
                     print('step: {}'.format(step_num))
-                    print('scores: {}'.format(data))
-                    print('pred_second: {}'.format(pred))
-                    print('actual second half: {}'.format(target))
+                    print('input: {}'.format(data))
+                    print('pred: {}'.format(pred))
+                    print('target: {}'.format(target))
                     print('loss: {}'.format(loss), end='\n\n')
             
             running_loss += abs(loss)
@@ -101,26 +97,24 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
-
     # TESTING
-    for test_step, test_game in enumerate(test_loader):
-            test_data = test_game[0]
-            target = test_game[1].double()
+    for test_step, test_item in enumerate(test_loader):
+
+            test_data = test_item[0]
+            target = test_item[1].double()
+        
             with torch.no_grad():
 
                 pred = net(test_data)
-                loss = calc_loss(pred, target)
-
 
                 if test_step % 10 == 1:
                     print('step: {}'.format(step_num))
-                    print('pred_second: {}'.format(pred))
-                    print('actual second half: {}'.format(target))
-                    print('loss: {}'.format(loss), end='\n\n')
+                    print('input: {}'.format(test_data))
+                    print('pred: {}'.format(pred))
+                    print('target: {}'.format(target))
 
                 if abs(loss) < 20:
                     correct += 1        
 
 print('correct guesses: {} / total guesses: {}'.format(correct, test_step))
 plt.show()
-

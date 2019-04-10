@@ -107,21 +107,25 @@ class DfPastGames(Dataset):
 
 class DfCols(Dataset):
     # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
-    def __init__(self, df, predictors=['quarter', 'secs'], to_predict=['a_pts', 'h_pts']):
+    def __init__(self, df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts']):
         self.df = df.sort_values(by='cur_time')
         self.data_len = len(self.df)
         
-        self.train_cols = predictors
-        self.predict_cols = to_predict
+        self.train_cols = train_cols
+        self.label_cols = label_cols
 
-        self.labels = self.df[self.predict_cols]
-        # self.labels = torch.tensor(sk_scale(self.labels.astype(float).values))
-        self.labels= torch.tensor(self.labels.astype(float).values)
+        self.labels = self.df[self.label_cols]
+        self.labels = self.labels.astype(float).values
+        self.labels = sk_scale(self.labels)
+        self.labels = torch.tensor(self.labels)
+
         self.labels_shape = len(self.labels)
 
         self.data = self.df[self.train_cols]
-        # self.data = sk_scale(self.data.astype(float).values)
-        self.data = torch.tensor(self.data.astype(float).values)
+        self.data = self.data.astype(float).values
+        self.data = sk_scale(self.data)
+        self.data = torch.tensor(self.data)
+
         self.data_shape = len(self.data[0])
 
     def __getitem__(self, index):
@@ -288,18 +292,18 @@ def label_split(df, col):
 
 def train_test(df, train_pct=0.5):
     # takes in pandas or np array and returns corresponding type
-    if isinstance(df) ==  # pandas
+    if isinstance(df, pd.core.frame.DataFrame):  # pandas
         train = df.sample(frac=train_pct, random_state=None)
         test = df.drop(train.index)
         return train, test
-    elif isinstance(df)  # np
+    elif isinstance(df, np.ndarray): # np
         length = len(df)
         split_index = round(length * train_pct) 
         train = df[:split_index, :]
         test = df[split_index:, :]
         return train, test
     else:
-        raise TypeError: "please provide a numpy array or a pandas dataframe"
+        raise TypeError("please provide a numpy array or a pandas dataframe")
 
 
 
