@@ -14,9 +14,9 @@ class Net(nn.Module):
 
         self.l1 = nn.Linear(input_size, input_size * 2)
         self.l2 = nn.Linear(input_size * 2, hidden_size)
-        self.l3 = nn.Linear(hidden_size, hidden_size)
-        self.l4 = nn.Linear(hidden_size, hidden_size)
-        self.l5 = nn.Linear(hidden_size, hidden_size)
+        # self.l3 = nn.Linear(hidden_size, hidden_size)
+        # self.l4 = nn.Linear(hidden_size, hidden_size)
+        # self.l5 = nn.Linear(hidden_size, hidden_size)
         self.fc1 = nn.Linear(hidden_size, 8)
         self.fc2 = nn.Linear(8, 4)
         self.fc3 = nn.Linear(4, output_size)
@@ -24,9 +24,9 @@ class Net(nn.Module):
     def forward(self, x):
         x = F.relu(self.l1(x.float()))
         x = F.relu(self.l2(x))
-        x = F.relu(self.l3(x))
-        x = F.relu(self.l4(x))
-        x = F.relu(self.l5(x))
+        # x = F.relu(self.l3(x))
+        # x = F.relu(self.l4(x))
+        # x = F.relu(self.l5(x))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
@@ -43,14 +43,14 @@ class Net(nn.Module):
 if __name__ == "__main__":
 
     batch_size = 1
-    df = h.get_df(fn='./data/3_years_of_data.csv')
+    df = h.get_df()
     num_cols = df.shape[1]
-    # scaled = h.sk_scale(df)
+    scaled = h.sk_scale(df)
 
-    train_df, test_df = h.train_test(df, train_pct=0.3)
+    train_df, test_df = h.train_test(scaled, train_pct=0.3)
 
-    train = h.DfPastGames(train_df)
-    test = h.DfPastGames(test_df)
+    train = h.DfCols(train_df)
+    test = h.DfCols(test_df)
 
     input_size = train.data_shape
     output_size = 2
@@ -79,10 +79,11 @@ if __name__ == "__main__":
         for step_num, game in enumerate(train_loader):
 
             data = game[0]
-            score_target = game[1].double()
+            target = game[1].double()
 
-            pred_score = net(data)
-            loss = calc_loss(pred_score, score_target)
+            pred = net(data)
+
+            loss = calc_loss(pred, target)
             plt_y = loss.detach()
             plt_x = step_num * (epoch_num + 1)
             plt.scatter(plt_x, plt_y, c='r', s=0.1)
@@ -90,8 +91,9 @@ if __name__ == "__main__":
             with torch.no_grad():
                 if step_num % 10 == 1:
                     print('step: {}'.format(step_num))
-                    print('pred_second: {}'.format(pred_score))
-                    print('actual second half: {}'.format(score_target))
+                    print('scores: {}'.format(data))
+                    print('pred_second: {}'.format(pred))
+                    print('actual second half: {}'.format(target))
                     print('loss: {}'.format(loss), end='\n\n')
             
             running_loss += abs(loss)
@@ -99,19 +101,21 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
+
+    # TESTING
     for test_step, test_game in enumerate(test_loader):
             test_data = test_game[0]
-            score_target = test_game[1].double()
+            target = test_game[1].double()
             with torch.no_grad():
 
-                pred_score = net(test_data)
-                loss = calc_loss(pred_score, score_target)
+                pred = net(test_data)
+                loss = calc_loss(pred, target)
 
 
                 if test_step % 10 == 1:
                     print('step: {}'.format(step_num))
-                    print('pred_second: {}'.format(pred_score))
-                    print('actual second half: {}'.format(score_target))
+                    print('pred_second: {}'.format(pred))
+                    print('actual second half: {}'.format(target))
                     print('loss: {}'.format(loss), end='\n\n')
 
                 if abs(loss) < 20:

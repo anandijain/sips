@@ -105,9 +105,45 @@ class DfPastGames(Dataset):
         return self.data_len        
 
 
+class DfCols(Dataset):
+    # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
+    def __init__(self, df, predictors=['quarter', 'secs'], to_predict=['a_pts', 'h_pts']):
+        self.df = df.sort_values(by='cur_time')
+        self.data_len = len(self.df)
+        
+        self.train_cols = predictors
+        self.predict_cols = to_predict
+
+        self.labels = self.df[self.predict_cols]
+        # self.labels = torch.tensor(sk_scale(self.labels.astype(float).values))
+        self.labels= torch.tensor(self.labels.astype(float).values)
+        self.labels_shape = len(self.labels)
+
+        self.data = self.df[self.train_cols]
+        # self.data = sk_scale(self.data.astype(float).values)
+        self.data = torch.tensor(self.data.astype(float).values)
+        self.data_shape = len(self.data[0])
+
+    def __getitem__(self, index):
+        return self.data[index], self.labels[index]
+
+    def __len__(self):
+        return self.data_len
+
+
 headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
            'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines'
            'num_markets', 'a_odds_ml', 'h_odds_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
+
+
+def df_cols():
+    df = get_df()
+    try:
+        loader = DfCols(df)
+    except Exception:
+        loader = None
+        pass
+    return df, loader
 
 
 def get_games(fn='./data/nba2.csv'):
@@ -175,9 +211,6 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
     # given pandas df and list of strings for columns. convert '0' values to np.datetime64
     init_len = len(df)
     
-    print('dropping null times from columns: {}'.format(columns))
-    print('df init length: {}'.format(init_len))
-    
     for col in columns:
         df[col] = df[col].replace('0', np.nan)
 
@@ -186,8 +219,7 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
     after_len = len(df)
     delta = init_len - after_len
 
-    print('df after length: {}'.format(after_len))
-    print('delta (lines removed): {}'.format(delta))
+    print('len(df) before: {}, after length: {}, delta: {}'.format(init_len, after_len, delta))
     return df
 
 
@@ -208,7 +240,7 @@ def dates(df):
 
     df = df.drop(['lms_date', 'lms_time', 'datetime'], axis=1)
   
-    print('df after h.dates: {}'.format(df))
+    # print('df after h.dates: {}'.format(df))
     return df
 
 
@@ -255,9 +287,19 @@ def label_split(df, col):
 
 
 def train_test(df, train_pct=0.5):
-    test = df.sample(frac=train_pct, random_state=None)
-    train = df.drop(test.index)
-    return train.copy(), test.copy()
+    # takes in pandas or np array and returns corresponding type
+    if isinstance(df) ==  # pandas
+        train = df.sample(frac=train_pct, random_state=None)
+        test = df.drop(train.index)
+        return train, test
+    elif isinstance(df)  # np
+        length = len(df)
+        split_index = round(length * train_pct) 
+        train = df[:split_index, :]
+        test = df[split_index:, :]
+        return train, test
+    else:
+        raise TypeError: "please provide a numpy array or a pandas dataframe"
 
 
 
