@@ -145,7 +145,7 @@ class DfCols(Dataset):
 
 
 headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
-           'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines'
+           'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines',
            'num_markets', 'a_ml', 'h_ml', 'a_hcap_tot', 'h_hcap_tot', 'game_start_time']
 
 

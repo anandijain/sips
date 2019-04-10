@@ -14,9 +14,9 @@ class Net(nn.Module):
 
         self.l1 = nn.Linear(input_size, input_size * 4)
         self.l2 = nn.Linear(input_size * 4, hidden_size)
-        self.l3 = nn.Linear(hidden_size, hidden_size)
-        self.l4 = nn.Linear(hidden_size, hidden_size)
-        self.l5 = nn.Linear(hidden_size, hidden_size)
+        # self.l3 = nn.Linear(hidden_size, hidden_size)
+        # self.l4 = nn.Linear(hidden_size, hidden_size)
+        # self.l5 = nn.Linear(hidden_size, hidden_size)
         self.fc1 = nn.Linear(hidden_size, 8)
         self.fc2 = nn.Linear(8, 4)
         self.fc3 = nn.Linear(4, output_size)
@@ -24,9 +24,9 @@ class Net(nn.Module):
     def forward(self, x):
         x = F.relu(self.l1(x.float()))
         x = F.relu(self.l2(x))
-        x = F.relu(self.l3(x))
-        x = F.relu(self.l4(x))
-        x = F.relu(self.l5(x))
+        # x = F.relu(self.l3(x))
+        # x = F.relu(self.l4(x))
+        # x = F.relu(self.l5(x))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -39,10 +39,14 @@ if __name__ == "__main__":
     df = h.get_df()
     num_cols = df.shape[1]
 
-    train_df, test_df = h.train_test(df, train_pct=0.3)
+    train_df, test_df = h.train_test(df, train_pct=0.7)
 
-    train = h.DfCols(train_df, train_cols=None)
-    test = h.DfCols(test_df, train_cols=None)
+    train = h.DfCols(train_df, train_cols=['cur_time',
+           'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines',
+           'num_markets'])
+    test = h.DfCols(test_df, train_cols=['cur_time',
+           'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines',
+           'num_markets'])
     # train = h.Df(train_df)
     # test = h.Df(test_df)
 
@@ -53,11 +57,11 @@ if __name__ == "__main__":
 
     input_size = len(train.data[0])
     output_size = len(train.labels[0])
-    
+
     hidden_size = (input_size + output_size) // 2
 
     train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=True)
 
     net = Net(input_size, hidden_size, output_size)
     print(net)
@@ -65,14 +69,14 @@ if __name__ == "__main__":
     calc_loss = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters())
 
-    EPOCHS = 5
+    EPOCHS = 4
     steps = 0
     running_loss = 0
     correct = 0
     p_val = 1e-2
 
     for epoch_num in range(EPOCHS):
-
+        print("epoch: {} of {}".format(epoch_num, EPOCHS))
         for step_num, item in enumerate(train_loader):
 
             data = item[0]
@@ -84,13 +88,13 @@ if __name__ == "__main__":
             plt_x = step_num * (epoch_num + 1)
             plt.scatter(plt_x, plt_y, c='r', s=0.1)
 
-            with torch.no_grad():
-                if step_num % 10 == 1:
-                    print('step: {}'.format(step_num))
-                    # print('input: {}'.format(data))
-                    # print('pred: {}'.format(pred))
-                    # print('target: {}'.format(target))
-                    print('loss: {}'.format(loss), end='\n\n')
+            # with torch.no_grad():
+            #     if step_num % 10 == 1:
+            #         print('step: {}'.format(step_num))
+            #         # print('input: {}'.format(data))
+            #         # print('pred: {}'.format(pred))
+            #         # print('target: {}'.format(target))
+            #         print('loss: {}'.format(loss), end='\n\n')
             
             running_loss += abs(loss)
             optimizer.zero_grad()
