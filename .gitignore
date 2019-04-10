@@ -1,5 +1,5 @@
 # don't upload data files to git
-data/
+
 
 # don't upload models to git 
 models/

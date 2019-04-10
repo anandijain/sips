@@ -25,15 +25,13 @@ teams = ['Atlanta Hawks', 'Boston Celtics',
        'Utah Jazz', 'Washington Wizards']
 
 
-# class Df(Dataset):
-#     from torch.utils.data.dataset import Dataset
-
 class Df(Dataset):
     def __init__(self, df, prev_n=500, next_n=5):
         df = df.astype(float)
         self.df = df.values
         self.tdf = torch.from_numpy(self.df)
         self.total_len = len(self.tdf)
+        self.num_cols = len(self.df[0])
         self.prev_n = prev_n
         self.next_n = next_n
         self.past = None
@@ -56,28 +54,10 @@ class Df(Dataset):
             return (self.past, self.future)
 
         else:
-            raise IndexError()
+            return None
 
     def __len__(self):
         return self.total_len
-
-    # predicting next line in time
-    # def __init__(self, np_df, unscaled):
-    #     self.data_len = len(np_df)
-    #     self.data = np_df
-    #     self.unscaled_data = unscaled
-    #     print(self.data_len)
-
-    # def __getitem__(self, index):
-    #     # line = self.data.iloc[index]
-    #     line = self.data[index]
-    #     line_tensor = torch.tensor(line)
-    #     unscaled_line = self.unscaled_data[index]
-    #     unscaled_tensor = torch.tensor(unscaled_line)        
-    #     return line_tensor, unscaled_tensor
-
-    # def __len__(self):
-    #     return self.data_len
 
 
 class DfGame(Dataset):

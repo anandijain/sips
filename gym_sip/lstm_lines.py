@@ -8,21 +8,23 @@ import helpers as h
 torch.manual_seed(1)
 
 df = h.get_df()
+loader = h.Df(df)
 
-INPUT_SIZE = len(df)  # num columns
-EMBEDDING_DIM = 64
-HIDDEN_DIM = 64
+TARGET_SIZE = loader.next_n
+EMBEDDING_DIM = 99
+HIDDEN_DIM = 99
 
-df_loader = h.Df(df, 500, 5)
 
 class LSTMTagger(nn.Module):
 
-    def __init__(self, embedding_dim, hidden_dim, target_size):
+    def __init__(self, input_dim, hidden_dim, target_size):
         super(LSTMTagger, self).__init__()
         
         self.hidden_dim = hidden_dim
-
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim)
+        # shape is 3D (sequence, indexes instances in mini-batch, indexes inputs)
+        # x_t = (500, 1, 99)
+        # h_{t-1} = (500, 1, 99)  ?
+        self.lstm = nn.LSTM(input_dim, hidden_dim)
 
         self.hidden2target = nn.Linear(hidden_dim, target_size)
 
@@ -36,22 +38,21 @@ class LSTMTagger(nn.Module):
         return prediction
 
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, INPUT_SIZE)
-loss_function = nn.NLLLoss()
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, TARGET_SIZE)
+loss_function = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 
-with torch.no_grad():
-    inputs = prepare_sequence(training_data[0][0], word_to_ix)
-    tag_scores = model(inputs)
-    print(tag_scores)
-
 for epoch in range(2):
-    for num, data in enumerate(custom_dataframe)
+    for num, data in enumerate(loader):
+
+        if data is None:
+            break
 
         model.zero_grad()
-        train = data[0]
-        targets = data[1]
+
+        train = data[0].float()
+        targets = data[1].float()
 
         out = model(train)
 
