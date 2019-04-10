@@ -4,8 +4,9 @@ import numpy as np
 import torch
 import random
 from torch.utils.data import Dataset, DataLoader
-from sklearn.preprocessing import StandardScaler
 
+from sklearn.preprocessing import StandardScaler
+from torch.nn.utils.rnn import pad_sequence
 
 teams = ['Atlanta Hawks', 'Boston Celtics',
        'Brooklyn Nets', 'Charlotte Hornets',
@@ -24,24 +25,59 @@ teams = ['Atlanta Hawks', 'Boston Celtics',
        'Utah Jazz', 'Washington Wizards']
 
 
-class Df(Dataset):
-    # predicting next line in time
-    def __init__(self, np_df, unscaled):
-        self.data_len = len(np_df)
-        self.data = np_df
-        self.unscaled_data = unscaled
-        print(self.data_len)
+# class Df(Dataset):
+#     from torch.utils.data.dataset import Dataset
 
+class Df(Dataset):
+    def __init__(self, df, prev_n=500, next_n=5):
+        df = df.astype(float)
+        self.df = df.values
+        self.tdf = torch.from_numpy(self.df)
+        self.total_len = len(self.tdf)
+        self.prev_n = prev_n
+        self.next_n = next_n
+        self.past = None
+        self.future = None
+        # stuff
+        
     def __getitem__(self, index):
-        # line = self.data.iloc[index]
-        line = self.data[index]
-        line_tensor = torch.tensor(line)
-        unscaled_line = self.unscaled_data[index]
-        unscaled_tensor = torch.tensor(unscaled_line)        
-        return line_tensor, unscaled_tensor
+        self.past = self.tdf[index - self.prev_n:index]
+        # if len(self.past) < prev_n:
+
+        if index < self.total_len - self.next_n - 1:
+            self.past = self.tdf[index - self.prev_n : index] 
+            # self.past = torch.from_numpy(self.past)
+
+            self.future = self.tdf[index: index + self.next_n]
+            # self.future_n = torch.from_numpy(self.future_n)
+
+            self.past = torch.cat([self.past, self.past.new(self.prev_n - self.past.size(0), * self.past.size()[1:]).zero_()])
+            self.future = torch.cat([self.future, self.future.new(self.next_n - self.future.size(0), * self.future.size()[1:]).zero_()])
+            return (self.past, self.future)
+
+        else:
+            raise IndexError()
 
     def __len__(self):
-        return self.data_len
+        return self.total_len
+
+    # predicting next line in time
+    # def __init__(self, np_df, unscaled):
+    #     self.data_len = len(np_df)
+    #     self.data = np_df
+    #     self.unscaled_data = unscaled
+    #     print(self.data_len)
+
+    # def __getitem__(self, index):
+    #     # line = self.data.iloc[index]
+    #     line = self.data[index]
+    #     line_tensor = torch.tensor(line)
+    #     unscaled_line = self.unscaled_data[index]
+    #     unscaled_tensor = torch.tensor(unscaled_line)        
+    #     return line_tensor, unscaled_tensor
+
+    # def __len__(self):
+    #     return self.data_len
 
 
 class DfGame(Dataset):
@@ -97,7 +133,6 @@ headers = ['a_team', 'h_team', 'sport', 'league', 'game_id', 'cur_time',
 def get_games(fn='./data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     df = get_df(fn)
-    df = dates(df)
     games = chunk(df)
     games = remove_missed_wins(games)
     return games
@@ -106,6 +141,7 @@ def get_games(fn='./data/nba2.csv'):
 def get_df(fn='./data/nba2.csv'):
     raw = csv(fn)
     df = one_hots(raw, ['league', 'a_team', 'h_team'])
+    df = dates(df)
     # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
     return df
 
