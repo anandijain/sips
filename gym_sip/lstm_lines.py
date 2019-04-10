@@ -2,17 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
+from torch.utils.data import Dataset, DataLoader
 import helpers as h
-
-torch.manual_seed(1)
-
-df = h.get_df()
-loader = h.Df(df)
-
-TARGET_SIZE = loader.next_n
-EMBEDDING_DIM = 99
-HIDDEN_DIM = 99
 
 
 class LSTMTagger(nn.Module):
@@ -21,9 +12,7 @@ class LSTMTagger(nn.Module):
         super(LSTMTagger, self).__init__()
         
         self.hidden_dim = hidden_dim
-        # shape is 3D (sequence, indexes instances in mini-batch, indexes inputs)
-        # x_t = (500, 1, 99)
-        # h_{t-1} = (500, 1, 99)  ?
+
         self.lstm = nn.LSTM(input_dim, hidden_dim)
 
         self.hidden2target = nn.Linear(hidden_dim, target_size)
@@ -38,30 +27,52 @@ class LSTMTagger(nn.Module):
         return prediction
 
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, TARGET_SIZE)
-loss_function = nn.MSELoss()
-optimizer = optim.SGD(model.parameters(), lr=0.1)
+if __name__ == "__main__":
+
+    batch_size = 128
 
 
-for epoch in range(2):
-    for num, data in enumerate(loader):
+    df = h.get_df()
+    train = h.Df(df)
 
-        if data is None:
-            break
+    item = train.__getitem__(500)
 
-        model.zero_grad()
+    input_size = h.num_flat_features(item[0])
+    output_size = h.num_flat_features(item[1])
+    hidden_size = (input_size + output_size) // 2
 
-        train = data[0].float()
-        targets = data[1].float()
 
-        out = model(train)
+    TARGET_SIZE = 99# (1, 5, 99)
+    EMBEDDING_DIM = 5 * 99# (1, 50, 99)
+    HIDDEN_DIM = 5 * 99# (1, 50, 99)
 
-        loss = loss_function(out, targets)
+    model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, TARGET_SIZE)
+    loss_function = nn.MSELoss()
+    optimizer = optim.SGD(model.parameters(), lr=0.1)
 
-        loss.backward()
-        optimizer.step()
+    train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
 
-with torch.no_grad():
-    inputs = prepare_sequence(training_data[0][0], word_to_ix)
-    tag_scores = model(inputs)
-    print(tag_scores)
+    for epoch in range(2):
+        for num, data in enumerate(train_loader):
+
+            if data is None:
+                break
+
+            model.zero_grad()
+
+            train = data[0].float()
+            targets = data[1].float()
+            print(targets.shape)
+            print(train.shape)
+
+            out = model(train)
+
+            print(out.shape)
+            loss = loss_function(out, targets)
+
+            print('loss: {}'.format(loss))
+
+            loss.backward()
+            optimizer.step()
+
+

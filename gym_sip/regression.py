@@ -32,13 +32,6 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x.double()
 
-    def num_flat_features(self, x):
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
-
 
 if __name__ == "__main__":
 
@@ -50,9 +43,17 @@ if __name__ == "__main__":
 
     train = h.DfCols(train_df, train_cols=None)
     test = h.DfCols(test_df, train_cols=None)
+    # train = h.Df(train_df)
+    # test = h.Df(test_df)
+
+    item = train.__getitem__(500)
+
+    # input_size = h.num_flat_features(item[0])
+    # output_size = h.num_flat_features(item[1])
 
     input_size = len(train.data[0])
     output_size = len(train.labels[0])
+    
     hidden_size = (input_size + output_size) // 2
 
     train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
@@ -76,7 +77,6 @@ if __name__ == "__main__":
 
             data = item[0]
             target = item[1].double()
-            # print(data.shape)
             pred = net(data)
 
             loss = calc_loss(pred, target)

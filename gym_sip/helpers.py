@@ -26,17 +26,24 @@ teams = ['Atlanta Hawks', 'Boston Celtics',
 
 
 class Df(Dataset):
-    def __init__(self, df, prev_n=500, next_n=5):
+    def __init__(self, df, prev_n=5, next_n=1):
         df = df.astype(float)
         self.df = df.values
-        self.tdf = torch.from_numpy(self.df)
+        self.tdf = torch.from_numpy(sk_scale(self.df))
+        
         self.total_len = len(self.tdf)
         self.num_cols = len(self.df[0])
+
         self.prev_n = prev_n
         self.next_n = next_n
+
         self.past = None
         self.future = None
-        # stuff
+        
+        item = self.__getitem__(500)
+
+        self.shape = item[0].shape
+        self.out_shape = item[1].shape
         
     def __getitem__(self, index):
         self.past = self.tdf[index - self.prev_n:index]
@@ -323,6 +330,14 @@ def select_dtypes(df, dtypes=['number']):
 def teams_given_state(state):  
     # given np array, representing a state (csv_line). returns tuple of teams
     return state
+
+
+def num_flat_features(x):
+    size = x.size()[1:]  # all dimensions except the batch dimension
+    num_features = 1
+    for s in size:
+        num_features *= s
+    return num_features
 
 
 def games_to_padded_tensors(games, length=1200):
