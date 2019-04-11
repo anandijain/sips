@@ -458,8 +458,6 @@ def onehot_teams(a_team, h_team):  #take in 2 teams playing and onehot to consis
        return one_hotted
 
 
-
-
 def series_mean(series):
     list = series.tolist()
 
@@ -491,7 +489,7 @@ def df_means(df):
 
     return list_of_mean
 
-def df_std_dev(df, df_means):
+def df_std_devs(df, df_means):
     list_of_std_dev = []
     for index, col in enumerate(df):
         list_of_std_dev.append(series_std_dev(df[col], df_means[index]))
@@ -499,14 +497,16 @@ def df_std_dev(df, df_means):
     return list_of_std_dev
 
 
-def df_normalize(df, means, devs):
-    # list_of_mean = df_means(df)
-    # list_of_std_dev = df_std_dev(df, df_means)
+def df_normalize(df):
+    means = df_means(df)
+    devs = df_std_devs(df, means)
     normed_list = []
     for index, col in enumerate(df):
         for elt in df[col]:
-            normed_list.append((elt - means[index] / devs[index]))
-
+            try:
+                normed_list.append((elt - means[index] / devs[index]))
+            except ZeroDivisionError:
+                continue
 
     return normed_list
 
