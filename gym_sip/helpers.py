@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import random
 from torch.utils.data import Dataset, DataLoader
+import math
 
 from sklearn.preprocessing import StandardScaler
 from torch.nn.utils.rnn import pad_sequence
@@ -455,3 +456,60 @@ def onehot_teams(a_team, h_team):  #take in 2 teams playing and onehot to consis
                             final = final.reset_index(drop=True)
                             one_hotted.append(final)
        return one_hotted
+
+
+
+
+def series_mean(series):
+    list = series.tolist()
+
+    sum = 0 
+    for elt in list:
+        sum += elt
+
+    mean = sum / len(list)
+
+    return mean
+
+def series_std_dev(series, mean):
+    list = series.tolist()
+
+    var = 0
+    for elt in list:
+        var += (elt - mean)**2
+
+    std_dev = math.sqrt(var / len(list))
+
+    return std_dev
+
+
+def df_means(df):
+    list_of_mean = []
+    for col in df:
+        mean = series_mean(df[col])
+        list_of_mean.append(mean)
+
+    return list_of_mean
+
+def df_std_dev(df, df_means):
+    list_of_std_dev = []
+    for index, col in enumerate(df):
+        list_of_std_dev.append(series_std_dev(df[col], df_means[index]))
+
+    return list_of_std_dev
+
+
+def df_normalize(df, means, devs):
+    # list_of_mean = df_means(df)
+    # list_of_std_dev = df_std_dev(df, df_means)
+    normed_list = []
+    for index, col in enumerate(df):
+        for elt in df[col]:
+            normed_list.append((elt - means[index] / devs[index]))
+
+
+    return normed_list
+
+
+
+

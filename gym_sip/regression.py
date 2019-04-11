@@ -87,6 +87,8 @@ if __name__ == "__main__":
             plt_y = loss.detach()
             plt_x = step_num * (epoch_num + 1)
             plt.scatter(plt_x, plt_y, c='r', s=0.1)
+            print(pred)
+            print(target)
 
             # with torch.no_grad():
             #     if step_num % 10 == 1:
@@ -100,6 +102,7 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
 
     # TESTING
     for test_step, test_item in enumerate(test_loader):
