@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import threading
 import time
 
-class Test:
+class Start:
     def __init__(self, fn='nba2', header=0, game_type=1, run=1):
         self.fn = fn
         self.gt = game_type

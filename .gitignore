@@ -1,5 +1,7 @@
 # don't upload data files to git
+__pycache__/
 
+gym_sip/__pycache__/
 
 # don't upload models to git 
 models/

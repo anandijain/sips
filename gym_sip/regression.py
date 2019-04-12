@@ -41,12 +41,8 @@ if __name__ == "__main__":
 
     train_df, test_df = h.train_test(df, train_pct=0.7)
 
-    train = h.DfCols(train_df, train_cols=['cur_time',
-           'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines',
-           'num_markets'])
-    test = h.DfCols(test_df, train_cols=['cur_time',
-           'a_pts', 'h_pts', 'secs', 'status', 'a_win', 'h_win', 'last_mod_to_start', 'last_mod_lines',
-           'num_markets'])
+    train = h.DfCols(train_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
+    test = h.DfCols(test_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
     # train = h.Df(train_df)
     # test = h.Df(test_df)
 
@@ -69,7 +65,7 @@ if __name__ == "__main__":
     calc_loss = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters())
 
-    EPOCHS = 4
+    EPOCHS = 6
     steps = 0
     running_loss = 0
     correct = 0
@@ -87,8 +83,8 @@ if __name__ == "__main__":
             plt_y = loss.detach()
             plt_x = step_num * (epoch_num + 1)
             plt.scatter(plt_x, plt_y, c='r', s=0.1)
-            print(pred)
-            print(target)
+            print(pred[0])
+            print(target[0])
 
             # with torch.no_grad():
             #     if step_num % 10 == 1:
@@ -120,7 +116,7 @@ if __name__ == "__main__":
                 #     print('pred: {}'.format(pred))
                 #     print('target: {}'.format(target))
 
-                if abs(test_loss) < p_val:
+                if abs(test_loss) < p_val * 100:
                     correct += 1        
 
 print('correct guesses: {} / total guesses: {}'.format(correct, test_step))

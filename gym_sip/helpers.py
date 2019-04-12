@@ -124,7 +124,7 @@ class DfCols(Dataset):
 
         self.labels = self.df[self.label_cols]
         self.labels = self.labels.astype(float).values
-        self.labels = sk_scale(self.labels)
+        # self.labels = sk_scale(self.labels)
         self.labels = torch.tensor(self.labels)
 
         self.labels_shape = len(self.labels)
@@ -133,7 +133,7 @@ class DfCols(Dataset):
         else:
             self.data = self.df[self.train_cols]
         self.data = self.data.astype(float).values
-        self.data = sk_scale(self.data)
+        # self.data = sk_scale(self.data)
         self.data = torch.tensor(self.data)
 
         self.data_shape = len(self.data[0])
@@ -162,6 +162,7 @@ def df_cols():
 
 def get_games(fn='./data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
+    # TODO allow get_games to take in either a df or a fn
     df = get_df(fn)
     games = chunk(df)
     games = remove_missed_wins(games)
