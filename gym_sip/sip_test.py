@@ -38,11 +38,11 @@ if __name__ == "__main__":
 
     dqn = sipqn.DQN(N_STATES, N_ACTIONS, ENV_A_SHAPE)
 
-    try:
-        dqn.eval_net.load_state_dict(torch.load('./models/eval.ckpt'))
-        dqn.target_net.load_state_dict(torch.load('./models/target.ckpt'))
-    except FileNotFoundError:
-        pass
+    # try:
+    #     dqn.eval_net.load_state_dict(torch.load('./models/eval.ckpt'))
+    #     dqn.target_net.load_state_dict(torch.load('./models/target.ckpt'))
+    # except FileNotFoundError:
+    #     pass
 
     num_games = 1000
 

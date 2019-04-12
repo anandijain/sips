@@ -123,7 +123,7 @@ class Sippy:
         print(str(len(self.games)))
         for game in self.games:
             if verbose == 1:
-                game.info()
+                print(game)
             else:
                 game.quick()
 
@@ -153,9 +153,7 @@ class Sippy:
             self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
                           "description/basketball/nba?marketFilterId=def&liveOnly=true&lang=en",
                           "https://www.bovada.lv/services/sports/event/v2/events/" 
-                          "A/description/basketball/nba?marketFilterId=def&preMatchOnly=true&lang=en",
-                          "https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&liveOnly=true&lang=en",
-                          "https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&preMatchOnly=true&lang=en"]
+                          "A/description/basketball/nba?marketFilterId=def&preMatchOnly=true&lang=en"]
         elif league == 2 or str_league == 'college':  # College Bask
             self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/basketball/college-basketball?marketFilterId=def&liveOnly=true&lang=en',
@@ -187,6 +185,9 @@ class Sippy:
                           'description/volleyball?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
                           'https://www.bovada.lv/services/sports/event/v2/events/A/'
                           'description/volleyball?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
+        elif league == 8:
+            self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&liveOnly=true&lang=en",
+                          "https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&preMatchOnly=true&lang=en"]
         else:               # All BASK
             self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
                           "description/basketball?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en",
@@ -219,11 +220,14 @@ class Game:
             sep = 'vs'
         else:
             sep = '@'
-        self.a_team = self.desc.split(sep)[0]
-        self.a_team = self.a_team[:-1]
-        self.h_team = self.desc.split(sep)[1]
-        self.h_team = self.h_team[1:]
-        self.teams = [self.a_team, self.h_team]
+        try:
+            self.a_team = self.desc.split(sep)[0]
+            self.a_team = self.a_team[:-1]
+            self.h_team = self.desc.split(sep)[1]
+            self.h_team = self.h_team[1:]
+            self.teams = [self.a_team, self.h_team]
+        except Exception:
+            self.
         self.start_time = event['startTime'] / 1000.
         self.score = Score(self.game_id)
         self.lines = Lines(event)
@@ -253,19 +257,6 @@ class Game:
         print(row)
         return row
 
-    def info(self):  # displays scores, lines
-        print('\n' + self.desc + '\n')
-        print(self.sport, end='|')
-        print(self.game_id, end='|')
-        print(self.a_team, end='|')
-        print(self.h_team, end='|')
-        print('\nScores info: ')
-        print(self.score)
-        print('Game line info: ')
-        print(str(self.delta), end='|')
-        print(self.lines)
-        print(str(self.start_time) + "\n")
-
     def quick(self):
         print(str(self.lines.last_mod_lines))
         print(self.a_team, end=': ')
@@ -292,7 +283,17 @@ class Game:
             self.league = self.league.replace(',', '')
 
     def __repr__(self):
-        self.info()
+        print('\n' + self.desc + '\n')
+        print(self.sport, end='|')
+        print(self.game_id, end='|')
+        print(self.a_team, end='|')
+        print(self.h_team, end='|')
+        print('\nScores info: ')
+        print(self.score)
+        print('Game line info: ')
+        print(str(self.delta), end='|')
+        print(self.lines)
+        print(str(self.start_time) + "\n")
 
 
 class Lines:
@@ -337,6 +338,7 @@ class Lines:
 
     def jparams(self):
         j_markets = self.json['displayGroups'][0]['markets']
+
         data = {"american": 0, "decimal": 0, "handicap": 0}
         data2 = {"american": 0, "decimal": 0, "handicap": 0}
         self.mkts = []
