@@ -4,7 +4,8 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 
-import helpers as h
+# import h
+from h import helpers, loaders, macros, stat
 
 # credit https://github.com/utkuozbulak/pytorch-custom-dataset-examples
 
@@ -36,13 +37,13 @@ class Net(nn.Module):
 if __name__ == "__main__":
 
     batch_size = 128
-    df = h.get_df()
+    df = helpers.get_df()
     num_cols = df.shape[1]
 
-    train_df, test_df = h.train_test(df, train_pct=0.7)
+    train_df, test_df = helpers.train_test(df, train_pct=0.7)
 
-    train = h.DfCols(train_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
-    test = h.DfCols(test_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
+    train = loaders.DfCols(train_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
+    test = loaders.DfCols(test_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
     # train = h.Df(train_df)
     # test = h.Df(test_df)
 
