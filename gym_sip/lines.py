@@ -1,7 +1,6 @@
 import time
 import os.path
 import requests
-import argparse
 import helpers as h
 import matplotlib.pyplot as plt 
 import numpy as np
