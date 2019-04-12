@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 class Df(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):

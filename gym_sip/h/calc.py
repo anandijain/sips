@@ -35,16 +35,14 @@ def act(a):
 
 
 def net(bet, bet2):
-    # given a bet pair (bet + hedge)
-    # input: Hedge class, output float
-    # env.is_valid() should have already caught zero odds lines
-    # a full hedge equates the profit, so
+    # given a Bet pair (bet + hedge)
     # bet.amt * _eq(bet.a) should be equal to bet2.amt * _eq(bet2.h)
     bet_sum = bet.amt + bet2.amt
     if bet.team == 0:
         return bet.amt * _eq(bet.a_odds) - bet2.amt
     else:
         return bet.amt * _eq(bet.h_odds) - bet2.amt
+
 
 def net_score(pick, pick2):
     if pick.team == 0:
@@ -55,6 +53,7 @@ def net_score(pick, pick2):
         final_diff = pick2.h_pts - pick2.a_pts
 
     return final_diff - init_diff
+
 
 def bet_amt(money):
     # return 0.05 * money + 100  # 100 is arbitrary

@@ -11,6 +11,7 @@ import loaders
 import macros
 import stat
 
+
 def df_cols():
     df = get_df()
     try:
@@ -101,7 +102,6 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
 def dates(df):
     # convert ['lms_date', 'lms_time'] into datetimes
     df['datetime'] = df['lms_date'] + ' ' + df['lms_time']
-    # print(df['datetime'])
     df['datetime'] = pd.to_datetime(df['datetime'], utc=True)
     
     dt = df['datetime'].dt
@@ -166,12 +166,15 @@ def train_test(df, train_pct=0.5):
     if isinstance(df, pd.core.frame.DataFrame):  # pandas
         train = df.sample(frac=train_pct, random_state=None)
         test = df.drop(train.index)
+
         return train, test
     elif isinstance(df, np.ndarray): # np
         length = len(df)
         split_index = round(length * train_pct) 
+        
         train = df[:split_index, :]
         test = df[split_index:, :]
+
         return train, test
     else:
         raise TypeError("please provide a numpy array or a pandas dataframe")
