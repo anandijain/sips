@@ -6,14 +6,14 @@ import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
 
-import calc
-import loaders
-import macros
+from .calc import *
+from .loaders import *
+from .macros import *
 import stat
 
 
 def df_cols():
-    df = get_df()
+    df = Helpers.get_df()
     try:
         loader = loaders.DfCols(df)
     except Exception:
@@ -22,7 +22,7 @@ def df_cols():
     return df, loader
 
 
-def get_games(fn='../data/nba2.csv'):
+def get_games(fn='data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     # TODO allow get_games to take in either a df or a fn
     df = get_df(fn)
@@ -31,7 +31,7 @@ def get_games(fn='../data/nba2.csv'):
     return games
 
 
-def get_df(fn='../data/nba2.csv'):
+def get_df(fn='data/nba2.csv'):
     raw = csv(fn)
     df = pd.get_dummies(data=raw, columns=['league', 'a_team', 'h_team'], sparse=False)
     df = dates(df)
@@ -46,7 +46,7 @@ def chunk(df, col='game_id'):
     return games
 
 
-def csv(fn='../data/nba2.csv'):
+def csv(fn='data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
@@ -86,35 +86,36 @@ def remove_missed_wins(games):
 def drop_null_times(df, columns=['lms_date', 'lms_time']):
     # given pandas df and list of strings for columns. convert '0' values to np.datetime64
     init_len = len(df)
-    
+
     for col in columns:
         df[col] = df[col].replace('0', np.nan)
 
-    df = df.dropna()
+        df = df.dropna()
 
-    after_len = len(df)
-    delta = init_len - after_len
+        after_len = len(df)
+        delta = init_len - after_len
 
-    print('len(df) before: {}, after length: {}, delta: {}'.format(init_len, after_len, delta))
-    return df
+        print('len(df) before: {}, after length: {}, delta: {}'.format(init_len, after_len, delta))
+        return df
 
 
 def dates(df):
     # convert ['lms_date', 'lms_time'] into datetimes
     df['datetime'] = df['lms_date'] + ' ' + df['lms_time']
     df['datetime'] = pd.to_datetime(df['datetime'], utc=True)
-    
+
     dt = df['datetime'].dt
     df['time_vals'] = pd.to_numeric(df['datetime'])
     date_categories = [dt.year, dt.month, dt.week, dt.day, 
-                        dt.hour, dt.minute, dt.second, dt.dayofweek, dt.dayofyear]
+                       dt.hour, dt.minute, dt.second, dt.dayofweek, dt.dayofyear]
     col_names = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'dayofweek', 'dayofyear']
 
     for i in range(len(date_categories) - 1):
         df[col_names[i]] = date_categories[i]
 
+        # print(df.columns)
     df = df.drop(['lms_date', 'lms_time', 'datetime'], axis=1)
-  
+
     # print('df after h.dates: {}'.format(df))
     return df
 
@@ -136,8 +137,8 @@ def apply_min_game_len(games, min_lines=500):
             print('deleted game_id: {}'.format(key))
             print('had length: {}'.format(game_len))
             del games[key]
-    print('after apply: {}'.format(len(games)))
-    return games
+        print('after apply: {}'.format(len(games)))
+        return games
 
 
 def df_info(df):
@@ -171,7 +172,7 @@ def train_test(df, train_pct=0.5):
     elif isinstance(df, np.ndarray): # np
         length = len(df)
         split_index = round(length * train_pct) 
-        
+
         train = df[:split_index, :]
         test = df[split_index:, :]
 
@@ -185,7 +186,7 @@ def sk_scale(df):
 
     if isinstance(df, pd.core.frame.DataFrame):  # pandas
         df = df.to_numpy()
-    
+
     scaled = scaler.fit_transform(df)
     return scaled
 
