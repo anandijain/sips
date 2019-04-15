@@ -226,7 +226,8 @@ class Game:
             self.h_team = self.h_team[1:]
             self.teams = [self.a_team, self.h_team]
         except Exception:
-            self.
+            self.a_team = self.desc
+            self.h_team = self.desc
         self.start_time = event['startTime'] / 1000.
         self.score = Score(self.game_id)
         self.lines = Lines(event)
