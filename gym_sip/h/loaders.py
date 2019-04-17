@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+from .helpers import *
 
 def __init__(self, df, prev_n=5, next_n=1):
     df = df.astype(float)
@@ -94,24 +95,27 @@ class DfPastGames(Dataset):
 class DfCols(Dataset):
     # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
     def __init__(self, df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts']):
-        self.df = df.sort_values(by='cur_time')
+        # self.df = df.sort_values(by='cur_time')
+        self.df = df
         self.data_len = len(self.df)
 
         self.train_cols = train_cols
         self.label_cols = label_cols
 
         self.labels = self.df[self.label_cols]
-        self.labels = self.labels.astype(float).values
-        # self.labels = sk_scale(self.labels)
+        # self.labels = self.labels.to_numpy(dtype=float)
+        self.labels = sk_scale(self.labels)
         self.labels = torch.tensor(self.labels)
 
         self.labels_shape = len(self.labels)
+
         if self.train_cols is None:
             self.data = self.df.drop(self.label_cols, axis=1)
         else:
             self.data = self.df[self.train_cols]
-        self.data = self.data.astype(float).values
-        # self.data = sk_scale(self.data)
+
+        # self.data = self.data.to_numpy(dtype=float)
+        self.data = sk_scale(self.data)
         self.data = torch.tensor(self.data)
 
         self.data_shape = len(self.data[0])

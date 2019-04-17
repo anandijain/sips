@@ -32,24 +32,27 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
+
         return x.double()
 
 
 if __name__ == "__main__":
 
     batch_size = 128
-    df = h.get_df()
+    df = h.get_df()  # fn='data/cta.csv', dummies=['daytype', 'route']
+
     num_cols = df.shape[1]
 
     train_df, test_df = h.train_test(df, train_pct=0.7)
 
-    train = h.DfCols(train_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
-    test = h.DfCols(test_df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts'])
+    train = h.DfCols(train_df, train_cols=None, label_cols=['a_pts', 'h_pts'])
+    test = h.DfCols(test_df, train_cols=None, label_cols=['a_pts', 'h_pts'])
+
     # train = h.Df(train_df)
     # test = h.Df(test_df)
 
     item = train.__getitem__(500)
-
+    print(item)
     # input_size = h.num_flat_features(item[0])
     # output_size = h.num_flat_features(item[1])
 
@@ -67,37 +70,36 @@ if __name__ == "__main__":
     calc_loss = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters())
 
-    EPOCHS = 6
+    EPOCHS = 1
     steps = 0
     running_loss = 0
     correct = 0
-    p_val = 1e-2
+    p_val = 1e-1
 
     for epoch_num in range(EPOCHS):
         print("epoch: {} of {}".format(epoch_num, EPOCHS))
         for step_num, item in enumerate(train_loader):
+            optimizer.zero_grad()
 
             data = item[0]
             target = item[1].double()
             pred = net(data)
 
             loss = calc_loss(pred, target)
+
             plt_y = loss.detach()
             plt_x = step_num * (epoch_num + 1)
             plt.scatter(plt_x, plt_y, c='r', s=0.1)
-            print(pred[0])
-            print(target[0])
 
-            # with torch.no_grad():
-            #     if step_num % 10 == 1:
-            #         print('step: {}'.format(step_num))
-            #         # print('input: {}'.format(data))
-            #         # print('pred: {}'.format(pred))
-            #         # print('target: {}'.format(target))
-            #         print('loss: {}'.format(loss), end='\n\n')
+            with torch.no_grad():
+                if step_num % 100 == 1:
+                    print('step: {}'.format(step_num))
+                    # print('input: {}'.format(data))
+                    print('pred: {}'.format(pred[0]))
+                    print('target: {}'.format(target[0]))
+                    print('loss: {}'.format(loss), end='\n\n')
             
-            running_loss += abs(loss)
-            optimizer.zero_grad()
+            # running_loss += abs(loss)
             loss.backward()
             optimizer.step()
 
@@ -112,13 +114,13 @@ if __name__ == "__main__":
                 pred = net(test_data)
                 test_loss = calc_loss(pred, target)
 
-                # if test_step % 10 == 1:
-                #     print('step: {}'.format(step_num))
-                #     print('input: {}'.format(test_data))
-                #     print('pred: {}'.format(pred))
-                #     print('target: {}'.format(target))
+                if test_step % 10 == 1:
+                    print('step: {}'.format(step_num))
+                    # print('input: {}'.format(test_data))
+                    print('pred: {}'.format(pred[0]))
+                    print('target: {}'.format(target[0]))
 
-                if abs(test_loss) < p_val * 100:
+                if abs(test_loss) < p_val:
                     correct += 1        
 
 print('correct guesses: {} / total guesses: {}'.format(correct, test_step))

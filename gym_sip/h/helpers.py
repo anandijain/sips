@@ -22,6 +22,18 @@ def df_cols():
     return df, loader
 
 
+def df_combine(fn='./data/come2017season.csv', fn2='./data/come2015season.csv'):
+    df1 = pd.read_csv(fn)
+    df2 = pd.read_csv(fn2)
+
+    df1 = df1.dropna(axis=0, how='any', thresh=None, subset=None, inplace=False)
+    df2 = df2.dropna(axis=0, how='any', thresh=None, subset=None, inplace=False)
+
+    df3 = pd.concat([df2, df1])
+    df3 = pd.get_dummies(data=df3)
+    return df3
+
+
 def get_games(fn='data/nba2.csv'):
     # takes in fn and returns python dict of pd dfs 
     # TODO allow get_games to take in either a df or a fn
@@ -30,12 +42,14 @@ def get_games(fn='data/nba2.csv'):
     games = remove_missed_wins(games)
     return games
 
-
-def get_df(fn='data/nba2.csv'):
+def get_df(fn='data/nba2.csv', dummies=['league', 'a_team', 'h_team']):
     raw = csv(fn)
-    df = pd.get_dummies(data=raw, columns=['league', 'a_team', 'h_team'], sparse=False)
-    df = dates(df)
+    df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
+    df = drop_null_times(df)
+    # df = dates(df)
+    df = scaled_times(df)
     # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
+    df = df.drop(df.select_dtypes(object), axis=1)
     return df
 
 
@@ -50,8 +64,7 @@ def csv(fn='data/nba2.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn)
-    df = drop_null_times(df)
-    df = df.drop('sport', axis=1)
+    # df = df.drop('sport', axis=1)
     return df
 
 
@@ -101,11 +114,12 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
 
 def dates(df):
     # convert ['lms_date', 'lms_time'] into datetimes
-    df['datetime'] = df['lms_date'] + ' ' + df['lms_time']
-    df['datetime'] = pd.to_datetime(df['datetime'], utc=True)
+    # df['datetime'] = df['lms_date'] + ' ' + df['lms_time']
+    # df['date'] = pd.to_datetime(df['date'], utc=True)
+    df['date'] = pd.to_datetime(df['date'])
 
-    dt = df['datetime'].dt
-    df['time_vals'] = pd.to_numeric(df['datetime'])
+    dt = df['date'].dt
+    df['time_vals'] = pd.to_numeric(df['date'])
     date_categories = [dt.year, dt.month, dt.week, dt.day, 
                        dt.hour, dt.minute, dt.second, dt.dayofweek, dt.dayofyear]
     col_names = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'dayofweek', 'dayofyear']
@@ -114,9 +128,20 @@ def dates(df):
         df[col_names[i]] = date_categories[i]
 
         # print(df.columns)
-    df = df.drop(['lms_date', 'lms_time', 'datetime'], axis=1)
+    # df = df.drop(['lms_date', 'lms_time', 'datetime'], axis=1)
+    df = df.drop(['date'], axis=1)
 
     # print('df after h.dates: {}'.format(df))
+    return df
+
+
+def scaled_times(df):
+    df['date'] = df['lms_date'] + ' ' + df['lms_time']
+    df['date'] = pd.to_datetime(df['date'], utc=True)
+    df['date'] = pd.to_numeric(df['date'])
+    df['date'] = (df['date'] - df['date'].mean()) / (df['date'].max() - df['date'].min())
+    df = df.drop(['lms_date', 'lms_time'], axis=1)
+
     return df
 
 
