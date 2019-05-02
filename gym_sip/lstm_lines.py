@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-import helpers as h
+import h
 
 
 class LSTMTagger(nn.Module):
@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
 
     df = h.get_df()
+
     train = h.Df(df)
 
     item = train.__getitem__(500)
@@ -42,9 +43,9 @@ if __name__ == "__main__":
     hidden_size = (input_size + output_size) // 2
 
 
-    TARGET_SIZE = 99# (1, 5, 99)
-    EMBEDDING_DIM = 5 * 99# (1, 50, 99)
-    HIDDEN_DIM = 5 * 99# (1, 50, 99)
+    TARGET_SIZE = input_size# (1, 5, 99)
+    EMBEDDING_DIM = 5 * input_size# (1, 50, 99)
+    HIDDEN_DIM = 5 * input_size# (1, 50, 99)
 
     model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, TARGET_SIZE)
     loss_function = nn.MSELoss()
@@ -62,12 +63,14 @@ if __name__ == "__main__":
 
             train = data[0].float()
             targets = data[1].float()
-            print(targets.shape)
-            print(train.shape)
+
 
             out = model(train)
 
-            print(out.shape)
+            if num % 50 == 0:
+                print(train[0])
+                print(targets[0])
+                print(out[0])
             loss = loss_function(out, targets)
 
             print('loss: {}'.format(loss))
