@@ -176,7 +176,7 @@ def df_info(df):
 def random_game(games):
     game_id, game = random.choice(list(games.items()))
     print('game_id: {}'.format(game_id))
-    return gam
+    return game
 
 
 def label_split(df, col):

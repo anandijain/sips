@@ -1,18 +1,18 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np 
-import sklearn as sk
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import train_test_split
-from sklearn import tree
+#!/usr/bin/python3
 import warnings
-warnings.filterwarnings('ignore')
 import pickle
 
+import pandas as pd
+import numpy as np 
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn import tree
+
+import h
 
 DATA_FOLDER = 'data/'
 
@@ -26,8 +26,7 @@ HOME_PREFIX = 'h_'
 COL_TO_GET = 'ML'
 
 
-
-def fxn(fns):
+def get_dfs(fns):
 	dfs = []
 	for fn in fns:
 		fn = DATA_FOLDER + fn
@@ -37,21 +36,11 @@ def fxn(fns):
 		dfs.append(df)
 	return dfs
 
-def yo(odd):
-    # to find the adjusted odds multiplier 
-    # returns float
-    if odd == 0:
-        return 0
-    if odd >= 100:
-        return odd/100.
-    elif odd < 100:
-        return abs(100/odd)
-
 
 class Run:
 	def __init__(self):
-		dfs = fxn(FILE_NAMES)
-		df = pd.concat(dfs)
+		dfs = get_dfs(FILE_NAMES)
+		df = pd.concat(dfs, sort=True)
 
 		x = df[FEATURES]
 		y = df[TRAIN_COL]
@@ -66,8 +55,8 @@ class Run:
 
 		self.clfgtb = clfgtb.fit(x, y)
 
-		test_dfs = fxn(TEST_FILES)
-		test_df = pd.concat(test_dfs)
+		test_dfs = get_dfs(TEST_FILES)
+		test_df = pd.concat(test_dfs, sort=True)
 
 		x_test = test_df[FEATURES]
 		y_test = test_df[TRAIN_COL]
@@ -77,7 +66,7 @@ class Run:
 		probsgd = clfgtb.predict_proba(x_test)
 		probsgd = probsgd.tolist()
 
-		h = len(probsgd)
+		len_probsgd = len(probsgd)
 
 		winners = test_df['winner']
 		winners = list(winners)
@@ -92,7 +81,7 @@ class Run:
 		abets = []
 		hbets = []
 		allbets = []
-		for i in range(h):
+		for i in range(len_probsgd):
 
 			away_winprob = probsgd[i][0]
 			home_winprob = probsgd[i][1]
@@ -100,16 +89,16 @@ class Run:
 			winner = winners[i]
 			h_line = h_lines[i]
 			a_line = a_lines[i]
-			evhome = home_winprob * yo(h_line) - away_winprob 
-			evaway = away_winprob * yo(a_line) - home_winprob
+			evhome = home_winprob * h.calc._eq(h_line) - away_winprob 
+			evaway = away_winprob * h.calc._eq(a_line) - home_winprob
 
 			if winner == 'H':
-				roi_home = yo(h_line)
+				roi_home = h.calc._eq(h_line)
 				roi_away = -1
 
 			if winner == 'A':
 				roi_home = -1
-				roi_away = yo(a_line)
+				roi_away = h.calc._eq(a_line)
 
 
 			if evaway > 0:
