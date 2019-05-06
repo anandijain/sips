@@ -65,23 +65,17 @@ if __name__ == "__main__":
     train_fns = ['./data/' + year + sport + '.csv' for year in train_years]
     test_fns = ['./data/' + year + sport + '.csv' for year in test_years]
 
-
     train_df = dfs(train_fns)
     test_df = dfs(test_fns)
+    
     num_cols = train_df.shape[1]
-    print(len(train_df))
-    # train_df, test_df = h.train_test(df, train_pct=0.7)
+
+    print('training on : {} lines and {} columns'.format(len(train_df), num_cols))
+
     feature_cols = ['Past_10_v', 'Past_10_h', 'rating1_pre', 'rating2_pre', 'v_win', 'h_ML']
+
     train = h.DfCols(train_df, train_cols=feature_cols, label_cols=['h_win'])
     test = h.DfCols(test_df, train_cols=feature_cols, label_cols=['h_win'])
-
-    # train = h.Df(train_df)
-    # test = h.Df(test_df)
-
-    item = train.__getitem__(500)
-    print(item)
-    # input_size = h.num_flat_features(item[0])
-    # output_size = h.num_flat_features(item[1])
 
     input_size = len(train.data[0])
     output_size = len(train.labels[0])
@@ -97,8 +91,6 @@ if __name__ == "__main__":
     calc_loss = nn.MSELoss()
 
     optimizer = torch.optim.Adam(net.parameters())
-    # calc_loss = nn.CrossEntropyLoss()
-    # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
     steps = 0
     running_loss = 0
@@ -155,8 +147,6 @@ if __name__ == "__main__":
             with torch.no_grad():
 
                 pred = net(test_data)
-                #print(pred.shape)
-                #pred = torch.squeeze(pred)
                 probs.append(pred)
                 test_loss = calc_loss(pred, target)
 
@@ -171,18 +161,15 @@ if __name__ == "__main__":
 
                 h_line = test_item[0][5]
                 home_result = target
-                evhome = pred * h.calc._eq(h_line) - (1 - pred)
+                h_ev = pred * h.calc._eq(h_line) - (1 - pred)
                 if home_result == 1:
                     roi_home =h.calc._eq(h_line)
-                
 
                 if home_result == 0:
                     roi_home = -1
 
-
-
-                if evhome > 0:
-                    h_bets = [pred, h_line, evhome, roi_home, home_result]
+                if h_ev > 0:
+                    h_bets = [pred, h_line, h_ev, roi_home, home_result]
 
                     allbets.append(h_bets)
 
@@ -191,41 +178,31 @@ if __name__ == "__main__":
     print(all_df)
     print('blebber catch')
 
-
     print('correct guesses: {} / total guesses: {}'.format(correct, test_step))                
+
     length = len(home_mls)
     n = 0
     right = 0
     wrong = 0
-    #pred = net(test_loader)
-    print('pred')
-    print('ethan has a mangina')
-    hbets = []
-    abets = []
+    h_bets = []
+    a_bets = []
     allbets = []
-    # for batch in probsn:
-    #     for game in batch:
-    #         probs.append(game)
-    print(len(home_mls))
-    print(probs[0])
-    print(probs[1479])
-    print(len(away_mls))
-    print(len(probs))
-    print(len(homeresults))
-    print('backwardcommmittosomethingforonceinyourlifeyoufraud')
+
+
     for i in range(length):
         h_line = home_mls[i]
         a_line = away_mls[i]
         #print(probs[i])
-        home_winprob = probs[i]
-        away_winprob = 1 - home_winprob
+        h_winprob = probs[i]
+        a_winprob = 1 - h_winprob
         home_result = homeresults[i]
-        evhome = home_winprob * h.calc._eq(h_line) - away_winprob 
-        evaway = away_winprob * h.calc._eq(a_line) - home_winprob
-        evhome.tolist()
-        evaway.tolist()
-        #print(evhome)
-        #print(evaway)
+        
+        h_ev = h_winprob * h.calc._eq(h_line) - a_winprob 
+        a_ev = a_winprob * h.calc._eq(a_line) - h_winprob
+
+        h_ev.tolist()
+        a_ev.tolist()
+
         if home_result == 1:
             roi_home =h.calc._eq(h_line)
             roi_away = -1
@@ -234,41 +211,41 @@ if __name__ == "__main__":
             roi_home = -1
             roi_away = h.calc._eq(a_line)
 
-        if evaway > 0:
-            a_bets = [away_winprob, a_line, evaway, roi_away, home_result]
-            abets.append(a_bets)
+        if a_ev > 0:
+            a_bets = [a_winprob, a_line, a_ev, roi_away, home_result]
+            a_bets.append(a_bets)
             allbets.append(a_bets)
 
-        if evhome > 0:
-            h_bets = [home_winprob, h_line, evhome, roi_home, home_result]
-            hbets.append(h_bets)
+        if h_ev > 0:
+            h_bets = [h_winprob, h_line, h_ev, roi_home, home_result]
+            h_bets.append(h_bets)
             allbets.append(h_bets)
 
-        if home_winprob > .5 and home_result == 1:
+        if h_winprob > .5 and home_result == 1:
             right +=1
-        if away_winprob > .5 and home_result == 0:
+        if a_winprob > .5 and home_result == 0:
             right +=1
 
-        if away_winprob < .5 and home_result == 0:
+        if a_winprob < .5 and home_result == 0:
             wrong +=1
 
-        if away_winprob > .5 and home_result == 1:
+        if a_winprob > .5 and home_result == 1:
             wrong +=1
 
         print(h_line)
-        print(home_winprob)
+        print(h_winprob)
         print(a_line)
 
         plt.scatter(i, n, c='r', s=0.1)
+
     all_df = pd.DataFrame(allbets, columns = ['winprob', 'line', 'ev', 'roi', 'winner'])
-
-    print(all_df)
+    print('all_df'.format(all_df))
+    
     total_roi = all_df['roi'].sum() 
+    
     print(total_roi)
-    print(right/(wrong+right))
 
-            
-#
-test_df
+    print(right / (wrong+right))
+
 plt.show()
 
