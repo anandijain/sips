@@ -187,6 +187,9 @@ class Sippy:
         elif league == 8:
             self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&liveOnly=true&lang=en",
                           "https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&preMatchOnly=true&lang=en"]
+        elif league == 9 or str_league == 'baseball':
+            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/description/baseball/mlb?marketFilterId=def&liveOnly=true&lang=en',
+                          'https://www.bovada.lv/services/sports/event/v2/events/A/description/baseball/mlb?marketFilterId=def&preMatchOnly=true&lang=en']
         else:               # All BASK
             self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
                           "description/basketball?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en",
