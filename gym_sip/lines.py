@@ -53,7 +53,7 @@ class Sippy:
         access_time = time.time()
         self.json_events()
         self.cur_games(access_time)
-        time.sleep(1)
+        # time.sleep(1)
 
         print(str(self.counter) + ": time: " + str(time.localtime()) + '\n')
         
@@ -368,9 +368,9 @@ class Lines:
 
             if desc is None:
                 continue
-            elif desc == 'Point Spread':
+            elif desc == 'Point Spread' or desc == 'Runline':
                 ps.update(away_price, home_price)
-            elif desc == 'Moneyline' or desc == 'Runline':
+            elif desc == 'Moneyline':
                 ml.update(away_price, home_price)
             elif desc == 'Total':
                 tot.update(away_price, home_price)
