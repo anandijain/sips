@@ -11,6 +11,7 @@ root_url = 'https://www.bovada.lv'
 scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
 headers = {'User-Agent': 'Mozilla/5.0'}
 
+
 # TODO convert last_mod_score to epoch
 # TODO add restart/timeout
 # TODO 'EVEN' fix
@@ -369,7 +370,7 @@ class Lines:
                 continue
             elif desc == 'Point Spread':
                 ps.update(away_price, home_price)
-            elif desc == 'Moneyline':
+            elif desc == 'Moneyline' or desc == 'Runline':
                 ml.update(away_price, home_price)
             elif desc == 'Total':
                 tot.update(away_price, home_price)
