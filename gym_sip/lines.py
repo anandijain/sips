@@ -63,7 +63,7 @@ class Sippy:
         if self.counter % 20 == 1:
             print("num games: " + str(len(self.games)))
             print('num events: ' + str(len(self.events)))
-            print('new lines in past 20 steps: {}'.format(self.num_updates))
+            print('new lines in past 20 steps: {}\n'.format(self.num_updates))
             self.num_updates = 0
             self.update_games_list()
             if self.file is not None:
