@@ -36,7 +36,8 @@ class Sippy:
         self.set_league(self.league)
         self.json_events()
         self.counter = 0
-        
+        self.num_updates = 0
+
         if fn is not None:
             self.file = open_file(fn)
             if header == 1:
@@ -53,15 +54,17 @@ class Sippy:
         access_time = time.time()
         self.json_events()
         self.cur_games(access_time)
-        # time.sleep(1)
 
-        print(str(self.counter) + ": time: " + str(time.localtime()) + '\n')
+        print('step: {}'.format(self.counter))
+        print('time: {}\n'.format(time.asctime()))
         
         self.counter += 1
 
         if self.counter % 20 == 1:
             print("num games: " + str(len(self.games)))
             print('num events: ' + str(len(self.events)))
+            print('new lines in past 20 steps: {}'.format(self.num_updates))
+            self.num_updates = 0
             self.update_games_list()
             if self.file is not None:
                 self.file.flush()
@@ -73,6 +76,7 @@ class Sippy:
                     if self.file is not None:
                         game.write_game(self.file)  # write to csv
 
+                    self.num_updates += 1
                     game.lines.updated = 0  # reset lines to not be updated
                     game.score.new == 0 
                 if game.score.a_win == 1 or game.score.h_win == 1:
