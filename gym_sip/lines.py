@@ -29,9 +29,12 @@ class Sippy:
     def __init__(self, fn, header, league, verbosity):
         print("~~~~sippywoke~~~~")
         self.games = []
-        self.all_urls = h.macros.build_urls()
-        self.links = []
         self.events = []
+
+        self.links = []
+        self.all_urls = h.macros.build_urls()
+
+        self.verbosity = verbosity
         self.league = league
         self.set_league(self.league)
         self.json_events()
@@ -48,7 +51,7 @@ class Sippy:
         else:
             self.file = None
 
-        self.verbosity = verbosity
+
         access_time = time.time()
         self.init_games(access_time)
 
@@ -104,7 +107,7 @@ class Sippy:
         for link in self.links:
             pages.append(req(link))
             if self.verbosity is True:
-                print('{}'.format('.'))
+                print('.', end='')
         for page in pages:
             try:
                 for section in page:
@@ -354,7 +357,6 @@ class Lines:
                     self.mkts[2].a['american'], self.mkts[2].h['american'], self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
                     self.mkts[2].a['handicap'], self.mkts[2].h['handicap']]
 
-
     def even_handler(self):
         for mkt in self.mkts:
             if mkt.a['american'] == 'EVEN':
@@ -413,8 +415,6 @@ class Score:
 
         self.params = [self.lms_date, self.lms_time, self.quarter, self.secs, self.a_pts,
                        self.h_pts, self.status, self.a_win, self.h_win]
-        # self.a_win.append(0)
-        # self.h_win.append(0)
 
     def update(self):
         self.new = 0
@@ -452,7 +452,6 @@ class Score:
             status = 1
 
         score = self.data.get('latestScore')
-
         dt = self.date_split()
 
         self.jps = [dt[0], dt[1], self.clock.get('periodNumber'),
