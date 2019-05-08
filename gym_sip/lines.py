@@ -30,10 +30,9 @@ class Sippy:
     def __init__(self, fn='nba2', header=0, league=1):
         print("~~~~sippywoke~~~~")
         self.games = []
+        self.all_urls = h.macros.build_urls()
         self.links = []
         self.events = []
-        self.x_axis = []
-        self.y_axis = []
         self.league = league
         self.set_league(self.league)
         self.json_events()
@@ -157,6 +156,24 @@ class Sippy:
         str_league = str(league).lower()
         if league == 0 or str_league == 'all':
             self.links = h.macros.sports
+        elif league == 1 or str_league == 'nba':
+            self.links = h.macros.sports[0:2]
+        elif league == 2 or str_league == 'college basketball':
+            self.links = h.macros.sports[2:4]
+        elif league == 3 or str_league == 'mlb':
+            self.links = h.macros.sports[4:6]
+        elif league == 4 or str_league == 'esports':
+            self.links = h.macros.sports[6:8]
+        elif league == 5 or str_league == 'football':
+            self.links = h.macros.sports[8:10]
+        elif league == 6 or str_league == 'tennis':
+            self.links = h.macros.sports[10:12]
+        elif league == 7 or str_league == 'volleyball':
+            self.links = h.macros.sports[12:14]
+        else:
+            self.links = h.macros.sports[4:6]
+
+
 
     def write_header(self):
         for column_header in h.macros.bovada_headers:
@@ -481,8 +498,6 @@ class Score:
     def csv(self, file):
         for value in self.values():
                 file.write(value + ',')
-            else:
-                file.write('0' + ',')
 
     def values(self):
         data = []

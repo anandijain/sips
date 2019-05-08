@@ -4,7 +4,7 @@ import threading
 import time
 
 class Start:
-    def __init__(self, fn='mlb', header=0, game_type='baseball', run=1):
+    def __init__(self, fn='mlb', header=0, game_type='mlb', run=1):
         self.fn = fn
         self.gt = game_type
         self.header = header

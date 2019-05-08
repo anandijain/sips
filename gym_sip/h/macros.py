@@ -1,5 +1,5 @@
 # Heavily referenced data
-link = "https://www.bovada.lv/services/sports/event/v2/events/A/description/"
+lines_url = "https://www.bovada.lv/services/sports/event/v2/events/A/description/"
 
 az_teams = ['Atlanta Hawks', 'Boston Celtics',
             'Brooklyn Nets', 'Charlotte Hornets',
@@ -25,24 +25,17 @@ bovada_headers = ['sport', 'league', 'game_id', 'a_team', 'h_team', 'cur_time',
                 'a_odds_ps','h_odds_ps','a_deci_ps','h_deci_ps','a_hcap_ps','h_hcap_ps','a_odds_tot',
                 'h_odds_tot','a_deci_tot','h_deci_tot','a_hcap_tot','h_hcap_tot','game_start_time']
 
-# bask
-sports = ['basketball/nba?marketFilterId=def&liveOnly=true&lang=en',
-'basketball/nba?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en',
-# baseball
-'baseball/mlb?marketFilterId=def&liveOnly=true&lang=en',
-'baseball/mlb?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en',
-# college bball
-'basketball/college-basketball?marketFilterId=def&liveOnly=true&lang=en',
-'basketball/college-basketball?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en',
-# esports
-'esports?marketFilterId=def&liveOnly=true&lang=en',
-'esports?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en',
-# football
-'football?marketFilterId=def&liveOnly=true&lang=en',
-'football?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en',
-# tennis
-'tennis?marketFilterId=def&liveOnly=true&lang=en',
-'tennis?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en',
-# volley
-'volleyball?marketFilterId=def&liveOnly=true&lang=en',
-'volleyball?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en']
+suffixes = ['?marketFilterId=def&liveOnly=true&lang=en', 
+            '?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en']
+
+
+sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
+          'esports', 'football/nfl', 'tennis', 'volleyball']
+
+
+def build_urls():
+    urls = []
+    for sport in sports:
+        for suffix in suffixes:
+            urls.append(lines_url + sport + suffix)
+    return urls
