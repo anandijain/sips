@@ -533,6 +533,17 @@ class Score:
             else:
                 file.write('0' + ',')
 
+    def data(self):
+        data = []
+        for param in self.params:
+            if len(param) > 0:
+                if param is None:
+                    param = ''
+                data.append(str(param[-1]))
+            else:
+                data.append('0')
+        return data
+
     def json(self):
         self.data = req(scores_url + self.game_id)
 
