@@ -525,11 +525,8 @@ class Score:
                 return 1
 
     def csv(self, file):
-        for param in self.params:
-            if len(param) > 0:
-                if param is None:
-                    param = ''
-                file.write(str(param[-1]) + ',')
+        for value in self.data():
+                file.write(value + ',')
             else:
                 file.write('0' + ',')
 
