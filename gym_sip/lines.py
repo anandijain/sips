@@ -345,12 +345,12 @@ class Lines:
             if desc is None:
                 continue
             else:
-                self.mkts[i].update(away_price, home_price)
+                self.mkts.append(Market(away_price, home_price))
 
         self.even_handler()
 
         last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
-
+        # ML (a, h),
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
