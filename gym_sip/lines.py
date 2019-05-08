@@ -5,6 +5,8 @@ import helpers as h
 import matplotlib.pyplot as plt 
 import numpy as np
 
+import h
+
 
 save_path = 'data'
 root_url = 'https://www.bovada.lv'
@@ -153,61 +155,13 @@ class Sippy:
 
     def set_league(self, league):
         str_league = str(league).lower()
-        if league == 1 or str_league == 'nba':  # NBA
-            self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
-                          "description/basketball/nba?marketFilterId=def&liveOnly=true&lang=en",
-                          "https://www.bovada.lv/services/sports/event/v2/events/" 
-                          "A/description/basketball/nba?marketFilterId=def&preMatchOnly=true&lang=en"]
-        elif league == 2 or str_league == 'college':  # College Bask
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/basketball/college-basketball?marketFilterId=def&liveOnly=true&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/basketball/college-basketball?marketFilterId=def'
-                          '&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 3 or str_league == 'hockey':  # Hockey
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/hockey?marketFilterId=def&liveOnly=true&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/hockey?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 4 or str_league == 'tennis':  # Tennis
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/tennis?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/tennis?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 5 or str_league == 'esports':  # Esports
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/esports?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/esports?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 6 or str_league == 'football':  # Football
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/football?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/football?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 7 or str_league == 'volleyball':  # Volleyball
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/volleyball?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/'
-                          'description/volleyball?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en']
-        elif league == 8:
-            self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&liveOnly=true&lang=en",
-                          "https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba?marketFilterId=rank&preMatchOnly=true&lang=en"]
-        elif league == 9 or str_league == 'baseball':
-            self.links = ['https://www.bovada.lv/services/sports/event/v2/events/A/description/baseball/mlb?marketFilterId=def&liveOnly=true&lang=en',
-                          'https://www.bovada.lv/services/sports/event/v2/events/A/description/baseball/mlb?marketFilterId=def&preMatchOnly=true&lang=en']
-        else:               # All BASK
-            self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
-                          "description/basketball?marketFilterId=def&liveOnly=true&eventsLimit=8&lang=en",
-                          "https://www.bovada.lv/services/sports/event/v2/events/A/" 
-                          "description/basketball?marketFilterId=def&preMatchOnly=true&eventsLimit=50&lang=en"]
+        if league == 0 or str_league == 'all':
+            self.links = h.macros.sports
 
     def write_header(self):
-        self.file.write("sport,league,game_id,a_team,h_team,cur_time,")
-        self.file.write("lms_date,lms_time,quarter,secs,a_pts,h_pts,status,a_win,h_win,last_mod_to_start,")
-        self.file.write("last_mod_lines,num_markets,a_ml,h_ml,a_deci_ml,h_deci_ml,")
-        self.file.write("a_odds_ps,h_odds_ps,a_deci_ps,h_deci_ps,a_hcap_ps,h_hcap_ps,a_odds_tot,")
-        self.file.write("h_odds_tot,a_deci_tot,h_deci_tot,a_hcap_tot,h_hcap_tot,")
-        self.file.write("game_start_time\n")
+        for column_header in h.macros.bovada_headers:
+            self.file.write(column_header + ',')
+        self.file.write('\n')
 
     def __repr__(self):
         for game in self.games:
@@ -525,12 +479,12 @@ class Score:
                 return 1
 
     def csv(self, file):
-        for value in self.data():
+        for value in self.values():
                 file.write(value + ',')
             else:
                 file.write('0' + ',')
 
-    def data(self):
+    def values(self):
         data = []
         for param in self.params:
             if len(param) > 0:
