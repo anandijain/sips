@@ -21,13 +21,12 @@ headers = {'User-Agent': 'Mozilla/5.0'}
 # TODO write the league, so as to differentiate between college and NBA
 # TODO add short circuit to the score updater, if last_mod_score == cur last mod score, then return.
 # TODO upon removing games that are no longer in json, this is a good point to calculate the actual profit of RL bot
-# TODO add feature to csv that is a binary saying if information is 0/missing. it will help correct
-#  for not knowing when lines close
+
 # TODO add Over Under field and use it for one hot encoding
 
 
 class Sippy:
-    def __init__(self, fn='nba2', header=0, league=1):
+    def __init__(self, fn, header, league, verbosity):
         print("~~~~sippywoke~~~~")
         self.games = []
         self.all_urls = h.macros.build_urls()
@@ -36,6 +35,7 @@ class Sippy:
         self.league = league
         self.set_league(self.league)
         self.json_events()
+
         self.counter = 0
         self.num_updates = 0
 
@@ -48,6 +48,7 @@ class Sippy:
         else:
             self.file = None
 
+        self.verbosity = verbosity
         access_time = time.time()
         self.init_games(access_time)
 
@@ -102,6 +103,8 @@ class Sippy:
         events = []
         for link in self.links:
             pages.append(req(link))
+            if self.verbosity is True:
+                print('{}'.format('.'))
         for page in pages:
             try:
                 for section in page:
@@ -155,25 +158,23 @@ class Sippy:
     def set_league(self, league):
         str_league = str(league).lower()
         if league == 0 or str_league == 'all':
-            self.links = h.macros.sports
+            self.links = self.all_urls
         elif league == 1 or str_league == 'nba':
-            self.links = h.macros.sports[0:2]
+            self.links = self.all_urls[0:2]
         elif league == 2 or str_league == 'college basketball':
-            self.links = h.macros.sports[2:4]
+            self.links = self.all_urls[2:4]
         elif league == 3 or str_league == 'mlb':
-            self.links = h.macros.sports[4:6]
+            self.links = self.all_urls[4:6]
         elif league == 4 or str_league == 'esports':
-            self.links = h.macros.sports[6:8]
+            self.links = self.all_urls[6:8]
         elif league == 5 or str_league == 'football':
-            self.links = h.macros.sports[8:10]
+            self.links = self.all_urls[8:10]
         elif league == 6 or str_league == 'tennis':
-            self.links = h.macros.sports[10:12]
+            self.links = self.all_urls[10:12]
         elif league == 7 or str_league == 'volleyball':
-            self.links = h.macros.sports[12:14]
+            self.links = self.all_urls[12:14]
         else:
-            self.links = h.macros.sports[4:6]
-
-
+            self.links = self.all_urls[4:6]
 
     def write_header(self):
         for column_header in h.macros.bovada_headers:
@@ -270,7 +271,7 @@ class Game:
         print('\nScores info: ')
         print(self.score)
         print('Game line info: ')
-        print(str(self.delta), end='|')
+        print('time delta: {} |'.format(self.delta))
         print(self.lines)
         print(str(self.start_time) + "\n")
 
@@ -286,12 +287,10 @@ class Lines:
          self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot, self.h_deci_tot, self.a_hcap_tot,
          self.h_hcap_tot] = ([] for i in range(19))
 
-        self.params = [
-                     self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
-                     self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
-                     self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
-                     self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot
-                      ]
+        self.params = [self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
+                        self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
+                        self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
+                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot]
 
     def update(self, json):
         self.updated = 0
@@ -320,15 +319,14 @@ class Lines:
 
         data = {"american": 0, "decimal": 0, "handicap": 0}
         data2 = {"american": 0, "decimal": 0, "handicap": 0}
-        self.mkts = []
+        
         ps = Market(data, data2)
-        self.mkts.append(ps)
         ml = Market(data, data2)
-        self.mkts.append(ml)
         tot = Market(data, data2)
-        self.mkts.append(tot)
 
-        for market in j_markets:
+        self.mkts = [ps, ml, tot]
+
+        for i, market in enumerate(j_markets):
             outcomes = market['outcomes']
             desc = market.get('description')
 
@@ -343,20 +341,19 @@ class Lines:
 
             if desc is None:
                 continue
-            elif desc == 'Point Spread' or desc == 'Runline':
-                ps.update(away_price, home_price)
-            elif desc == 'Moneyline':
-                ml.update(away_price, home_price)
-            elif desc == 'Total':
-                tot.update(away_price, home_price)
+            else:
+                self.mkts[i].update(away_price, home_price)
 
         self.even_handler()
-        last_mod = self.json['lastModified'] / 1000.
+
+        last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
+
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
                     self.mkts[2].a['american'], self.mkts[2].h['american'], self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
                     self.mkts[2].a['handicap'], self.mkts[2].h['handicap']]
+
 
     def even_handler(self):
         for mkt in self.mkts:
