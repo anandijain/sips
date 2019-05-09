@@ -324,9 +324,11 @@ class Lines:
         j_markets = self.json['displayGroups'][0]['markets']
 
         data = {"american": 0, "decimal": 0, "handicap": 0}
+
         ps = Market(data, data)
         ml = Market(data, data)
         tot = Market(data, data)
+         
         self.mkts = [ps, ml, tot]
 
         for i, market in enumerate(j_markets):
@@ -345,18 +347,13 @@ class Lines:
             if desc is None:
                 continue
             else:
-                self.mkts.append(Market(away_price, home_price))
+                self.mkts[i].(Market(away_price, home_price))
 
         self.even_handler()
 
         last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
-<<<<<<< HEAD
-        # ML (a, h),
-=======
-        self.jps = [last_mod, self.json['numMarkets']]
 
         # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
->>>>>>> origin/bleeding
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
