@@ -324,8 +324,10 @@ class Lines:
         j_markets = self.json['displayGroups'][0]['markets']
 
         data = {"american": 0, "decimal": 0, "handicap": 0}
-
-        self.mkts = []
+        ps = Market(data, data)
+        ml = Market(data, data)
+        tot = Market(data, data)
+        self.mkts = [ps, ml, tot]
 
         for i, market in enumerate(j_markets):
             outcomes = market['outcomes']
@@ -343,7 +345,7 @@ class Lines:
             if desc is None:
                 continue
             else:
-                self.mkts.append(Market(away_price, home_price))
+                self.mkts[i].update(away_price, home_price)
 
         self.even_handler()
 
