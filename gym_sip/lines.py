@@ -1,7 +1,7 @@
 import time
 import os.path
 import requests
-import helpers as h
+
 import matplotlib.pyplot as plt 
 import numpy as np
 
@@ -241,7 +241,6 @@ class Game:
         row.append(self.delta)
         row += self.lines.jps
         row.append(self.start_time)
-        print(row)
         return row
 
     def quick(self):
@@ -324,6 +323,8 @@ class Lines:
     def jparams(self):
         j_markets = self.json['displayGroups'][0]['markets']
 
+        data = {"american": 0, "decimal": 0, "handicap": 0}
+
         self.mkts = []
 
         for i, market in enumerate(j_markets):
@@ -337,7 +338,7 @@ class Lines:
             try:
                 home_price = outcomes[1].get('price')
             except IndexError:
-                home_price = data2
+                home_price = data
 
             if desc is None:
                 continue
