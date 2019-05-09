@@ -1,7 +1,7 @@
 import time
 import os.path
 import requests
-import helpers as h
+
 import matplotlib.pyplot as plt 
 import numpy as np
 
@@ -26,7 +26,7 @@ headers = {'User-Agent': 'Mozilla/5.0'}
 
 
 class Sippy:
-    def __init__(self, fn, header, league, verbosity):
+    def __init__(self, fn=None, header=0, league=0, verbosity=True):
         print("~~~~sippywoke~~~~")
         self.games = []
         self.events = []
@@ -180,8 +180,12 @@ class Sippy:
             self.links = self.all_urls[4:6]
 
     def write_header(self):
-        for column_header in h.macros.bovada_headers:
-            self.file.write(column_header + ',')
+        num_headers = len(h.macros.bovada_headers)
+        for i, column_header in enumerate(h.macros.bovada_headers):
+            if i < num_headers:
+                self.file.write(column_header + ',')
+            else:
+                self.file.write(column_header)
         self.file.write('\n')
 
     def __repr__(self):
@@ -237,7 +241,6 @@ class Game:
         row.append(self.delta)
         row += self.lines.jps
         row.append(self.start_time)
-        print(row)
         return row
 
     def quick(self):
@@ -321,12 +324,9 @@ class Lines:
         j_markets = self.json['displayGroups'][0]['markets']
 
         data = {"american": 0, "decimal": 0, "handicap": 0}
-        data2 = {"american": 0, "decimal": 0, "handicap": 0}
-        
-        ps = Market(data, data2)
-        ml = Market(data, data2)
-        tot = Market(data, data2)
-
+        ps = Market(data, data)
+        ml = Market(data, data)
+        tot = Market(data, data)
         self.mkts = [ps, ml, tot]
 
         for i, market in enumerate(j_markets):
@@ -340,7 +340,7 @@ class Lines:
             try:
                 home_price = outcomes[1].get('price')
             except IndexError:
-                home_price = data2
+                home_price = data
 
             if desc is None:
                 continue
@@ -350,7 +350,13 @@ class Lines:
         self.even_handler()
 
         last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
+<<<<<<< HEAD
         # ML (a, h),
+=======
+        self.jps = [last_mod, self.json['numMarkets']]
+
+        # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
+>>>>>>> origin/bleeding
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
@@ -519,6 +525,7 @@ class Score:
 
 class Market:
     def __init__(self, away, home):
+        self.frame = {"american": 0, "decimal": 0, "handicap": 0}
         self.a = away
         self.h = home
 

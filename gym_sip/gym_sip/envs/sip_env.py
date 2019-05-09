@@ -1,7 +1,9 @@
 import gym
 import random
-import helpers as h
+import h
 import numpy as np
+
+from gym import spaces
 
 # Macros for actions
 ACTION_BUY_A = 0
@@ -54,8 +56,7 @@ class SippyState:
 
     def ids(self):
         ids = self.game['game_id'].unique()
-        if len(ids) > 1:
-            # check to see if the games were not chunked correctly
+        if len(ids) > 1:  # check to see if the games were not chunked correctly
             raise Exception('there was an error, chunked game has more than one id, the ids are {}'.format(ids))
         return ids
 
@@ -80,8 +81,8 @@ class SipEnv(gym.Env):
         self.game_hedges = 0
         self.follow_bets = 0
         self._odds()
-        self.action_space = gym.spaces.Discrete(3)
-        self.observation_space = gym.spaces.Box(low=-1e7, high=1e7, shape=(len(self.cur_state), 0))
+        self.action_space = spaces.Discrete(3)
+        self.observation_space = spaces.Box(low=-1e7, high=1e7, shape=(len(self.cur_state), 0))
                                                 # ,dtype=np.float32)
 
     def step(self, action):  # action given to us from test.py
@@ -139,7 +140,7 @@ class SipEnv(gym.Env):
         hedged_bet = Bet(hedge_amt, self.action, self.odds, self.cur_state)
 
         net = h.net(self.last_bet, hedged_bet)
-        hedge = Hedge(self.last_bet, hedged_bet)
+        hedge = h.Hedge(self.last_bet, hedged_bet)
         hedge.__repr__()
 
         self.hedges.append(hedge)
@@ -210,49 +211,3 @@ class SipEnv(gym.Env):
         pass
 
 
-class Bet:
-    # class storing bet info, will be stored in pair (hedged-bet)
-    # might want to add time into game so we can easily aggregate when it is betting in the game
-    # possibly using line numbers where they update -(1/(x-5)). x=5 is end of game
-    # maybe bets should be stored as a step (csv line) and the bet amt and index into game.
-    def __init__(self, amt, action, odds, cur_state):
-        self.amt = amt
-        self.team = action  # 0 for away, 1 for home
-        self.a_odds = odds[0]
-        self.h_odds = odds[1]
-        self.cur_state = cur_state
-        self.wait_amt = 0
-
-    def reset_odds(self):
-        # reset both odds
-        self.a_odds = 0
-        self.h_odds = 0
-
-    def __repr__(self):
-        # simple console log of a bet
-        print(h.act(self.team))
-        print('bet amt: ' + str(self.amt) + ' | team: ' + str(self.team))
-        print('a_odds: ' + str(self.a_odds) + ' | h_odds: ' + str(self.h_odds))
-
-
-class Hedge:
-    def __init__(self, bet, bet2):
-        # input args is two Bets
-        self.net = h.net(bet, bet2)
-        self.made_profit = self.net > 0
-        self.bet = bet
-        self.bet2 = bet2
-
-    def __repr__(self):
-        print("[BET 1 of 2")
-        self.bet.__repr__()
-        print("BET 2 of 2")
-        self.bet2.__repr__()
-        print('hedged profit: ' + str(self.net))
-        print('steps waited: ' + str(self.bet.wait_amt))
-        if self.made_profit:
-            print('$$$$$$$$$$$$$$$$$ made money]')
-        print('\n')
-
-    # TODO 
-    # add function that writes bets to CSV for later analysis

@@ -17,3 +17,9 @@ register(
 #     entry_point='gym_sip.envs:SipEnv3',
 #     kwargs={}
 # )
+
+# register(
+#     id='Sip-v3',
+#     entry_point='gym_sip.envs:SipEnv4',
+#     kwargs={''}
+# )

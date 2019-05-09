@@ -7,28 +7,22 @@ HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
 class BovadaState:
 	def __init__(self):
-		self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
-                  "description/basketball/nba?marketFilterId=def&liveOnly=true&lang=en",
-                  "https://www.bovada.lv/services/sports/event/v2/events/" 
-                  "A/description/basketball/nba?marketFilterId=def&preMatchOnly=true&lang=en"]
-		self.scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
-		self.prev_states = []
-		self.cur_states = []
-		self.games = []  # parsed cur_states
-		self.events = []
-		self.jsons = []
-		self.get_cur_state()
-		self.parse()
+		# # self.links = ["https://www.bovada.lv/services/sports/event/v2/events/A/" 
+  # #                 "description/basketball/nba?marketFilterId=def&liveOnly=true&lang=en",
+  # #                 "https://www.bovada.lv/services/sports/event/v2/events/" 
+  # #                 "A/description/basketball/nba?marketFilterId=def&preMatchOnly=true&lang=en"]
+		# self.scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
+		# self.prev_states = []
+		# self.cur_states = []
+		# self.games = []  # parsed cur_states
+		# self.events = []
+		# self.jsons = []
+		# self.get_cur_state()
+		# self.parse()
+        self.sip = 
+
 	def next(self):
-		# self.prev_states = self.cur_states
-		self.get_cur_state()
-		self.parse()
-		for event in self.events:
-			 exists = 0
-			 for state in self.cur_states:
-			 	if event['id'] == state[2]:  # third element is game_id 
-			 		if event
-		return self.cur_states
+
 	def get_cur_state(self):
 		self.jsons = []
 		json = None
@@ -73,7 +67,7 @@ class BovadaState:
 
 
 
-class SipEnv3:
+class SipEnv4:
 	def __init__(self):
         self.scraper = BovadaState()
         self.cur_states = None

@@ -1,38 +1,30 @@
 import gym
 import gym_sip
 
-import helpers as h
+import h
 
 import lines as ll
 import sipqn
 
-
-# main init
-
-# if __name__ == "__main__":
-
 env = gym.make('Sip-v0').unwrapped
-sip = ll.Sippy(fn=None) # start scraper for nba, not writing to file
-
-# print(sip)
+sip = ll.Sippy(fn=None, header=0, league='mlb', verbosity=0) # start scraper for nba, not writing to file
 
 N_STATES = env.observation_space.shape[0]
 N_ACTIONS = env.action_space.n
 ENV_A_SHAPE = 0 if isinstance(env.action_space.sample(), int) else env.action_space.sample().shape     # to confirm the shape
 
 steps_done = 0
-
 dqn = sipqn.DQN(N_STATES, N_ACTIONS, ENV_A_SHAPE)
 
 sip.step()
 
 while True:
-	
     sip.step()
     steps_done += 1
 
     for game in sip.games:
-        game.__repr__()
+        # print(game)
+        # print(cur_state)
         cur_state = game.return_row()
 
         a = dqn.choose_action(cur_state)  # give deep q network state and return action

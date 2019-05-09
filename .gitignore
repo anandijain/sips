@@ -6,3 +6,6 @@ gym_sip/__pycache__/
 # don't upload models to git 
 models/
 
+gym_sip/data/3_years_of_data.csv
+
+gym_sip/data/bangout.csv

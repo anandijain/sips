@@ -7,7 +7,6 @@ from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 import torch.optim as optim
 
-# import h
 import h
 
 # credit https://github.com/utkuozbulak/pytorch-custom-dataset-examples
