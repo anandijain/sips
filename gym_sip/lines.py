@@ -26,7 +26,7 @@ headers = {'User-Agent': 'Mozilla/5.0'}
 
 
 class Sippy:
-    def __init__(self, fn, header, league, verbosity):
+    def __init__(self, fn=None, header=0, league=0, verbosity=True):
         print("~~~~sippywoke~~~~")
         self.games = []
         self.events = []
