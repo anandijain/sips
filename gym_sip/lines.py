@@ -325,13 +325,15 @@ class Lines:
 
         data = {"american": 0, "decimal": 0, "handicap": 0}
 
+        self.mkts = []
+
         ps = Market(data, data)
         ml = Market(data, data)
         tot = Market(data, data)
-         
-        self.mkts = [ps, ml, tot]
 
-        for i, market in enumerate(j_markets):
+        self.mkts += [ps, ml, tot]
+
+        for market in j_markets:
             outcomes = market['outcomes']
             desc = market.get('description')
 
@@ -346,14 +348,15 @@ class Lines:
 
             if desc is None:
                 continue
-            else:
-                self.mkts[i].(Market(away_price, home_price))
+            elif desc == 'Point Spread' or desc == 'Runline':
+                ps.update(away_price, home_price)
+            elif desc == 'Moneyline':
+                ml.update(away_price, home_price)
+            elif desc == 'Total':
+                tot.update(away_price, home_price)
 
         self.even_handler()
-
-        last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
-
-        # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
+        last_mod = self.json['lastModified'] / 1000.
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
@@ -526,10 +529,20 @@ class Market:
         self.a = away
         self.h = home
 
+
     def update(self, away, home):
+        teams = [self.a, self.h]
+        for i, team in enumerate([away, home]):
+            for key in team:
+                val = team[key]
+                teams[i][key] = val
+
         self.a = away
         self.h = home
 
+    def __repr__(self):
+        print('away: {}'.format(self.a))
+        print('home: {}'.format(self.h))
 
 def req(url):
     try:
