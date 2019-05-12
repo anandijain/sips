@@ -365,15 +365,17 @@ class Lines:
 
     def even_handler(self):
         for mkt in self.mkts:
-            if mkt.a['american'] == 'EVEN':
+            if mkt.a['american'] == 'EVEN' and mkt.h['american'] == 'EVEN':
+                mkt.a['american'] = 100
+                mkt.h['american'] = 100
+            elif mkt.a['american'] == 'EVEN':
                 if int(mkt.h['american']) > 0:
                     mkt.a['american'] = -100
                 elif int(mkt.h['american']) < 0:
                     mkt.a['american'] = 100
                 else:
                     mkt.a['american'] = 0
-
-            if mkt.h['american'] == 'EVEN':
+            elif mkt.h['american'] == 'EVEN':
                 if int(mkt.a['american']) > 0:
                     mkt.h['american'] = -100
                 elif int(mkt.a['american']) < 0:
