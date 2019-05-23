@@ -108,14 +108,17 @@ class Sippy:
             pages.append(req(link))
             if self.verbosity is True:
                 print('.', end='')
+
         for page in pages:
             try:
                 for section in page:
                     league = section['path'][0]['description']
                     tmp = section.get('events')
                     for event in tmp:
-                        event.update({'league': league})
-                    events += tmp
+                        link = event.get('link')
+                        if link is not None:
+                            event.update({'league': league})
+                            events.append(event)
             except TypeError:
                 pass
         self.events = events
@@ -145,11 +148,9 @@ class Sippy:
 
     def init_games(self, access_time):
         for event in self.events:
-            try:
-                self.new_game(event, access_time)
-            except KeyError:
-                continue
-                
+            self.new_game(event, access_time)
+
+
     def id_given_teams(self, a_team, h_team):  # input is two strings
         for game in self.games:
             if game.a_team == a_team and game.h_team == h_team:
