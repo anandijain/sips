@@ -145,8 +145,11 @@ class Sippy:
 
     def init_games(self, access_time):
         for event in self.events:
-            self.new_game(event, access_time)
-
+            try:
+                self.new_game(event, access_time)
+            except KeyError:
+                continue
+                
     def id_given_teams(self, a_team, h_team):  # input is two strings
         for game in self.games:
             if game.a_team == a_team and game.h_team == h_team:
