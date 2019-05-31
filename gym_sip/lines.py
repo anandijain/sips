@@ -1,11 +1,12 @@
-import time
+import os
 import os.path
-import requests
 
-import matplotlib.pyplot as plt 
+import time
+import requests
 import numpy as np
 
 import h
+
 
 save_path = 'data'
 root_url = 'https://www.bovada.lv'
@@ -34,9 +35,6 @@ class Sippy:
 
         if fn is not None:
             self.file = open_file(fn)
-            if header == 1:
-                self.write_header()
-
             self.file.flush()
         else:
             self.file = None
@@ -47,6 +45,7 @@ class Sippy:
 
     def step(self):
         access_time = time.time()
+        twenty_steps_ago = access_time
         self.json_events()
         self.cur_games(access_time)
 
@@ -56,9 +55,20 @@ class Sippy:
         self.counter += 1
 
         if self.counter % 20 == 1:
+
+            elapsed = round(abs(access_time - twenty_steps_ago))
+
+            if elapsed == 0:
+                efficiency = 0
+            else:
+                efficiency = self.num_updates/elapsed
+
             print("num games: " + str(len(self.games)))
             print('num events: ' + str(len(self.events)))
-            print('new lines in past 20 steps: {}\n'.format(self.num_updates))
+            print('new lines in past 20 steps: {} / {} seconds'.format(self.num_updates, elapsed))
+            print('rough efficiency (newlines/elapsed): {}\n'.format(efficiency))
+            
+            twenty_steps_ago = access_time
             self.num_updates = 0
             self.update_games_list()
             if self.file is not None:
@@ -176,15 +186,6 @@ class Sippy:
             self.links = self.all_urls[14:16]
         else:
             self.links = self.all_urls[4:6]
-
-    def write_header(self):
-        num_headers = len(h.macros.bovada_headers)
-        for i, column_header in enumerate(h.macros.bovada_headers):
-            if i < num_headers:
-                self.file.write(column_header + ',')
-            else:
-                self.file.write(column_header)
-        self.file.write('\n')
 
     def __repr__(self):
         for game in self.games:
@@ -577,7 +578,14 @@ def req(url):
 
 def open_file(file_name):
     complete_name = os.path.join(save_path, file_name + ".csv")
-    file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
+    exists = os.path.isfile(complete_name)
+
+    if exists:  # don't write header
+        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg 
+    else:  # write header
+        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg 
+        write_header(file)
+
     return file
 
 
@@ -586,3 +594,14 @@ def write_json(file_name, json):
     file.write(json)
     file.write('\n')
     file.close()
+
+
+def write_header(file):
+    num_headers = len(h.macros.bovada_headers)
+    for i, column_header in enumerate(h.macros.bovada_headers):
+        if i < num_headers:
+            file.write(column_header + ',')
+        else:
+            file.write(column_header)
+    file.write('\n')
+
