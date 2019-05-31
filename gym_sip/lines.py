@@ -7,22 +7,12 @@ import numpy as np
 
 import h
 
-
 save_path = 'data'
 root_url = 'https://www.bovada.lv'
 scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
 headers = {'User-Agent': 'Mozilla/5.0'}
 
-
-# TODO convert last_mod_score to epoch
-# TODO add restart/timeout
-# TODO 'EVEN' fix
-# TODO fix scores class so that it stores a list of scores.
-# TODO write the league, so as to differentiate between college and NBA
-# TODO add short circuit to the score updater, if last_mod_score == cur last mod score, then return.
-# TODO upon removing games that are no longer in json, this is a good point to calculate the actual profit of RL bot
-
-# TODO add Over Under field and use it for one hot encoding
+# TODO verbosity fix
 
 
 class Sippy:
@@ -137,7 +127,10 @@ class Sippy:
         print(str(len(self.games)))
         for game in self.games:
             if verbose == 1:
-                print(game)
+                try:
+                    print(game)
+                except TypeError:
+                    continue
             else:
                 game.quick()
 
@@ -149,7 +142,6 @@ class Sippy:
     def init_games(self, access_time):
         for event in self.events:
             self.new_game(event, access_time)
-
 
     def id_given_teams(self, a_team, h_team):  # input is two strings
         for game in self.games:
@@ -180,6 +172,8 @@ class Sippy:
             self.links = self.all_urls[10:12]
         elif league == 7 or str_league == 'volleyball':
             self.links = self.all_urls[12:14]
+        elif league == 8 or str_league == 'hockey':
+            self.links = self.all_urls[14:16]
         else:
             self.links = self.all_urls[4:6]
 
@@ -194,7 +188,10 @@ class Sippy:
 
     def __repr__(self):
         for game in self.games:
-            print(game)
+            try:
+                print(game)
+            except TypeError:
+                return '.'
 
 
 class Game:
@@ -273,18 +270,20 @@ class Game:
             self.league = self.league.replace(',', '')
 
     def __repr__(self):
-        print('\n' + self.desc + '\n')
-        print(self.sport, end='|')
-        print(self.game_id, end='|')
-        print(self.a_team, end='|')
-        print(self.h_team, end='|')
-        print('\nScores info: ')
-        print(self.score)
-        print('Game line info: ')
-        print('time delta: {} |'.format(self.delta))
-        print(self.lines)
-        print(str(self.start_time) + "\n")
-
+        try:
+            print('\n' + self.desc + '\n')
+            print(self.sport, end='|')
+            print(self.game_id, end='|')
+            print(self.a_team, end='|')
+            print(self.h_team, end='|')
+            print('\nScores info: ')
+            print(self.score)
+            print('Game line info: ')
+            print('time delta: {} |'.format(self.delta))
+            print(self.lines)
+            print(str(self.start_time) + "\n")
+        except TypeError:
+            return '.'
 
 class Lines:
     def __init__(self, json):
@@ -295,12 +294,12 @@ class Lines:
         [self.query_times, self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
          self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps, self.a_hcap_ps,
          self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot, self.h_deci_tot, self.a_hcap_tot,
-         self.h_hcap_tot] = ([] for i in range(19))
+         self.h_hcap_tot, self.a_ou, self.h_ou] = ([] for i in range(21))
 
         self.params = [self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
                         self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
                         self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
-                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot]
+                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot, self.a_ou, self.h_ou]
 
     def update(self, json):
         self.updated = 0
@@ -326,8 +325,10 @@ class Lines:
 
     def jparams(self):
         j_markets = self.json['displayGroups'][0]['markets']
-
         data = {"american": 0, "decimal": 0, "handicap": 0}
+
+        a_ou = None
+        h_ou = None
 
         self.mkts = []
 
@@ -352,11 +353,13 @@ class Lines:
 
             if desc is None:
                 continue
-            elif desc == 'Point Spread' or desc == 'Runline':
+            elif desc == 'Point Spread' or desc == 'Runline' or desc == 'Puck Line':
                 ps.update(away_price, home_price)
             elif desc == 'Moneyline':
                 ml.update(away_price, home_price)
             elif desc == 'Total':
+                a_ou = outcomes[0].get('type')
+                h_ou = outcomes[1].get('type')
                 tot.update(away_price, home_price)
 
         self.even_handler()
@@ -365,7 +368,7 @@ class Lines:
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
                     self.mkts[2].a['american'], self.mkts[2].h['american'], self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
-                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap']]
+                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap'], a_ou, h_ou]
 
     def even_handler(self):
         for mkt in self.mkts:

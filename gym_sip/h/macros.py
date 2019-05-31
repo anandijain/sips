@@ -23,14 +23,14 @@ bovada_headers = ['sport', 'league', 'game_id', 'a_team', 'h_team', 'cur_time',
                 'a_win','h_win','last_mod_to_start',
                 'last_mod_lines','num_markets','a_ml','h_ml','a_deci_ml','h_deci_ml',
                 'a_odds_ps','h_odds_ps','a_deci_ps','h_deci_ps','a_hcap_ps','h_hcap_ps','a_odds_tot',
-                'h_odds_tot','a_deci_tot','h_deci_tot','a_hcap_tot','h_hcap_tot','game_start_time']
+                'h_odds_tot','a_deci_tot','h_deci_tot','a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
 
 suffixes = ['?marketFilterId=def&liveOnly=true&lang=en', 
             '?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en']
 
 
 sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
-          'esports', 'football/nfl', 'tennis', 'volleyball']
+          'esports', 'football/nfl', 'tennis', 'volleyball', 'hockey']
 
 
 def build_urls():
