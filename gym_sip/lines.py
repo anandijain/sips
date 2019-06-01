@@ -32,6 +32,7 @@ class Sippy:
 
         self.counter = 0
         self.num_updates = 0
+        self.twenty_steps_ago = 0
 
         if fn is not None:
             self.file = open_file(fn)
@@ -45,7 +46,7 @@ class Sippy:
 
     def step(self):
         access_time = time.time()
-        twenty_steps_ago = access_time
+        
         self.json_events()
         self.cur_games(access_time)
 
@@ -55,8 +56,7 @@ class Sippy:
         self.counter += 1
 
         if self.counter % 20 == 1:
-
-            elapsed = round(abs(access_time - twenty_steps_ago))
+            elapsed = round(abs(access_time - self.twenty_steps_ago))
 
             if elapsed == 0:
                 efficiency = 0
@@ -68,7 +68,7 @@ class Sippy:
             print('new lines in past 20 steps: {} / {} seconds'.format(self.num_updates, elapsed))
             print('rough efficiency (newlines/elapsed): {}\n'.format(efficiency))
             
-            twenty_steps_ago = access_time
+            self.twenty_steps_ago = access_time
             self.num_updates = 0
             self.update_games_list()
             if self.file is not None:

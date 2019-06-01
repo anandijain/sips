@@ -1,7 +1,6 @@
-import lines as ll
-import matplotlib.pyplot as plt 
-import threading
 import time
+
+import lines as ll
 
 class Start:
     def __init__(self, fn='mlb2', game_type='mlb', run=1, verbosity=False):
