@@ -479,7 +479,7 @@ class Score:
     def win_check(self):
         a = self.quarter[-1] == 0
         b = self.quarter[-1] == self.num_quarters
-        c = self.secs[-1] == 0
+        c = self.secs[-1] == 0 or self.secs == -1
         d = self.status[-1] == 0
         win = b and c
         win2 = a and c and d
