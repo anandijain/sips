@@ -1,8 +1,11 @@
-import time
+import os
 import os.path
+
+import time
 import requests
 
 import matplotlib.pyplot as plt 
+
 import numpy as np
 
 import h
@@ -13,16 +16,7 @@ root_url = 'https://www.bovada.lv'
 scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
 headers = {'User-Agent': 'Mozilla/5.0'}
 
-
-# TODO convert last_mod_score to epoch
-# TODO add restart/timeout
-# TODO 'EVEN' fix
-# TODO fix scores class so that it stores a list of scores.
-# TODO write the league, so as to differentiate between college and NBA
-# TODO add short circuit to the score updater, if last_mod_score == cur last mod score, then return.
-# TODO upon removing games that are no longer in json, this is a good point to calculate the actual profit of RL bot
-
-# TODO add Over Under field and use it for one hot encoding
+# TODO verbosity fix
 
 
 class Sippy:
@@ -41,12 +35,10 @@ class Sippy:
 
         self.counter = 0
         self.num_updates = 0
+        self.twenty_steps_ago = 0
 
         if fn is not None:
             self.file = open_file(fn)
-            if header == 1:
-                self.write_header()
-
             self.file.flush()
         else:
             self.file = None
@@ -57,6 +49,7 @@ class Sippy:
 
     def step(self):
         access_time = time.time()
+        
         self.json_events()
         self.cur_games(access_time)
 
@@ -66,9 +59,19 @@ class Sippy:
         self.counter += 1
 
         if self.counter % 20 == 1:
+            elapsed = round(abs(access_time - self.twenty_steps_ago))
+
+            if elapsed == 0:
+                efficiency = 0
+            else:
+                efficiency = self.num_updates/elapsed
+
             print("num games: " + str(len(self.games)))
             print('num events: ' + str(len(self.events)))
-            print('new lines in past 20 steps: {}\n'.format(self.num_updates))
+            print('new lines in past 20 steps: {} / {} seconds'.format(self.num_updates, elapsed))
+            print('rough efficiency (newlines/elapsed): {}\n'.format(efficiency))
+            
+            self.twenty_steps_ago = access_time
             self.num_updates = 0
             self.update_games_list()
             if self.file is not None:
@@ -108,14 +111,17 @@ class Sippy:
             pages.append(req(link))
             if self.verbosity is True:
                 print('.', end='')
+
         for page in pages:
             try:
                 for section in page:
                     league = section['path'][0]['description']
                     tmp = section.get('events')
                     for event in tmp:
-                        event.update({'league': league})
-                    events += tmp
+                        link = event.get('link')
+                        if link is not None:
+                            event.update({'league': league})
+                            events.append(event)
             except TypeError:
                 pass
         self.events = events
@@ -134,7 +140,10 @@ class Sippy:
         print(str(len(self.games)))
         for game in self.games:
             if verbose == 1:
-                print(game)
+                try:
+                    print(game)
+                except TypeError:
+                    continue
             else:
                 game.quick()
 
@@ -176,6 +185,8 @@ class Sippy:
             self.links = self.all_urls[10:12]
         elif league == 7 or str_league == 'volleyball':
             self.links = self.all_urls[12:14]
+        elif league == 8 or str_league == 'hockey':
+            self.links = self.all_urls[14:16]
         else:
             self.links = self.all_urls[4:6]
 
@@ -190,7 +201,10 @@ class Sippy:
 
     def __repr__(self):
         for game in self.games:
-            print(game)
+            try:
+                print(game)
+            except TypeError:
+                return '.'
 
 
 class Game:
@@ -269,18 +283,20 @@ class Game:
             self.league = self.league.replace(',', '')
 
     def __repr__(self):
-        print('\n' + self.desc + '\n')
-        print(self.sport, end='|')
-        print(self.game_id, end='|')
-        print(self.a_team, end='|')
-        print(self.h_team, end='|')
-        print('\nScores info: ')
-        print(self.score)
-        print('Game line info: ')
-        print('time delta: {} |'.format(self.delta))
-        print(self.lines)
-        print(str(self.start_time) + "\n")
-
+        try:
+            print('\n' + self.desc + '\n')
+            print(self.sport, end='|')
+            print(self.game_id, end='|')
+            print(self.a_team, end='|')
+            print(self.h_team, end='|')
+            print('\nScores info: ')
+            print(self.score)
+            print('Game line info: ')
+            print('time delta: {} |'.format(self.delta))
+            print(self.lines)
+            print(str(self.start_time) + "\n")
+        except TypeError:
+            return '.'
 
 class Lines:
     def __init__(self, json):
@@ -291,12 +307,12 @@ class Lines:
         [self.query_times, self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
          self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps, self.a_hcap_ps,
          self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot, self.h_deci_tot, self.a_hcap_tot,
-         self.h_hcap_tot] = ([] for i in range(19))
+         self.h_hcap_tot, self.a_ou, self.h_ou] = ([] for i in range(21))
 
         self.params = [self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
                         self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
                         self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
-                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot]
+                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot, self.a_ou, self.h_ou]
 
     def update(self, json):
         self.updated = 0
@@ -322,14 +338,20 @@ class Lines:
 
     def jparams(self):
         j_markets = self.json['displayGroups'][0]['markets']
-
         data = {"american": 0, "decimal": 0, "handicap": 0}
+        
+        a_ou = None
+        h_ou = None
+
+        self.mkts = []
+
         ps = Market(data, data)
         ml = Market(data, data)
         tot = Market(data, data)
-        self.mkts = [ps, ml, tot]
 
-        for i, market in enumerate(j_markets):
+        self.mkts += [ps, ml, tot]
+
+        for market in j_markets:
             outcomes = market['outcomes']
             desc = market.get('description')
 
@@ -344,32 +366,40 @@ class Lines:
 
             if desc is None:
                 continue
-            else:
-                self.mkts[i].update(away_price, home_price)
+            elif desc == 'Point Spread' or desc == 'Runline' or desc == 'Puck Line':
+                ps.update(away_price, home_price)
+            elif desc == 'Moneyline':
+                ml.update(away_price, home_price)
+            elif desc == 'Total':
+                a_ou = outcomes[0].get('type')
+                h_ou = outcomes[1].get('type')
+                tot.update(away_price, home_price)
 
         self.even_handler()
 
         last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
-        self.jps = [last_mod, self.json['numMarkets']]
 
         # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
+
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
                     self.mkts[2].a['american'], self.mkts[2].h['american'], self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
-                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap']]
+                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap'], a_ou, h_ou]
 
     def even_handler(self):
         for mkt in self.mkts:
-            if mkt.a['american'] == 'EVEN':
+            if mkt.a['american'] == 'EVEN' and mkt.h['american'] == 'EVEN':
+                mkt.a['american'] = 100
+                mkt.h['american'] = 100
+            elif mkt.a['american'] == 'EVEN':
                 if int(mkt.h['american']) > 0:
                     mkt.a['american'] = -100
                 elif int(mkt.h['american']) < 0:
                     mkt.a['american'] = 100
                 else:
                     mkt.a['american'] = 0
-
-            if mkt.h['american'] == 'EVEN':
+            elif mkt.h['american'] == 'EVEN':
                 if int(mkt.a['american']) > 0:
                     mkt.h['american'] = -100
                 elif int(mkt.a['american']) < 0:
@@ -465,7 +495,7 @@ class Score:
     def win_check(self):
         a = self.quarter[-1] == 0
         b = self.quarter[-1] == self.num_quarters
-        c = self.secs[-1] == 0
+        c = self.secs[-1] == 0 or self.secs == -1
         d = self.status[-1] == 0
         win = b and c
         win2 = a and c and d
@@ -525,10 +555,20 @@ class Market:
         self.a = away
         self.h = home
 
+
     def update(self, away, home):
+        teams = [self.a, self.h]
+        for i, team in enumerate([away, home]):
+            for key in team:
+                val = team[key]
+                teams[i][key] = val
+
         self.a = away
         self.h = home
 
+    def __repr__(self):
+        print('away: {}'.format(self.a))
+        print('home: {}'.format(self.h))
 
 def req(url):
     try:
@@ -554,7 +594,14 @@ def req(url):
 
 def open_file(file_name):
     complete_name = os.path.join(save_path, file_name + ".csv")
-    file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
+    exists = os.path.isfile(complete_name)
+
+    if exists:  # don't write header
+        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg 
+    else:  # write header
+        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg 
+        write_header(file)
+
     return file
 
 
@@ -563,3 +610,14 @@ def write_json(file_name, json):
     file.write(json)
     file.write('\n')
     file.close()
+
+
+def write_header(file):
+    num_headers = len(h.macros.bovada_headers)
+    for i, column_header in enumerate(h.macros.bovada_headers):
+        if i < num_headers:
+            file.write(column_header + ',')
+        else:
+            file.write(column_header)
+    file.write('\n')
+

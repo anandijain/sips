@@ -34,7 +34,7 @@ def df_combine(fn='./data/come2017season.csv', fn2='./data/come2015season.csv'):
     return df3
 
 
-def get_games(fn='data/nba2.csv'):
+def get_games(fn='data/mlb.csv'):
     # takes in fn and returns python dict of pd dfs 
     # TODO allow get_games to take in either a df or a fn
     df = get_df(fn)
@@ -42,7 +42,7 @@ def get_games(fn='data/nba2.csv'):
     games = remove_missed_wins(games)
     return games
 
-def get_df(fn='data/nba2.csv', dummies=['league', 'a_team', 'h_team']):
+def get_df(fn='data/mlb.csv', dummies=['league', 'a_team', 'h_team']):
     raw = csv(fn)
     df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
     df = drop_null_times(df)
@@ -60,10 +60,11 @@ def chunk(df, col='game_id'):
     return games
 
 
-def csv(fn='data/nba2.csv'):
+def csv(fn='data/mlb.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
-    df = pd.read_csv(fn)
+    df = pd.read_csv(fn, error_bad_lines=False)
+    df = df.dropna() 
     # df = df.drop('sport', axis=1)
     return df
 
