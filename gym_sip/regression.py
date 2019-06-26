@@ -1,9 +1,12 @@
 #!/usr/bin/python3
+import pandas as pd
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
+
+import matplotlib.pyplot as plt
 
 import h
 
@@ -38,20 +41,27 @@ class Net(nn.Module):
 if __name__ == "__main__":
 
     batch_size = 128
-    df = h.get_df()  # fn='data/cta.csv', dummies=['daytype', 'route']
 
-    num_cols = df.shape[1]
+    # df = h.get_df()  # fn='data/cta.csv', dummies=['daytype', 'route']
+    
+    train_df = pd.read_csv('./data/training_set.csv')
+    test_df = pd.read_csv('./data/test_set_sample.csv')
 
-    train_df, test_df = h.train_test(df, train_pct=0.7)
+    # num_cols = df.shape[1]
+    
+    num_cols = len(train_df.columns)
+    
+    # train_df, test_df = h.train_test(df, train_pct=0.7)
 
-    train = h.DfCols(train_df, train_cols=None, label_cols=['a_pts', 'h_pts'])
-    test = h.DfCols(test_df, train_cols=None, label_cols=['a_pts', 'h_pts'])
+    train = h.DfCols(train_df, train_cols=None, label_cols=['flux'])
+    test = h.DfCols(test_df, train_cols=None, label_cols=['flux'])
 
     # train = h.Df(train_df)
     # test = h.Df(test_df)
 
     item = train.__getitem__(500)
     print(item)
+
     # input_size = h.num_flat_features(item[0])
     # output_size = h.num_flat_features(item[1])
 
@@ -75,6 +85,9 @@ if __name__ == "__main__":
     correct = 0
     p_val = 1e-1
 
+    plt_y = []
+    plt_x = []
+
     for epoch_num in range(EPOCHS):
         print("epoch: {} of {}".format(epoch_num, EPOCHS))
         for step_num, item in enumerate(train_loader):
@@ -86,9 +99,9 @@ if __name__ == "__main__":
 
             loss = calc_loss(pred, target)
 
-            plt_y = loss.detach()
-            plt_x = step_num * (epoch_num + 1)
-            plt.scatter(plt_x, plt_y, c='r', s=0.1)
+            plt_y.append(loss.detach())
+            plt_x.append(step_num * (epoch_num + 1))
+
 
             with torch.no_grad():
                 if step_num % 100 == 1:
@@ -122,5 +135,7 @@ if __name__ == "__main__":
                 if abs(test_loss) < p_val:
                     correct += 1        
 
-print('correct guesses: {} / total guesses: {}'.format(correct, test_step))
-plt.show()
+    print('correct guesses: {} / total guesses: {}'.format(correct, test_step))
+    print('plot is loss/time')
+    plt.scatter(plt_x, plt_y, c='r', s=0.1)
+    plt.show()
