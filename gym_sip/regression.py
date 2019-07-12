@@ -43,14 +43,14 @@ if __name__ == "__main__":
     batch_size = 128
 
     # df = h.get_df()  # fn='data/cta.csv', dummies=['daytype', 'route']
-    
+
     train_df = pd.read_csv('./data/training_set.csv')
     test_df = pd.read_csv('./data/test_set_sample.csv')
 
     # num_cols = df.shape[1]
-    
+
     num_cols = len(train_df.columns)
-    
+
     # train_df, test_df = h.train_test(df, train_pct=0.7)
 
     train = h.DfCols(train_df, train_cols=None, label_cols=['flux'])
@@ -110,7 +110,7 @@ if __name__ == "__main__":
                     print('pred: {}'.format(pred[0]))
                     print('target: {}'.format(target[0]))
                     print('loss: {}'.format(loss), end='\n\n')
-            
+
             # running_loss += abs(loss)
             loss.backward()
             optimizer.step()
@@ -133,7 +133,7 @@ if __name__ == "__main__":
                     print('target: {}'.format(target[0]))
 
                 if abs(test_loss) < p_val:
-                    correct += 1        
+                    correct += 1
 
     print('correct guesses: {} / total guesses: {}'.format(correct, test_step))
     print('plot is loss/time')

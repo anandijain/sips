@@ -14,7 +14,8 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-
+import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 import h
@@ -31,7 +32,14 @@ class Net(nn.Module):
         self.encoder = []
         self.decoder = []
 
-        # self.instantiate_network()
+        self.instantiate_network()
+
+        # enc =
+
+        self.enc = nn.ModuleList(self.encoder)
+        self.dec = nn.ModuleList(self.decoder)
+
+    def instantiate_network(self):
 
         prev = self.input_dim
         cur = self.input_dim
@@ -54,19 +62,19 @@ class Net(nn.Module):
 
     def forward(self, x, direction):
         for layer in direction:
-            x = nn.relu(layer(x))
+            x = F.relu(layer(x))
         return x
 
     def __repr__(self):
-        print(f'encoder: {str(self.encoder)}')
-        print(f'decoder: {str(self.decoder)}')
+        print(f'encoder: {self.enc}')
+        print(f'decoder: {self.dec}')
         return 'network'
 
 
 class Loader(Dataset):
     def __init__(self):
         self.df = pd.read_csv('./data/nba2.csv')
-        self.cols = ['game_id, cur_time, quarter', 'secs', 'a_pts', 'h_pts',
+        self.cols = ['game_id', 'cur_time', 'quarter', 'secs', 'a_pts', 'h_pts',
                     'status', 'a_win', 'h_win', 'last_mod_to_start',
                     'last_mod_lines', 'num_markets', 'a_odds_ml', 'h_odds_ml',
                     'a_odds_ps', 'h_odds_ps', 'a_hcap_ps', 'h_hcap_ps',
@@ -91,11 +99,14 @@ class Loader(Dataset):
         if max % 2 != 0:
             pad = 1
 
-        self.padded = nn.utils.rnn.pad_sequence(t_grouped, padding_value=pad) # ideally multiple of 2
-        self.length = len(self.padded)
+        self.padded = nn.utils.rnn.pad_sequence(grouped, padding_value=pad) # ideally multiple of 2
+        print(self.padded.shape)
+        item = self.padded[0]
+
+        self.length = len(item.flatten())
 
     def __getitem__(self, index):
-        return self.padded(index)
+        return self.padded[index]
 
     def __len__(self):
         return self.length
@@ -105,20 +116,22 @@ if __name__ == '__main__':
 
     data_loader = Loader()
 
-    net = Net(dim)
+    net = Net(data_loader.length).double()
     print(net)
 
     optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
 
     epochs = 1
 
+    net.train()
+
     for i in range(1, epochs + 1):
         for j, pt in enumerate(data_loader):
             optimizer.zero_grad()
             x = pt[0]
 
-            encoded = self.forward(x, net.encoder)
-            decoded = self.forward(encoded, net.decoder)
+            encoded = net.forward(x, net.enc)
+            decoded = net.forward(encoded, net.dec)
 
             loss = torch.abs(x - decoded)
 
