@@ -99,14 +99,14 @@ class Loader(Dataset):
         if max % 2 != 0:
             pad = 1
 
-        self.padded = nn.utils.rnn.pad_sequence(grouped, padding_value=pad) # ideally multiple of 2
+        self.padded = nn.utils.rnn.pad_sequence(grouped, padding_value=pad)
         print(self.padded.shape)
         item = self.padded[0]
 
         self.length = len(item.flatten())
 
     def __getitem__(self, index):
-        return self.padded[index]
+        return self.padded[index].flatten()
 
     def __len__(self):
         return self.length
@@ -115,20 +115,17 @@ class Loader(Dataset):
 if __name__ == '__main__':
 
     data_loader = Loader()
-
     net = Net(data_loader.length).double()
+
     print(net)
-
     optimizer = optim.RMSprop(net.parameters(), lr=1e-3)
-
     epochs = 1
 
     net.train()
 
     for i in range(1, epochs + 1):
-        for j, pt in enumerate(data_loader):
+        for j, (x, _) in enumerate(data_loader):
             optimizer.zero_grad()
-            x = pt[0]
 
             encoded = net.forward(x, net.enc)
             decoded = net.forward(encoded, net.dec)
