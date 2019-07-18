@@ -7,45 +7,46 @@ from torch.utils.data import Dataset
 from .helpers import *
 
 class Df(Dataset):
-	def __init__(self, df, prev_n=5, next_n=1):
-	    df = df.astype(float)
-	    self.df = df.values
-	    self.tdf = torch.from_numpy(sk_scale(self.df))
+    def __init__(self, df, prev_n=5, next_n=1):
+        df = df.astype(float)
+        self.df = df.values()
+        # self.tdf = torch.from_numpy(sk_scale(self.df))
+        self.tdf = torch.to_tensor(self.df)
 
-	    self.total_len = len(self.tdf)
-	    self.num_cols = len(self.df[0])
+        self.total_len = len(self.tdf)
+        self.num_cols = len(self.df[0])
 
-	    self.prev_n = prev_n
-	    self.next_n = next_n
+        self.prev_n = prev_n
+        self.next_n = next_n
 
-	    self.past = None
-	    self.future = None
+        self.past = None
+        self.future = None
 
-	    item = self.__getitem__(500)
+        item = self.__getitem__(500)
 
-	    self.shape = item[0].shape
-	    self.out_shape = item[1].shape
+        self.shape = item[0].shape
+        self.out_shape = item[1].shape
 
-	def __getitem__(self, index):
-	    self.past = self.tdf[index - self.prev_n:index]
-	    # if len(self.past) < prev_n:
+    def __getitem__(self, index):
+        self.past = self.tdf[index - self.prev_n:index]
+        # if len(self.past) < prev_n:
 
-	    if index < self.total_len - self.next_n - 1:
-	        self.past = self.tdf[index - self.prev_n : index] 
-	        # self.past = torch.from_numpy(self.past)
+        if index < self.total_len - self.next_n - 1:
+            self.past = self.tdf[index - self.prev_n : index] 
+            # self.past = torch.from_numpy(self.past)
 
-	        self.future = self.tdf[index: index + self.next_n]
-	        # self.future_n = torch.from_numpy(self.future_n)
+            self.future = self.tdf[index: index + self.next_n]
+            # self.future_n = torch.from_numpy(self.future_n)
 
-	        self.past = torch.cat([self.past, self.past.new(self.prev_n - self.past.size(0), * self.past.size()[1:]).zero_()])
-	        self.future = torch.cat([self.future, self.future.new(self.next_n - self.future.size(0), * self.future.size()[1:]).zero_()])
-	        return (self.past, self.future)
+            self.past = torch.cat([self.past, self.past.new(self.prev_n - self.past.size(0), * self.past.size()[1:]).zero_()])
+            self.future = torch.cat([self.future, self.future.new(self.next_n - self.future.size(0), * self.future.size()[1:]).zero_()])
+            return (self.past, self.future)
 
-	    else:
-	        return None
+        else:
+            return None
 
-	def __len__(self):
-	    return self.total_len
+    def __len__(self):
+        return self.total_len
 
 
 class DfGame(Dataset):

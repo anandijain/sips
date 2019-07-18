@@ -3,7 +3,7 @@ import time
 import lines as ll
 
 class Start:
-    def __init__(self, fn='mlb3', game_type='mlb', run=1, verbosity=False):
+    def __init__(self, fn='mlb5', game_type='mlb', run=1, verbosity=False):
         self.fn = fn
         self.gt = game_type
 

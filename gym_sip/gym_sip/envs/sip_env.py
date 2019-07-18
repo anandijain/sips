@@ -69,8 +69,8 @@ class SipEnv(gym.Env):
         self.game = None
         self.game_id = 0
 
-        self.init_a_bet = Bet(100, 0, (0, 0), None)
-        self.init_h_bet = Bet(100, 1, (0, 0), None)
+        self.init_a_bet = h.Bet(100, 0, (0, 0), None)
+        self.init_h_bet = h.Bet(100, 1, (0, 0), None)
         self.new_game()
         
         self.money = AUM
@@ -82,7 +82,7 @@ class SipEnv(gym.Env):
         self.follow_bets = 0
         self._odds()
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=-1e7, high=1e7, shape=(len(self.cur_state), 0))
+        self.observation_space = spaces.Box(low=-1e7, high=1e7, shape=(len(self.cur_state), 0), dtype=np.float32)
                                                 # ,dtype=np.float32)
 
     def step(self, action):  # action given to us from test.py
@@ -94,10 +94,10 @@ class SipEnv(gym.Env):
 
         if done is True: 
             if self.game.team_won is False or self.last_bet is None:
-                return self.cur_state, 0, True, self.odds
+                return (self.cur_state, 0, True, self.odds)
             else:
                 reward = self.forgot_to_hedge()
-                return self.cur_state, reward, done, self.odds
+                return (self.cur_state, reward, done, self.odds)
 
         if self.last_bet is not None:
             self.last_bet.wait_amt += 1
@@ -105,12 +105,12 @@ class SipEnv(gym.Env):
         reward = self.act()  # MAIN ACTION CALL
 
         if reward == None:
-            return self.cur_state, 0, True, self.odds
+            return (self.cur_state, 0, True, self.odds)
         # place_in_game = self.game.index / self.game.game_len
         # if reward > 0:
         #     reward = reward / place_in_game
 
-        return self.cur_state, reward, done, self.odds
+        return (self.cur_state, reward, done, self.odds)
 
     def act(self):
         if self.action == ACTION_SKIP:
@@ -133,11 +133,11 @@ class SipEnv(gym.Env):
         # we don't update self.money because we don't want it to get a negative reward on _bet()
         amt = h.bet_amt(self.money)
         print("bet*")
-        self.last_bet = Bet(amt, self.action, self.odds, self.cur_state)
+        self.last_bet = h.Bet(amt, self.action, self.odds, self.cur_state)
 
     def _hedge(self):
         hedge_amt = h.hedge_amt(self.last_bet, self.odds)
-        hedged_bet = Bet(hedge_amt, self.action, self.odds, self.cur_state)
+        hedged_bet = h.Bet(hedge_amt, self.action, self.odds, self.cur_state)
 
         net = h.net(self.last_bet, hedged_bet)
         hedge = h.Hedge(self.last_bet, hedged_bet)
@@ -198,7 +198,7 @@ class SipEnv(gym.Env):
     def next(self):
         self.new_game()
         self.cur_state, done = self.game.next()
-        return self.cur_state, done
+        return (self.cur_state, done)
 
     def reset(self):
         self.money = AUM

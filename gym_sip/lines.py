@@ -84,6 +84,9 @@ class Sippy:
                     if self.file is not None:
                         game.write_game(self.file)  # write to csv
 
+                    if self.verbosity:
+                        print(game)
+
                     self.num_updates += 1
                     game.lines.updated = 0  # reset lines to not be updated
                     game.score.new == 0 
@@ -371,8 +374,12 @@ class Lines:
             elif desc == 'Moneyline':
                 ml.update(away_price, home_price)
             elif desc == 'Total':
-                a_ou = outcomes[0].get('type')
-                h_ou = outcomes[1].get('type')
+                try:
+                    a_ou = outcomes[0].get('type')
+                    h_ou = outcomes[1].get('type')
+                except IndexError:
+                    a_ou = '0'
+                    h_ou = '0'
                 tot.update(away_price, home_price)
 
         self.even_handler()
@@ -493,15 +500,18 @@ class Score:
         self.dir_isdown = self.clock.get('direction')
 
     def win_check(self):
-        a = self.quarter[-1] == 0
-        b = self.quarter[-1] == self.num_quarters
-        c = self.secs[-1] == 0 or self.secs == -1
-        d = self.status[-1] == 0
-        win = b and c
-        win2 = a and c and d
+        # a = self.quarter[-1] == 0 or self.quarter[-1] == -1
+        # b = self.quarter[-1] == self.num_quarters
+        # c = self.secs[-1] == 0 or self.secs[-1] == -1
+        # d = self.status[-1] == 0
+        # win = b and c and d
+        # win2 = a and c and d
+        # print('ended {}'.format(self.ended))
+        # print('last q {}'.format(self.quarter[-1]))
+        # print('status {}\n'.format(self.status[-1]))
 
         if self.ended == 0:
-            if win or win2:
+            if self.quarter[-1] == -1 and self.status[-1] == 0:
                 if self.a_pts[-1] > self.h_pts[-1]:
                     self.a_win.append(1)
                     self.h_win.append(0)
@@ -542,10 +552,9 @@ class Score:
         self.data = req(scores_url + self.game_id)
 
     def __repr__(self):
-        for param in self.params:
-            if param is None:
-                param = 0
-            print(str(param), end='|')
+        for i, param in enumerate(self.params):
+            if len(param) > 0:
+                print('{}: {}'.format(h.macros.bov_score_headers[i], param[-1]), end='|')
         print('\n')
 
 

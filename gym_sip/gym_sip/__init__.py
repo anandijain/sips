@@ -3,13 +3,13 @@ from gym.envs.registration import register
 register(
     id='Sip-v0',
     entry_point='gym_sip.envs:SipEnv',
-    kwargs={'fn': './data/nba2.csv'}
+    kwargs={'fn': './data/static/nba2.csv'}
 )
 
 register(
     id='Sip-v1',
     entry_point='gym_sip.envs:SipEnv2',
-    kwargs={'fn': './data/bangout3.csv'}
+    kwargs={'fn': './data/static/bangout3.csv'}
 )
 
 # register(

@@ -42,10 +42,9 @@ if __name__ == "__main__":
     output_size = h.num_flat_features(item[1])
     hidden_size = (input_size + output_size) // 2
 
-
-    TARGET_SIZE = input_size# (1, 5, 99)
-    EMBEDDING_DIM = 5 * input_size# (1, 50, 99)
-    HIDDEN_DIM = 5 * input_size# (1, 50, 99)
+    TARGET_SIZE = input_size  # (1, 5, 99)
+    EMBEDDING_DIM = 5 * input_size  # (1, 50, 99)
+    HIDDEN_DIM = 5 * input_size  # (1, 50, 99)
 
     model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, TARGET_SIZE)
     loss_function = nn.MSELoss()
@@ -67,10 +66,10 @@ if __name__ == "__main__":
 
             out = model(train)
 
-            if num % 50 == 0:
-                print(train[0])
-                print(targets[0])
-                print(out[0])
+            
+            print(train[0])
+            print(targets[0])
+            print(out[0])
             loss = loss_function(out, targets)
 
             print('loss: {}'.format(loss))
