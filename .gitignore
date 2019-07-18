@@ -2,10 +2,14 @@
 __pycache__/
 
 gym_sip/__pycache__/
+gym_sip/data
 
-# don't upload models to git 
+# don't upload models to git
 models/
 
 gym_sip/data/3_years_of_data.csv
 
 gym_sip/data/bangout.csv
+
+lvo/__pycache__/
+lvo/.ipynb_checkpoints
