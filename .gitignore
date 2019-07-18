@@ -12,4 +12,4 @@ gym_sip/data/3_years_of_data.csv
 gym_sip/data/bangout.csv
 
 lvo/__pycache__/
-lvo/.ipynb_checkpoints
+lvo/notebooks/.ipynb_checkpoints
