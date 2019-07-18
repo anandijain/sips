@@ -3,6 +3,9 @@ import os.path
 
 import time
 import requests
+
+import matplotlib.pyplot as plt 
+
 import numpy as np
 
 import h
@@ -190,6 +193,15 @@ class Sippy:
         else:
             self.links = self.all_urls[4:6]
 
+    def write_header(self):
+        num_headers = len(h.macros.bovada_headers)
+        for i, column_header in enumerate(h.macros.bovada_headers):
+            if i < num_headers:
+                self.file.write(column_header + ',')
+            else:
+                self.file.write(column_header)
+        self.file.write('\n')
+
     def __repr__(self):
         for game in self.games:
             try:
@@ -330,7 +342,7 @@ class Lines:
     def jparams(self):
         j_markets = self.json['displayGroups'][0]['markets']
         data = {"american": 0, "decimal": 0, "handicap": 0}
-
+        
         a_ou = None
         h_ou = None
 
@@ -371,7 +383,11 @@ class Lines:
                 tot.update(away_price, home_price)
 
         self.even_handler()
-        last_mod = self.json['lastModified'] / 1000.
+
+        last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
+
+        # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
+
         self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
                     self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
                     self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],

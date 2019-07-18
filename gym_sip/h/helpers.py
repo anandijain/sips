@@ -34,16 +34,17 @@ def df_combine(fn='./data/come2017season.csv', fn2='./data/come2015season.csv'):
     return df3
 
 
-def get_games(fn='data/mlb.csv'):
-    # takes in fn and returns python dict of pd dfs 
+def get_games(fn='mlb', output='list'):
+    # takes in fn and returns python dict of pd dfs
     # TODO allow get_games to take in either a df or a fn
-    df = get_df(fn)
-    games = chunk(df)
+    out_type = output
+    df = get_df('data/' + fn + '.csv')
+    games = chunk(df, output=out_type)
     games = remove_missed_wins(games)
     return games
 
-def get_df(fn='data/mlb.csv', dummies=['league', 'a_team', 'h_team']):
-    raw = csv(fn)
+def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team']):
+    raw = csv('data/' + fn + '.csv')
     df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
     df = drop_null_times(df)
     # df = dates(df)
@@ -53,10 +54,15 @@ def get_df(fn='data/mlb.csv', dummies=['league', 'a_team', 'h_team']):
     return df
 
 
-def chunk(df, col='game_id'):
+def chunk(df, cols=['game_id'], output='list'):
     # returns a python dict of pandas dfs, splitting the df arg by unique col value
     # df type pd df, col type string
-    games = {key: val for key, val in df.groupby(col)}
+    if output == 'list':
+        games = [game[1] for game in df.groupby(col)]
+    elif output == 'dict':
+        games = {key: val for key, val in df.groupby(col)}
+    else:
+        games = df.groupby(col)
     return games
 
 
@@ -64,7 +70,7 @@ def csv(fn='data/mlb.csv'):
     # takes in file name string, returns pandas dataframe
     print(fn)
     df = pd.read_csv(fn, error_bad_lines=False)
-    df = df.dropna() 
+    df = df.dropna()
     # df = df.drop('sport', axis=1)
     return df
 
@@ -79,14 +85,14 @@ def remove_missed_wins(games):
     # takes in a dictionary or list of df games
     games_len = len(games)
     if isinstance(games, dict):
-        for g_id in list(games.keys()): 
+        for g_id in list(games.keys()):
             if len(games[g_id]['a_win'].unique()) + len(games[g_id]['h_win'].unique()) != 3:
                 del games[g_id]
 
     elif isinstance(games, list):
-        for elt in games:
+        for i, elt in enumerate(games):
             if len(elt['a_win'].unique()) + len(elt['h_win'].unique()) != 3:
-                games.remove(elt)
+                del games[i]
     else:
         raise TypeError('games argument must be dict or list')
 
@@ -121,7 +127,7 @@ def dates(df):
 
     dt = df['date'].dt
     df['time_vals'] = pd.to_numeric(df['date'])
-    date_categories = [dt.year, dt.month, dt.week, dt.day, 
+    date_categories = [dt.year, dt.month, dt.week, dt.day,
                        dt.hour, dt.minute, dt.second, dt.dayofweek, dt.dayofyear]
     col_names = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'dayofweek', 'dayofyear']
 
@@ -154,7 +160,7 @@ def split_game_in_half(game):
 
 
 def apply_min_game_len(games, min_lines=500):
-    # given dict of game dataframes and an integer > 0 for the minimum length of a game in csv lines 
+    # given dict of game dataframes and an integer > 0 for the minimum length of a game in csv lines
     print('applying minimum game len of : {}'.format(min_lines))
     print('before apply: {}'.format(len(games)))
     for key, value in games.copy().items():
@@ -170,7 +176,7 @@ def apply_min_game_len(games, min_lines=500):
 def df_info(df):
     # TODO
     # given pd df, return the general important info in console
-    # num games, teams, etc 
+    # num games, teams, etc
     pass
 
 
@@ -197,7 +203,7 @@ def train_test(df, train_pct=0.5):
         return train, test
     elif isinstance(df, np.ndarray): # np
         length = len(df)
-        split_index = round(length * train_pct) 
+        split_index = round(length * train_pct)
 
         train = df[:split_index, :]
         test = df[split_index:, :]
@@ -221,7 +227,7 @@ def select_dtypes(df, dtypes=['number']):
     return df.select_dtypes(include=dtypes)
 
 
-def teams_given_state(state):  
+def teams_given_state(state):
     # given np array, representing a state (csv_line). returns tuple of teams
     return state
 
@@ -256,7 +262,7 @@ def pad_tensor(game, length=1200):
     return torch.cat([tensor, tensor.new(length - tensor.size(0), * tensor.size()[1:]).zero_()])
 
 
-def onehot_teams(a_team, h_team):  
+def onehot_teams(a_team, h_team):
     # take in 2 teams playing and onehot to alphabetical one_hots, returns series
     one_hotted = []
 
