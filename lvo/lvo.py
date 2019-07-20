@@ -1,5 +1,8 @@
+import time
+
 import requests as r
 import bs4
+
 
 '''
 Schema
@@ -20,23 +23,28 @@ http://www.vegasinsider.com/wnba/odds/global/line-movement/mystics-@-fever.cfm/d
 split('/')
 '''
 
+headers = {'User-Agent': 'Mozilla/5.0'}
+
 class LV:
     def __init__(self):
+        self.url = 'http://www.vegasinsider.com'
+
         self.sports = \
             ['nfl', 'nba', 'nhl', 'mlb', 'college-football', 'college-basketball', 'auto-racing', 'golf'
             'horse-racing', 'soccer', 'boxing', 'wnba', 'afl', 'poker', 'cfl']
 
-        self.url = 'http://www.vegasinsider.com'
         self.odds_urls = []  # list of urls
         self.odds_tables = []
 
         self.get_odds_urls()
-        self.get_odds_tables()
 
     def get_odds_urls(self):
         for sport in self.sports:
             sb_url = self.url + '/' + sport + '/scoreboard/'
-            scoreboard = req_soup(sb_url)
+            try:
+                scoreboard = req_soup(sb_url)
+            except Exception:
+                continue
             lines = scoreboard.find_all('a', href=True, text='Line Movements')
             if len(lines) == 0:
                 continue
@@ -47,10 +55,10 @@ class LV:
         # lv_odds_urls = self.soup.find('img', {'alt' : 'Free Las Vegas Sportsbook Betting Odds and Lines'}).find_parent('tbody')
         # self.odds_links = [link['href'] for link in gl_odds_urls.find_all('a') + lv_odds_urls.find_all('a')]
 
-    def get_odds_tables(self):
-        for url in self.odds_urls:
-            lines = req_soup(url)
-            self.odds_tables += lines.find_all('table', {'class' : 'rt_railbox_border2'})
+    def get_game_tables(self, url):
+        lines = req_soup(self.url + url)
+
+        self.odds_tables += lines.find_all('table', {'class' : 'rt_railbox_border2'})
 
     def test_sport(self):
         for odd_link in self.odds_links:
@@ -61,8 +69,9 @@ class LV:
                 links += [link['href'] for link in dt.find_all('a', {'class' : 'cellTextNorm'})]
 
 def req_soup(url):
-    page = r.get(url).text
+    page = r.get(url, headers=headers).text
     soup = bs4.BeautifulSoup(page, 'html.parser')
+    time.sleep(.1)
     return soup
 
 
