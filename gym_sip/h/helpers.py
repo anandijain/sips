@@ -11,6 +11,8 @@ from .loaders import *
 from .macros import *
 import stat
 
+def full_fn(fn):
+    return 'data/' + fn + '.csv'
 
 def df_cols():
     df = Helpers.get_df()
@@ -38,13 +40,14 @@ def get_games(fn='mlb', output='list'):
     # takes in fn and returns python dict of pd dfs
     # TODO allow get_games to take in either a df or a fn
     out_type = output
-    df = get_df('data/' + fn + '.csv')
+    df = get_df(fn)
     games = chunk(df, output=out_type)
     games = remove_missed_wins(games)
     return games
 
 def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team']):
-    raw = csv('data/' + fn + '.csv')
+    complete_fn = full_fn(fn)
+    raw = csv(complete_fn)
     df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
     df = drop_null_times(df)
     # df = dates(df)
@@ -58,11 +61,11 @@ def chunk(df, cols=['game_id'], output='list'):
     # returns a python dict of pandas dfs, splitting the df arg by unique col value
     # df type pd df, col type string
     if output == 'list':
-        games = [game[1] for game in df.groupby(col)]
+        games = [game[1] for game in df.groupby(cols)]
     elif output == 'dict':
-        games = {key: val for key, val in df.groupby(col)}
+        games = {key: val for key, val in df.groupby(cols)}
     else:
-        games = df.groupby(col)
+        games = df.groupby(cols)
     return games
 
 
