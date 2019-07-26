@@ -1,15 +1,19 @@
 # don't upload data files to git
-__pycache__/
+sip/__pycache__/
 
-gym_sip/__pycache__/
-gym_sip/data
+sip/gym_sip/__pycache__/
+sip/gym_sip/data
 
 # don't upload models to git
-models/
+sip/models/
 
-gym_sip/data/3_years_of_data.csv
+sip/gym_sip/data/3_years_of_data.csv
 
-gym_sip/data/bangout.csv
+sip/gym_sip/data/bangout.csv
 
-lvo/__pycache__/
-lvo/notebooks/.ipynb_checkpoints
+sip/lvo/__pycache__/
+sip/lvo/notebooks/.ipynb_checkpoints
+
+sip.egg-info/
+
+*.csv
