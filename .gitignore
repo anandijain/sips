@@ -2,7 +2,14 @@
 sip/__pycache__/
 
 sip/gym_sip/__pycache__/
+sip/gym_sip/h/__pycache__/
+
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+
 sip/gym_sip/data
+
 
 # don't upload models to git
 sip/models/
