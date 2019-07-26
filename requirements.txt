@@ -1,13 +1,9 @@
-math
-time
-os
 requests
+beautifulsoup4
 numpy
 pandas
 torch
 gym
-pickle
-warnings
 seaborn
 scikit-learn
 matplotlib
