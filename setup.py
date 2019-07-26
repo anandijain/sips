@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(
-   name='sip',
+   name='sips',
    version='0.1',
    description='tools for RL sports betting',
    author='Anand Jain',
    author_email='anandj@uchicago.edu',
-   packages=['sip'],  #same as name
+   packages=['sips'],  #same as name
    install_requires= \
            ['pandas', 'requests', 'beautifulsoup4', 'numpy', 'gym',
            'torch', 'seaborn', 'scikit-learn',

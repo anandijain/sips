@@ -1,8 +1,8 @@
 # don't upload data files to git
-sip/__pycache__/
+sips/__pycache__/
 
-sip/gym_sip/__pycache__/
-sip/gym_sip/h/__pycache__/
+sips/gym_sip/__pycache__/
+sips/gym_sip/h/__pycache__/
 
 */__pycache__/
 */*/__pycache__/
@@ -12,16 +12,20 @@ sip/gym_sip/data
 
 
 # don't upload models to git
-sip/models/
-sip/gym_sip/models/
+sips/models/
+sips/gym_sip/models/
 
-sip/gym_sip/data/3_years_of_data.csv
+sips/gym_sip/data/3_years_of_data.csv
 
-sip/gym_sip/data/bangout.csv
+sips/gym_sip/data/bangout.csv
 
-sip/lvo/__pycache__/
-sip/lvo/notebooks/.ipynb_checkpoints
+sips/lvo/__pycache__/
+sips/lvo/notebooks/.ipynb_checkpoints
 
+sips.egg-info/
 sip.egg-info/
+
+dist/
+build/
 
 *.csv
