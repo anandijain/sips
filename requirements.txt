@@ -9,5 +9,5 @@ gym
 pickle
 warnings
 seaborn
-sklearn
+scikit-learn
 matplotlib
