@@ -8,7 +8,7 @@ setup(
    author_email='anandj@uchicago.edu',
    packages=['sip'],  #same as name
    install_requires= \
-           ['pandas', 'requests', 'bs4', 'numpy', 'gym'
+           ['pandas', 'requests', 'beautifulsoup4', 'numpy', 'gym',
            'torch', 'seaborn', 'scikit-learn',
            'matplotlib'] # external packages as dependencies
 )
