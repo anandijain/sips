@@ -1,4 +1,4 @@
-# sip
+# sips
 odds tracking and reinforcement learning
 ---
-Sip is a set of programs that provide functionality for analysis and gathering of live lines odds data.
+Sips is a set of programs that provide functionality for analysis and gathering of live lines odds data.
