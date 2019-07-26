@@ -1,4 +1,6 @@
+import os
 import random
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -6,13 +8,17 @@ import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
 
+import sip
+
 from .calc import *
 from .loaders import *
 from .macros import *
 import stat
 
 def full_fn(fn):
-    return 'data/' + fn + '.csv'
+    str_path = './gym_sip/data/static' + fn + '.csv'
+    path = Path(str_path)
+    return os.path.join(sip.__path__, path)
 
 def df_cols():
     df = Helpers.get_df()
@@ -24,9 +30,10 @@ def df_cols():
     return df, loader
 
 
-def df_combine(fn='./data/come2017season.csv', fn2='./data/come2015season.csv'):
-    df1 = pd.read_csv(fn)
-    df2 = pd.read_csv(fn2)
+def df_combine(fn='come2017season', fn2='come2015season'):
+    complete_fns = [full_fn(full_name) for full_name in [fn, fn2]]
+    df1 = pd.read_csv(complete_fns[0])
+    df2 = pd.read_csv(complete_fns[1])
 
     df1 = df1.dropna(axis=0, how='any', thresh=None, subset=None, inplace=False)
     df2 = df2.dropna(axis=0, how='any', thresh=None, subset=None, inplace=False)
@@ -69,10 +76,10 @@ def chunk(df, cols=['game_id'], output='list'):
     return games
 
 
-def csv(fn='data/mlb.csv'):
+def csv(fn='mlb'):
     # takes in file name string, returns pandas dataframe
     print(fn)
-    df = pd.read_csv(fn, error_bad_lines=False)
+    df = pd.read_csv(full_fn(fn), error_bad_lines=False)
     df = df.dropna()
     # df = df.drop('sport', axis=1)
     return df

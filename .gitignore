@@ -13,6 +13,7 @@ sip/gym_sip/data
 
 # don't upload models to git
 sip/models/
+sip/gym_sip/models/
 
 sip/gym_sip/data/3_years_of_data.csv
 

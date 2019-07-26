@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import h
+import sip.gym_sip.h as h
 
 class Viz:
     def __init__(self, fn='static/nba2'):
