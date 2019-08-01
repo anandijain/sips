@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
 
-import sip
+import sips
 
 from .calc import *
 from .loaders import *
@@ -16,9 +16,10 @@ from .macros import *
 import stat
 
 def full_fn(fn):
-    str_path = './gym_sip/data/static' + fn + '.csv'
-    path = Path(str_path)
-    return os.path.join(sip.__path__, path)
+    str_path = './sips/gym_sip/data/static/' + fn + '.csv'
+    # path = Path(str_path)
+    # return os.path.join(sips.__path__, path)
+    return str_path
 
 def df_cols():
     df = Helpers.get_df()
@@ -52,10 +53,11 @@ def get_games(fn='mlb', output='list'):
     games = remove_missed_wins(games)
     return games
 
-def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team']):
-    complete_fn = full_fn(fn)
-    raw = csv(complete_fn)
-    df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
+def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team'], one_hot=False):
+    # complete_fn = full_fn(fn)
+    df = csv(fn)
+    if one_hot:
+        df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
     df = drop_null_times(df)
     # df = dates(df)
     df = scaled_times(df)

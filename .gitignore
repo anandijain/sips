@@ -8,7 +8,7 @@ sips/gym_sip/h/__pycache__/
 */*/__pycache__/
 */*/*/__pycache__/
 
-sip/gym_sip/data
+sips/gym_sip/data
 
 
 # don't upload models to git
@@ -23,8 +23,7 @@ sips/lvo/__pycache__/
 sips/lvo/notebooks/.ipynb_checkpoints
 
 sips.egg-info/
-sip.egg-info/
-
+sips/gym_sip/gym_sip.egg-info
 dist/
 build/
 
