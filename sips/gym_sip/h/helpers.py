@@ -53,15 +53,17 @@ def get_games(fn='mlb', output='list'):
     games = remove_missed_wins(games)
     return games
 
-def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team'], one_hot=False):
+def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team'], one_hot=False, scale_times=False):
     # complete_fn = full_fn(fn)
     df = csv(fn)
+
     if one_hot:
         df = pd.get_dummies(data=raw, columns=dummies, sparse=False)
+
     df = drop_null_times(df)
-    # df = dates(df)
-    df = scaled_times(df)
-    # df = one_hots(raw, ['a_team', 'h_team', 'w_l'])
+    if scale_times:
+        df = scaled_times(df)
+
     df = df.drop(df.select_dtypes(object), axis=1)
     return df
 
