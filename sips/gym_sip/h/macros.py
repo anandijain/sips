@@ -17,11 +17,7 @@ az_teams = ['Atlanta Hawks', 'Boston Celtics',
             'San Antonio Spurs', 'Toronto Raptors',
             'Utah Jazz', 'Washington Wizards']
 
-
-                
-
-
-bov_game_info = ['sport', 'league', 'game_id', 'a_team', 'h_team', 'cur_time'] 
+bov_game_info = ['sport', 'league', 'game_id', 'a_team', 'h_team', 'cur_time']
 
 bov_score_headers = ['lms_date','lms_time','quarter','secs','a_pts','h_pts','status',
                 'a_win','h_win']
@@ -33,7 +29,7 @@ bov_lines_headers = ['last_mod_to_start', 'last_mod_lines','num_markets','a_ml',
 
 bovada_headers = bov_game_info + bov_score_headers + bov_lines_headers
 
-suffixes = ['?marketFilterId=def&liveOnly=true&lang=en', 
+suffixes = ['?marketFilterId=def&liveOnly=true&lang=en',
             '?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en']
 
 
