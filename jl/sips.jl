@@ -29,6 +29,13 @@ module Sips
 		return time_series
 	end
 
+	function dates_to_int(dates)
+		# epoch time (slow)		
+		for d in dates:
+
+	
+
+
 	function lstm_tuples(df; window_len=10)
 		tups = []
 		for i in range(1, stop=size(df, 1) - window_len - 1)
