@@ -40,7 +40,6 @@ class Net(nn.Module):
         self.dec = nn.ModuleList(self.decoder)
 
     def instantiate_network(self):
-
         prev = self.input_dim
         cur = self.input_dim
 

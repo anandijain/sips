@@ -5,17 +5,16 @@ import sipqn
 
 import random
 import numpy as np
-
-import helpers as h
+from h import helpers as h
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    EPOCHS = 50000
-    
+    EPOCHS = 1
+
     # main_init()
     env = gym.make('Sip-v0').unwrapped
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -44,13 +43,13 @@ if __name__ == "__main__":
     # except FileNotFoundError:
     #     pass
 
-    num_games = 1000
+    num_games = 100
 
     x_axis = []
-    y_axis = [] 
-    homesales = [] 
-    awaysales = [] 
-    money_list = [] 
+    y_axis = []
+    homesales = []
+    awaysales = []
+    money_list = []
     place_in_game_axis = []
 
     num_profitable_steps = 0
@@ -109,7 +108,7 @@ if __name__ == "__main__":
                     place_in_game_axis.append(i)
                     reward_list.append(r)
 
-                    if homesale_price > 1000: 
+                    if homesale_price > 1000:
                         print("homesale_price high")
                         print(homesale_price)
                         print(awaysale_price)

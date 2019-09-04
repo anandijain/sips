@@ -6,7 +6,7 @@ class Start:
     """
     fn - String, csv file path to './sips/gym_sip/data/static/' + fn + '.csv'
 
-    game_type - String \in ['all', 'nba', 'college basketball', 'mlb', 'esports',
+    game_type - String in ['all', 'nba', 'college basketball', 'mlb', 'esports',
                 'football', 'tennis', 'volleyball', 'hockey']
 
     run - Bool, to automatically run

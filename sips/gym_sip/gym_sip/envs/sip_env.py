@@ -65,16 +65,16 @@ class SipEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, fn):
-        self.games = h.get_games(fn)
+        self.games = h.get_games(fn, output='dict')
         self.game = None
         self.game_id = 0
 
         self.init_a_bet = h.Bet(100, 0, (0, 0), None)
         self.init_h_bet = h.Bet(100, 1, (0, 0), None)
         self.new_game()
-        
+
         self.money = AUM
-        self.last_bet = None  # 
+        self.last_bet = None  #
         self.cur_state = self.game.cur_state  # need to store
         self.action = None
         self.hedges = []
@@ -86,13 +86,13 @@ class SipEnv(gym.Env):
                                                 # ,dtype=np.float32)
 
     def step(self, action):  # action given to us from test.py
-        self.action = action   
-        reward = 0 
+        self.action = action
+        reward = 0
         self.cur_state, done = self.game.next()  # goes to the next timestep in current game
         self._odds()
         self.set_init_odds()
 
-        if done is True: 
+        if done is True:
             if self.game.team_won is False or self.last_bet is None:
                 return (self.cur_state, 0, True, self.odds)
             else:
@@ -114,12 +114,12 @@ class SipEnv(gym.Env):
 
     def act(self):
         if self.action == ACTION_SKIP:
-            return 0 
+            return 0
         elif self.odds[self.action] == 0:
             # can't bet on team that has zero odds
             return None
         elif self.last_bet is None:  # if last bet != None, then this bet is a hedge
-            self._bet()  
+            self._bet()
             return 0  # reward for getting equity?
         elif self.last_bet.team == self.action:  # betting on same team twice
             return 0
@@ -160,7 +160,7 @@ class SipEnv(gym.Env):
 
         self.game_id = random.choice(list(self.games.keys()))
         self.game = SippyState(self.games[self.game_id])
-        
+
         # self.get_teams_from_state()
 
         if self.game is None:
@@ -172,7 +172,7 @@ class SipEnv(gym.Env):
 
     def set_init_odds(self):
         if self.init_a_bet.a_odds == 0:  # check if the init a odds have been set yet
-            if self.odds[0] != 0: 
+            if self.odds[0] != 0:
                 print('updated init a odds: {}'.format(self.odds[0]))
                 self.init_a_bet.a_odds = self.odds[0]
                 self.init_h_bet.a_odds = self.odds[0]
@@ -209,5 +209,3 @@ class SipEnv(gym.Env):
 
     def _render(self, mode='human', close=False):
         pass
-
-
