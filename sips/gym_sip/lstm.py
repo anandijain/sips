@@ -8,6 +8,8 @@ from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 from sklearn import preprocessing
 
+import matplotlib.pyplot as plt
+
 
 class FileLoader:
     def __init__(self, directory):
@@ -54,9 +56,8 @@ class LSTMLoader(Dataset):
 
 class PlayerDataset(Dataset):
 
-	team_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs'] #list of player columns
-	def __init__(self, window=1 fn='./data/static/lets_try.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'],
-                    team_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs']):
+	def __init__(self, window=1, fn='./data/static/lets_try5.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'],
+                    team_columns=None):
 
 		self.projections_frame = pd.read_csv(fn)
 		self.transform(self.projections_frame)
@@ -72,7 +73,7 @@ class PlayerDataset(Dataset):
 			df = i[1]
 			length = len(df)
 			df = df.sort_values(by=['age'])
-			if df.pass_yds.astype(bool).sum(axis=0) > .4*length or df.rec_yds.astype(bool).sum(axis=0) > .4*length or df.rush_yds.astype(bool).sum(axis=0) > .4*length:
+			if df.pass_yds.astype(bool).sum(axis=0) > .4*length:
 				bigcsv.append(df)
 		self.projections_frame = pd.concat(bigcsv)
 
@@ -129,29 +130,33 @@ class LSTM(nn.Module):
 
 if __name__ == "__main__":
 
-    save_path = './models/lstm.pt'
+    cols = ['a_gen_a_avg_rush_yards', 'a_gen_a_avg_rush_yards_per_attempt', 'a_gen_a_avg_pass_completion_pct', 'a_gen_a_avg_pass_yards', 'a_gen_a_avg_pass_yards_per_attempt',	'h_gen_h_avg_pass_completion_pct',	'h_gen_h_avg_pass_yards', 'h_gen_h_avg_pass_yards_per_attempt', 'h_gen_h_avg_rush_yards', 'h_gen_h_avg_rush_yards_per_attempt', 'gen_avg_score', 'gen_avg_pass_yards',	'gen_avg_total_yards', 'gen_avg_pass_comp_pct', 'gen_avg_rush_yards_per_attempt',	'gen_avg_pass_yards_per_attempt', 'gen_avg_rush_yards', 'gen_pass_comp_pct_2', 'gen_pass_yards_per_attempt_2',	'gen_rush_yards_2',	'gen_rush_yards_per_attempt_2', 'gen_avg_score_2', 'gen_avg_pass_yards_2', 'gen_avg_total_yards_2', 'gen_avg_pass_comp_pct_2', 'gen_avg_rush_yards_per_attempt_2', 'gen_avg_pass_yards_per_attempt_2',	'gen_avg_rush_yards_2']
+
+    save_path = './models/lstm_players.pt'
     directory = "/mnt/c/Users/Anand/home/Programming/datasets/price-volume-data-for-all-us-stocks-etfs/Data/Stocks/"
 
-    fileset = FileLoader(directory)
-    data = fileset[1]
+    # fileset = FileLoader(directory)
+    # data = fileset[1]
 
     # dataset = LSTMLoader(data)
-    sample_x, sample_y = dataset[0]
-    print(f'sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
 
-    input_shape = len(sample_x.flatten())
-    output_shape = 4
+
     batch_size = 1
     hidden_shape = 10
     num_layers = 1
     window = 1
+    log_interval = 1000
 
-    dataset = PlayerDataset()
+    dataset = PlayerDataset(team_columns=cols)
+    sample_x, sample_y = dataset[0]
+    print(f'sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
+
+    input_shape = len(sample_x.flatten())
+    output_shape = len(sample_y.flatten())
+
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-
     for (x, y) in data_loader:
         break
-
     print(f'x shape: {x.shape}, y shape: {y.shape}')
 
     model = LSTM(input_shape, hidden_dim=hidden_shape, batch_size=batch_size, output_dim=output_shape, num_layers=num_layers)
@@ -172,44 +177,43 @@ if __name__ == "__main__":
 
     for t in range(num_epochs):
         # Clear stored gradient
-        for data_idx, np_data in enumerate(fileset):
+        # for data_idx, np_data in enumerate(fileset):
+        #
+        #     if data_idx == break_idx:
+        #         break
+        #
+        #     dataset = LSTMLoader(np_data)
+        #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        #     torch.save(model.state_dict(), save_path)
+        #     model.hidden = model.init_hidden()
+        #     print(f'new stock: {data_idx}')
 
-            if data_idx == break_idx:
-                break
+        try:
+            for i, (x, y) in enumerate(data_loader):
+                model.zero_grad()
 
-            dataset = LSTMLoader(np_data)
-            data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-            torch.save(model.state_dict(), save_path)
-            model.hidden = model.init_hidden()
-            print(f'new stock: {data_idx}')
+                x = x.view(1, batch_size, -1)
+                # y = y.view(1, batch_size, -1)
+                y_pred = model(x)
+                loss = loss_fn(y_pred, y)
 
-            try:
-                for i, (x, y) in enumerate(data_loader):
-                    model.zero_grad()
+                if i % log_interval == 0:
+                    print("Epoch ", t, "MSE: ", loss.item())
+                    print(f'y_pred: {y_pred}, y: {y}')
 
-                    x = x.view(1, batch_size, -1)
+                hist[t] = loss.item()
+                optimiser.zero_grad()
+                loss.backward()
+                optimiser.step()
 
-                    y_pred = model(x)
-                    loss = loss_fn(y_pred, y)
-
-                    if t % 100 == 0:
-                        print("Epoch ", t, "MSE: ", loss.item())
-                    if t % 1000 == 0:
-                        print(f'y_pred: {y_pred}, y: {y}')
-
-                    hist[t] = loss.item()
-                    optimiser.zero_grad()
-                    loss.backward()
-                    optimiser.step()
-
-            except IndexError:
-                continue
+        except IndexError:
+            continue
 
 
     torch.save(model.state_dict(), save_path)
 
-    plt.plot(y_pred.detach().numpy(), label="Preds")
-    plt.plot(y_train.detach().numpy(), label="Data")
+    plt.plot(y_pred.detach().flatten().numpy(), label="Preds")
+    plt.plot(y.detach().flatten().numpy(), label="Data")
     plt.legend()
     plt.show()
 

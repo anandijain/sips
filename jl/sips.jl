@@ -1,7 +1,11 @@
 module Sips
 	using TimeSeries, CSV, Plots
 
-	function get_dfs(directory::String)
+	# in jl/ directory
+	# to data: "../sips/gym_sip/data/static"
+	# other data: "/mnt/c/Users/Anand/home/Programming/datasets/price-volume-data-for-all-us-stocks-etfs/Data/Stocks/"
+
+	function get_dfs_from_dir(directory::String="/mnt/c/Users/Anand/home/Programming/datasets/price-volume-data-for-all-us-stocks-etfs/Data/Stocks/")
 		dfs = []
 		files = readdir(directory)
 		for file in files
@@ -29,11 +33,16 @@ module Sips
 		return time_series
 	end
 
-	function dates_to_int(dates)
-		# epoch time (slow)		
-		for d in dates:
 
-	
+	function dates_to_int(dates)
+		# epoch time (slow)
+		for d in dates:
+			break
+		end
+	end
+
+	# function lstm_model(input_dim, hidden_dim, output_dim)
+
 
 
 	function lstm_tuples(df; window_len=10)
