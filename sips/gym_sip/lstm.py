@@ -55,13 +55,14 @@ class LSTMLoader(Dataset):
 class PlayerDataset(Dataset):
 
 	team_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs'] #list of player columns
-	def __init__(self, fn='./data/static/lets_try.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'], team_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs']):
+	def __init__(self, window=1 fn='./data/static/lets_try.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'],
+                    team_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs']):
 
 		self.projections_frame = pd.read_csv(fn)
 		self.transform(self.projections_frame)
 		self.team_columns = team_columns
 		self.predict_columns = predict_columns
-		self.window = 10
+		self.window = window
 
 	def transform(self, df):
 		self.projections_frame = self.projections_frame.drop_duplicates()
@@ -135,7 +136,6 @@ if __name__ == "__main__":
     data = fileset[1]
 
     # dataset = LSTMLoader(data)
-    dataset = PlayerDataset()
     sample_x, sample_y = dataset[0]
     print(f'sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
 
@@ -144,7 +144,9 @@ if __name__ == "__main__":
     batch_size = 1
     hidden_shape = 10
     num_layers = 1
+    window = 1
 
+    dataset = PlayerDataset()
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
     for (x, y) in data_loader:
