@@ -41,8 +41,11 @@ module Sips
 		end
 	end
 
-	# function lstm_model(input_dim, hidden_dim, output_dim)
-
+	function get_model(ts)
+		return Chain(Dense(size(ts), 100, tanh),
+		      Dense(100, 100, tanh),
+		      Dense(100, (size(ts)))
+	end
 
 
 	function lstm_tuples(df; window_len=10)
