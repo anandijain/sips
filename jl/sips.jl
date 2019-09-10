@@ -5,7 +5,7 @@ module Sips
 	# to data: "../sips/gym_sip/data/static"
 	# other data: "/mnt/c/Users/Anand/home/Programming/datasets/price-volume-data-for-all-us-stocks-etfs/Data/Stocks/"
 
-	function get_dfs_from_dir(directory::String="/mnt/c/Users/Anand/home/Programming/datasets/price-volume-data-for-all-us-stocks-etfs/Data/Stocks/")
+	function get_dfs_from_dir(directory::String="C://Users/Anand/home/Programming/datasets/price-volume-data-for-all-us-stocks-etfs/Data/Stocks/")
 		dfs = []
 		files = readdir(directory)
 		for file in files
@@ -36,7 +36,8 @@ module Sips
 
 	function dates_to_int(dates)
 		# epoch time (slow)
-		for d in dates:
+		for d in dates
+			print(d)
 			break
 		end
 	end
@@ -44,7 +45,7 @@ module Sips
 	function get_model(ts)
 		return Chain(Dense(size(ts), 100, tanh),
 		      Dense(100, 100, tanh),
-		      Dense(100, (size(ts)))
+		      Dense(100, (size(ts))))
 	end
 
 
@@ -58,5 +59,14 @@ module Sips
 			push!(tups, tup)
 		end
 		return tups
+	end
+
+	function train_model(tups)
+		x, y = tups[1]
+		x_shape = size(x)
+		y_shape = size(y)
+		print("x_shape: $x_shape, y_shape: $y_shape")
+
+		# model = Chain(Dense, 
 	end
 end

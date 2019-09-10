@@ -13,6 +13,14 @@ sips/gym_sip/h/__pycache__/
 */*/.ipynb_checkpoints/
 */*/*/.ipynb_checkpoints/
 
+*.swp
+
+*/*.swp
+*/*/*.swp
+*/*/*/*.swp
+
+
+
 
 sips/gym_sip/data
 
