@@ -55,5 +55,15 @@ function adj_all_games(;fn::String="../../sips/gym_sip/data/static/nba2.csv")
 	return adj_dfs
 end
 
+function eq(odd::Number)
+	if odd == 0
+		return 0
+	elseif odd > 0
+		return odd/100
+	else
+		return abs(100/odd)
+	end
+end
+
 # function train_nsde(games)
 end
