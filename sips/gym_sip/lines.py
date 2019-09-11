@@ -4,7 +4,7 @@ import os.path
 import time
 import requests
 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
 import numpy as np
 
@@ -49,13 +49,13 @@ class Sippy:
 
     def step(self):
         access_time = time.time()
-        
+
         self.json_events()
         self.cur_games(access_time)
 
         print('step: {}'.format(self.counter))
         print('time: {}\n'.format(time.asctime()))
-        
+
         self.counter += 1
 
         if self.counter % 20 == 1:
@@ -70,7 +70,7 @@ class Sippy:
             print('num events: ' + str(len(self.events)))
             print('new lines in past 20 steps: {} / {} seconds'.format(self.num_updates, elapsed))
             print('rough efficiency (newlines/elapsed): {}\n'.format(efficiency))
-            
+
             self.twenty_steps_ago = access_time
             self.num_updates = 0
             self.update_games_list()
@@ -80,7 +80,7 @@ class Sippy:
         for game in self.games:
             if game.score.ended == 0:  # if game is not over
                 if game.lines.updated == 1 or game.score.new == 1:  # if lines updated or score updated
-                    
+
                     if self.file is not None:
                         game.write_game(self.file)  # write to csv
 
@@ -89,7 +89,7 @@ class Sippy:
 
                     self.num_updates += 1
                     game.lines.updated = 0  # reset lines to not be updated
-                    game.score.new == 0 
+                    game.score.new == 0
                 if game.score.a_win == 1 or game.score.h_win == 1:
                     game.score.ended = 1
 
@@ -164,7 +164,7 @@ class Sippy:
             if game.a_team == a_team and game.h_team == h_team:
                 return game.game_id
             else:
-                return None                
+                return None
 
     def run(self):
         while True:
@@ -342,7 +342,7 @@ class Lines:
     def jparams(self):
         j_markets = self.json['displayGroups'][0]['markets']
         data = {"american": 0, "decimal": 0, "handicap": 0}
-        
+
         a_ou = None
         h_ou = None
 
@@ -384,7 +384,7 @@ class Lines:
 
         self.even_handler()
 
-        last_mod = self.json['lastModified'] / 1000.  # conversion from ns 
+        last_mod = self.json['lastModified'] / 1000.  # conversion from ns
 
         # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
 
@@ -435,7 +435,7 @@ class Lines:
                 print('None', end='|')
         print('\n')
 
- 
+
 class Score:
     def __init__(self, game_id):
         self.new = 1
@@ -564,7 +564,6 @@ class Market:
         self.a = away
         self.h = home
 
-
     def update(self, away, home):
         teams = [self.a, self.h]
         for i, team in enumerate([away, home]):
@@ -606,9 +605,9 @@ def open_file(file_name):
     exists = os.path.isfile(complete_name)
 
     if exists:  # don't write header
-        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg 
+        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
     else:  # write header
-        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg 
+        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
         write_header(file)
 
     return file
@@ -629,4 +628,3 @@ def write_header(file):
         else:
             file.write(column_header)
     file.write('\n')
-

@@ -1,19 +1,38 @@
 module Utils
 
-using CSV, DataFrames, Plots, DiffEqFlux, DiffEqMonteCarlo
+using CSV, DataFrames, Plots, DiffEqFlux, DiffEqMonteCarlo, StatsBase
 
-function odds_df(fn::String="../sips/gym_sip/data/static/nba2.csv")
+function odds_df(fn::String="../../sips/gym_sip/data/static/nba2.csv")
 	CSV.read(fn)
 end
 
-function games_from_odds(df::DataFrame, cols::Array{Symbol, 1}=[:a_team, :game_id])
+function games_from_odds(df::DataFrame, cols::Array{Symbol, 1}=[:game_id])
 	groupby(df, cols)
 end
 
-function plot_all(dfs)
-	for df in dfs
-		plot!(df.cur_time, df.a_odds_ml)
+function plot_all(dfs; all::Bool=false, num::Int=5, scatter::Bool=false)
+	p = plot()
+	
+	if all
+		plot_dfs = dfs
+	else
+		plot_dfs = sample(dfs, num, replace=false)
 	end
+
+	for df in plot_dfs 
+		if scatter
+			scatter!(p, df.cur_time, df.a_odds_ml, markersize=2)
+		else
+			plot!(p, df.cur_time, df.a_odds_ml)
+		end
+	end
+	return p
+end
+
+function plot_game(df)
+	p = plot()
+	plot!(p, df.cur_time, [df.a_odds_ml, df.h_odds_ml])
+	return p
 end
 
 function adjust_times(dfs, time_col::Symbol=:cur_time)
@@ -27,10 +46,10 @@ function adjust_times(dfs, time_col::Symbol=:cur_time)
 		push!(adjusted_dfs, game)
 	end
 	return adjusted_dfs
-end
+end 
 
-function adj_all_games()
-	df = odds_df()
+function adj_all_games(;fn::String="../../sips/gym_sip/data/static/nba2.csv")
+	df = odds_df(fn)
 	games = games_from_odds(df)
 	adj_dfs = adjust_times(games)
 	return adj_dfs
