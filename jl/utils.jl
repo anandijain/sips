@@ -10,6 +10,10 @@ function games_from_odds(df::DataFrame, cols::Array{Symbol, 1}=[:game_id])
 	groupby(df, cols)
 end
 
+function get_games(fn::String="../../sips/gym_sip/data/static/nba2.csv")
+	groupby(CSV.read(fn), :game_id)
+end
+
 function plot_all(dfs; all::Bool=false, num::Int=5, scatter::Bool=false)
 	p = plot()
 	
@@ -59,10 +63,36 @@ function eq(odd::Number)
 	if odd == 0
 		return 0
 	elseif odd > 0
-		return odd/100
+		return odd // 100
 	else
-		return abs(100/odd)
+		return abs(100 // odd)
 	end
+end
+
+function balance_bet(x₀::Number, yᵢ::Number)
+	frac = (eq(x₀) + 1) // (eq(yᵢ) + 1) 
+	return frac
+end
+
+function roi(x₀::Number, yᵢ::Number)
+	frac_of_x₀ = balance_bet(x₀, yᵢ)
+	x₀_eq = eq(x₀)
+	return x₀_eq - frac_of_x₀
+end
+
+function arr_roi(x, y)
+	# x and y are same length numerical arrays of dimension 1
+	x₀ = x[1]
+	y₀ = y[1]
+	arr = []
+	arr2 = []
+	for y_val in y
+		append!(arr, roi(x₀, y_val))
+	end
+	for x_val in x
+		append!(arr2, roi(y₀, x_val))
+	end
+	return arr, arr2
 end
 
 # function train_nsde(games)
