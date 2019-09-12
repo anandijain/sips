@@ -14,7 +14,6 @@ sips/gym_sip/h/__pycache__/
 */*/*/.ipynb_checkpoints/
 
 *.swp
-
 */*.swp
 */*/*.swp
 */*/*/*.swp
