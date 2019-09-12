@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-import h
+import sips.gym_sip.h as h
 
 
 save_path = 'data'

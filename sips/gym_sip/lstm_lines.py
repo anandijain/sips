@@ -3,14 +3,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-import h
+from sips.gym_sip import h
 
 
 class LSTMTagger(nn.Module):
 
     def __init__(self, input_dim, hidden_dim, target_size):
         super(LSTMTagger, self).__init__()
-        
+
         self.hidden_dim = hidden_dim
 
         self.lstm = nn.LSTM(input_dim, hidden_dim)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
             out = model(train)
 
-            
+
             print(train[0])
             print(targets[0])
             print(out[0])
@@ -76,5 +76,3 @@ if __name__ == "__main__":
 
             loss.backward()
             optimizer.step()
-
-

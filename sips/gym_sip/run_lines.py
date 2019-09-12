@@ -1,6 +1,6 @@
 import time
 
-import lines as ll
+import sips.gym_sip.lines as ll
 
 class Start:
     """
