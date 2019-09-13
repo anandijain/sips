@@ -18,6 +18,12 @@ sips/gym_sip/h/__pycache__/
 */*/*.swp
 */*/*/*.swp
 
+*.out
+*/*.out
+*/*/*.out
+*/*/*/*.out
+
+
 sips/gym_sip/data
 
 
