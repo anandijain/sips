@@ -3,7 +3,14 @@ import bs4
 import pandas as pd
 import requests as r
 
-def main(year=2019):
+def main(years=(2000, 2019)):
+    year_list = range(years[0], years[1] + 1)  # + 1 because range is not inclusve 
+    dfs = []
+    for year in year_list:
+        dfs.append(get_df(year))
+    print(f'Done: {len(dfs)} dataframes written')
+
+def get_df(year, write=True):
     url = get_url(year=year)
     table = get_table(url)
     cols = get_headers(table.thead)
@@ -11,8 +18,11 @@ def main(year=2019):
     raw_df = pd.read_html(table.prettify())[0]
     df = cat_ids(raw_df, player_ids)
     print(df)
+    if write:
+        fn = get_fn(year)
+        df.to_csv(fn)
     return df 
-
+        
 def get_table(url):
     req = r.get(url)
     p = bs4.BeautifulSoup(req.text, "html.parser")
@@ -50,7 +60,9 @@ def cat_ids(raw_df, list_ids):
     df = pd.concat([raw_df, id_col], axis=1)
     return df
 
-
+def get_fn(year):
+    return "./data/" + str(year) + "_nfl_combine.csv"
+    
 
 if __name__ == "__main__":
     main()
