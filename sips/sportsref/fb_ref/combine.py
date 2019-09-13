@@ -8,15 +8,15 @@ def main(year=2019):
     table = get_table(url)
     cols = get_headers(table.thead)
     player_ids = get_ids(table)
-    raw_df = pd.read_html(table.prettify())
+    raw_df = pd.read_html(table.prettify())[0]
     df = cat_ids(raw_df, player_ids)
-
+    print(df)
     return df 
 
 def get_table(url):
     req = r.get(url)
     p = bs4.BeautifulSoup(req.text, "html.parser")
-    table = p.find("table", {"id" : "combine"})[0]
+    table = p.find("table", {"id" : "combine"})
     return table
 
 def get_headers(thead):
@@ -44,10 +44,6 @@ def get_ids(table):
 def parse_id(player_url='/players/W/WoodZe00.htm'):
     ID = player_url.split("/")[3].split('.')[0]
     return ID
-
-def table_to_df(table):
-    df = pd.read_html(table.prettify())
-    return df
 
 def cat_ids(raw_df, list_ids):
     id_col = pd.Series(list_ids, name="id")
