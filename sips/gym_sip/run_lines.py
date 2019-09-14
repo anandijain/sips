@@ -30,7 +30,7 @@ class Start:
         self.sip.run()
 
     def __repr__(self):
-        self.sip
+        print(self.sip)
 
 
 if __name__ == "__main__":
