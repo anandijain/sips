@@ -286,20 +286,17 @@ class Game:
             self.league = self.league.replace(',', '')
 
     def __repr__(self):
-        try:
-            print('\n' + self.desc + '\n')
-            print(self.sport, end='|')
-            print(self.game_id, end='|')
-            print(self.a_team, end='|')
-            print(self.h_team, end='|')
-            print('\nScores info: ')
-            print(self.score)
-            print('Game line info: ')
-            print('time delta: {} |'.format(self.delta))
-            print(self.lines)
-            print(str(self.start_time) + "\n")
-        except TypeError:
-            return '.'
+        desc_str = '\n' + self.desc + '\n'
+        delta_str = 'time delta: ' + str(self.delta)
+        start_time_str = str(self.start_time) + "\n"
+        print_list = [desc_str, self.sport, self.game_id, self.a_team, self.h_team,
+                    self.score, self.lines, delta_str, start_time_str]
+        for elt in print_list:
+            try:
+                print(elt, end='|')
+            except TypeError:
+                print('.', end='|')
+                continue
 
 class Lines:
     def __init__(self, json):
@@ -425,14 +422,16 @@ class Lines:
 
     def odds(self):
         for elt in [self.last_mod_lines, self.a_ml, self.h_ml]:
-            print(str(elt), end='|')
+            print(str(elt[-1]), end='|')
 
     def __repr__(self):
+        print('Game line info: ')
         for param in self.params:
             try:
                 print(str(param[-1]), end='|')
             except IndexError:
                 print('None', end='|')
+                pass
         print('\n')
 
 
@@ -552,9 +551,14 @@ class Score:
         self.data = req(scores_url + self.game_id)
 
     def __repr__(self):
+        print('\nScores info: ')
         for i, param in enumerate(self.params):
-            if len(param) > 0:
-                print('{}: {}'.format(h.macros.bov_score_headers[i], param[-1]), end='|')
+            try:
+                if len(param) > 0:
+                    print('{}: {}'.format(h.macros.bov_score_headers[i], param[-1]), end='|')
+            except TypeError:
+                print('.', end='|')
+                pass
         print('\n')
 
 

@@ -29,6 +29,9 @@ class Start:
     def run(self):
         self.sip.run()
 
+    def __repr__(self):
+        self.sip
+
 
 if __name__ == "__main__":
     sip = Start(fn='all_test', game_type='all', verbosity=True)
