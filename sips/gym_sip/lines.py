@@ -31,7 +31,7 @@ class Sippy:
 
         self.verbosity = verbosity
         self.league = league
-        self.set_league(self.league)
+        self.set_league_dict(self.league)
         self.json_events()
 
         self.counter = 0
@@ -86,7 +86,10 @@ class Sippy:
                         game.write_game(self.file)  # write to csv
 
                     if self.verbosity:
-                        print(game)
+                        try:
+                            print(game)
+                        except TypeError:
+                            pass
 
                     self.num_updates += 1
                     game.lines.updated = 0  # reset lines to not be updated
@@ -175,7 +178,7 @@ class Sippy:
         '''
         sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
           'esports', 'football/nfl', 'football/college-football', 'tennis', 'volleyball', 'hockey']
-        '''    
+        '''
         try:
             self.links = self.all_urls_dict[league]
         except KeyError:
@@ -301,17 +304,27 @@ class Game:
             self.league = self.league.replace(',', '')
 
     def __repr__(self):
+        ret = ''
         desc_str = '\n' + self.desc + '\n'
-        delta_str = 'time delta: ' + str(self.delta)
+        if self.delta is not None:
+            delta_str = 'time delta: ' + str(self.delta)
+        else:
+            delta_str = 'time delta: None'
         start_time_str = str(self.start_time) + "\n"
         print_list = [desc_str, self.sport, self.game_id, self.a_team, self.h_team,
                     self.score, self.lines, delta_str, start_time_str]
         for elt in print_list:
             try:
+                if elt is None:
+                    print('.', end='|')
+                    # ret += '.|'
+                    continue
                 print(elt, end='|')
+
             except TypeError:
                 print('.', end='|')
                 continue
+        return '\n'
 
 class Lines:
     def __init__(self, json):
@@ -445,7 +458,7 @@ class Lines:
             try:
                 print(str(param[-1]), end='|')
             except IndexError:
-                print('None', end='|')
+                print('.', end='|')
                 pass
         print('\n')
 
