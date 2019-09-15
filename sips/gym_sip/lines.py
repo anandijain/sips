@@ -27,6 +27,7 @@ class Sippy:
 
         self.links = []
         self.all_urls = h.macros.build_urls()
+        self.all_urls_dict = h.macros.build_url_dict()
 
         self.verbosity = verbosity
         self.league = league
@@ -170,6 +171,18 @@ class Sippy:
         while True:
             self.step()
 
+    def set_league_dict(self, league):
+        '''
+        sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
+          'esports', 'football/nfl', 'football/college-football', 'tennis', 'volleyball', 'hockey']
+        '''    
+        try:
+            self.links = self.all_urls_dict[league]
+        except KeyError:
+            # all links
+            for key in self.all_urls_dict.keys():
+                self.links += self.all_urls_dict[key]
+
     def set_league(self, league):
         str_league = str(league).lower()
         if league == 0 or str_league == 'all':
@@ -184,14 +197,16 @@ class Sippy:
             self.links = self.all_urls[6:8]
         elif league == 5 or str_league == 'football':
             self.links = self.all_urls[8:10]
-        elif league == 6 or str_league == 'tennis':
+        elif league == 6 or str_league == 'college football':
             self.links = self.all_urls[10:12]
-        elif league == 7 or str_league == 'volleyball':
+        elif league == 6 or str_league == 'tennis':
             self.links = self.all_urls[12:14]
-        elif league == 8 or str_league == 'hockey':
+        elif league == 7 or str_league == 'volleyball':
             self.links = self.all_urls[14:16]
+        elif league == 8 or str_league == 'hockey':
+            self.links = self.all_urls[16:18]
         else:
-            self.links = self.all_urls[4:6]
+            self.links = self.all_urls
 
     def write_header(self):
         num_headers = len(h.macros.bovada_headers)

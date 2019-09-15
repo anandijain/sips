@@ -34,12 +34,18 @@ suffixes = ['?marketFilterId=def&liveOnly=true&lang=en',
 
 
 sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
-          'esports', 'football/nfl', 'tennis', 'volleyball', 'hockey']
+          'esports', 'football/nfl', 'football/college-football', 'tennis', 'volleyball', 'hockey']
 
-
+# todo make dictionary
 def build_urls():
     urls = []
     for sport in sports:
         for suffix in suffixes:
             urls.append(lines_url + sport + suffix)
+    return urls
+
+def build_url_dict():
+    urls = {}
+    for sport in sports:
+        urls[sport] = [lines_url + sport + suffix for suffix in suffixes]
     return urls
