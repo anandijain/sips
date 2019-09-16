@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from .helpers import *
+from sips.gym_sip.h.helpers import *
 
 class Df(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):
@@ -127,3 +127,34 @@ class DfCols(Dataset):
 
     def __len__(self):
         return self.data_len
+
+class LineGen(Dataset):
+    def __init__(self, game_df):
+        self.df = game_df
+        self.data_len = len(self.df)
+        
+        self.pregame = self.df[['a_odds_ps', 'h_odds_ps']].iloc[0].values
+
+        self.train_cols = ['last_mod_to_start', 'a_pts', 'h_pts', 'quarter', 'status', 'secs', 'num_markets']
+        self.label_cols = ['a_odds_ml', 'h_odds_ml']
+        self.X = self.df[self.train_cols].values
+        self.Y = self.df[self.label_cols].values
+       
+        self.tups = []
+        self.gen_tups()
+
+    def __getitem__(self, index):
+        return self.tups[index]
+    
+    def __len__(self):
+        return self.data_len
+    
+    def gen_tups(self):
+        for i in range(self.data_len):
+            pg = torch.tensor(self.pregame, dtype=torch.float)
+            x = torch.cat((torch.tensor(self.X[i], dtype=torch.float), pg))
+            y = torch.tensor(self.Y[i], dtype=torch.float)
+            self.tups.append((x, y))
+
+
+
