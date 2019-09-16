@@ -133,6 +133,7 @@ class DfCols(Dataset):
 class LineGen(Dataset):
     def __init__(self, game_df):
         self.df = game_df
+        self.df = self.df[(self.df.a_odds_ml != np.int64(0)) & (self.df.h_odds_ml != np.int64(0))]
         self.data_len = len(self.df)
         
         min_max_scaler = preprocessing.MinMaxScaler()
