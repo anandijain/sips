@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from sklearn import preprocessing
+
 import torch
 from torch.utils.data import Dataset
 
@@ -133,11 +135,12 @@ class LineGen(Dataset):
         self.df = game_df
         self.data_len = len(self.df)
         
-        self.pregame = self.df[['a_odds_ps', 'h_odds_ps']].iloc[0].values
+        min_max_scaler = preprocessing.MinMaxScaler()
 
+        self.pregame = self.df[['a_odds_ps', 'h_odds_ps']].iloc[0].values
         self.train_cols = ['last_mod_to_start', 'a_pts', 'h_pts', 'quarter', 'status', 'secs', 'num_markets']
         self.label_cols = ['a_odds_ml', 'h_odds_ml']
-        self.X = self.df[self.train_cols].values
+        self.X = min_max_scaler.fit_transform(self.df[self.train_cols].values)
         self.Y = self.df[self.label_cols].values
        
         self.tups = []

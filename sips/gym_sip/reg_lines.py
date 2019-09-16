@@ -24,8 +24,8 @@ class Net(nn.Module):
         return out
 
 if __name__ == "__main__":
-    load = True  # saved in ./models
-    load_path = './models/predict_odds.pt'
+    load = False # saved in ./models
+    path = './models/predict_odds.pt'
 
     save = True
     lr = 1e-3
@@ -45,23 +45,23 @@ if __name__ == "__main__":
 
     net = Net(in_dim, out_dim)
     if load:
-        net.load_state_dict(torch.load(load_path))
+        net.load_state_dict(torch.load(path))
     criterion = nn.MSELoss()
     optim = torch.optim.Adam(net.parameters(), lr=lr)
     for epoch in range(epochs):
         for game in games:
             dataset_obj = l.LineGen(game)
             data_loader = torch.utils.data.DataLoader(dataset_obj, batch_size=batch_size)
-        for i, (x, y) in enumerate(data_loader):
-            optim.zero_grad()
-            output = net(x)
-            loss = criterion(output, y)
-            loss.backward()
-            optim.step()
-            with torch.no_grad():
-                if i % log_interval == 0:
-                    print(f'loss: {loss}')
-                    print(f'input: {x[0]}')
-                    print(f'out: {output[0]}, y: {y[0]}\n')
+            for i, (x, y) in enumerate(data_loader):
+                optim.zero_grad()
+                output = net(x)
+                loss = criterion(output, y)
+                loss.backward()
+                optim.step()
+                with torch.no_grad():
+                    if i % log_interval == 0:
+                        print(f'loss: {loss}')
+                        print(f'input: {x[0]}')
+                        print(f'out: {output[0]}, y: {y[0]}\n')
     if save:    
-        torch.save(net.state_dict(),"./models/predict_odds.pt")
+        torch.save(net.state_dict(),path)
