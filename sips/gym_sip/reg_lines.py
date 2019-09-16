@@ -30,10 +30,11 @@ if __name__ == "__main__":
     save = True
     lr = 1e-3
     epochs = 30
-    log_interval = 100
-    batch_size = 10
+    log_interval = 1000
+    batch_size = 16
     
     df = pd.read_csv('./data/static/nba2.csv')
+    df = df[(df.last_mod_to_start > 0) & (df.a_pts > 0) & (df.h_pts > 0)] 
     games = [game[1] for game in df.groupby('game_id')]
 
     dataset_obj = l.LineGen(df)
@@ -50,18 +51,21 @@ if __name__ == "__main__":
     optim = torch.optim.Adam(net.parameters(), lr=lr)
     for epoch in range(epochs):
         for game in games:
-            dataset_obj = l.LineGen(game)
-            data_loader = torch.utils.data.DataLoader(dataset_obj, batch_size=batch_size)
-            for i, (x, y) in enumerate(data_loader):
-                optim.zero_grad()
-                output = net(x)
-                loss = criterion(output, y)
-                loss.backward()
-                optim.step()
-                with torch.no_grad():
-                    if i % log_interval == 0:
-                        print(f'loss: {loss}')
-                        print(f'input: {x[0]}')
-                        print(f'out: {output[0]}, y: {y[0]}\n')
-    if save:    
+            try:
+                dataset_obj = l.LineGen(game)
+                data_loader = torch.utils.data.DataLoader(dataset_obj, batch_size=batch_size)
+                for i, (x, y) in enumerate(data_loader):
+                    optim.zero_grad()
+                    output = net(x)
+                    loss = criterion(output, y)
+                    loss.backward()
+                    optim.step()
+                    with torch.no_grad():
+                        if i % log_interval == 0:
+                            print(f'loss: {loss}')
+                            print(f'input: {x[0]}')
+                            print(f'out: {output[0]}, y: {y[0]}\n')
+            except IndexError:
+                continue
+    if save:        
         torch.save(net.state_dict(),path)
