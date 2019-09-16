@@ -13,19 +13,23 @@ class Net(nn.Module):
 
         self.l1 = nn.Linear(in_dim, in_dim*2)
         self.l2 = nn.Linear(in_dim*2, in_dim*2)
-        self.l3 = nn.Linear(in_dim*2, out_dim)
+        self.l3 = nn.Linear(in_dim*2, in_dim*2)
+        self.l4 = nn.Linear(in_dim*2, out_dim)
 
     def forward(self, x):
         out = self.l1(x)
-        out = torch.tanh(self.l2(out))
-        out = self.l3(out)
+        out = self.l2(out)
+        out = torch.tanh(self.l3(out))
+        out = self.l4(out)
         return out
 
 if __name__ == "__main__":
+    load = True  # saved in ./models
+    load_path = './models/predict_odds.pt'
 
     save = True
     lr = 1e-3
-    epochs = 10
+    epochs = 30
     log_interval = 100
     batch_size = 10
     
@@ -40,7 +44,8 @@ if __name__ == "__main__":
     out_dim = len(example_y)
 
     net = Net(in_dim, out_dim)
-
+    if load:
+        net.load_state_dict(torch.load(load_path))
     criterion = nn.MSELoss()
     optim = torch.optim.Adam(net.parameters(), lr=lr)
     for epoch in range(epochs):
