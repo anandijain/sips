@@ -24,7 +24,7 @@ class Net(nn.Module):
         return out
 
 if __name__ == "__main__":
-    load = False # saved in ./models
+    load = True  # saved in ./models
     path = './models/predict_odds.pt'
 
     save = True
