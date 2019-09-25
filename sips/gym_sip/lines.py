@@ -186,31 +186,6 @@ class Sippy:
             for key in self.all_urls_dict.keys():
                 self.links += self.all_urls_dict[key]
 
-    def set_league(self, league):
-        str_league = str(league).lower()
-        if league == 0 or str_league == 'all':
-            self.links = self.all_urls
-        elif league == 1 or str_league == 'nba':
-            self.links = self.all_urls[0:2]
-        elif league == 2 or str_league == 'college basketball':
-            self.links = self.all_urls[2:4]
-        elif league == 3 or str_league == 'mlb':
-            self.links = self.all_urls[4:6]
-        elif league == 4 or str_league == 'esports':
-            self.links = self.all_urls[6:8]
-        elif league == 5 or str_league == 'football':
-            self.links = self.all_urls[8:10]
-        elif league == 6 or str_league == 'college football':
-            self.links = self.all_urls[10:12]
-        elif league == 6 or str_league == 'tennis':
-            self.links = self.all_urls[12:14]
-        elif league == 7 or str_league == 'volleyball':
-            self.links = self.all_urls[14:16]
-        elif league == 8 or str_league == 'hockey':
-            self.links = self.all_urls[16:18]
-        else:
-            self.links = self.all_urls
-
     def write_header(self):
         num_headers = len(h.macros.bovada_headers)
         for i, column_header in enumerate(h.macros.bovada_headers):
@@ -237,24 +212,26 @@ class Game:
         self.league_fix()
         self.game_id = event['id']
         self.desc = event['description']
-        if self.gtype == 4 or self.gtype == 7:
-            sep = 'vs'
-        else:
-            sep = '@'
-        try:
-            self.a_team = self.desc.split(sep)[0]
-            self.a_team = self.a_team[:-1]
-            self.h_team = self.desc.split(sep)[1]
-            self.h_team = self.h_team[1:]
-            self.teams = [self.a_team, self.h_team]
-        except Exception:
-            self.a_team = self.desc
-            self.h_team = self.desc
+
+        self.a_team, self.h_team = self.get_teams(event)
+        self.teams = [self.a_team, self.h_team]
+
         self.start_time = event['startTime'] / 1000.
         self.score = Score(self.game_id)
         self.lines = Lines(event)
         self.link = event['link']
         self.delta = None
+
+    def get_teams(self, event):
+        team_one = event['competitors'][0]
+        team_two = event['competitors'][1]
+        if team_one['home']:
+            h_team = team_one['name']
+            a_team = team_two['name']
+        else:
+            a_team = team_one['name']
+            h_team = team_two['name']
+        return a_team, h_team
 
     def write_game(self, file):
         self.time_diff()

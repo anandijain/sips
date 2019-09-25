@@ -34,4 +34,4 @@ class Start:
 
 
 if __name__ == "__main__":
-    sip = Start(fn='all_test3', game_type='all') 
+    sip = Start(fn='all_test3', game_type='all')
