@@ -14,7 +14,7 @@ class Start:
     verbosity - Bool, extra print statements
     """
 
-    def __init__(self, fn='all', game_type='all', run=True, verbosity=False)::
+    def __init__(self, fn='all', game_type='all', run=True, verbosity=False):
         self.fn = fn
         self.gt = game_type
 
