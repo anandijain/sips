@@ -189,7 +189,7 @@ class Sippy:
     def write_header(self):
         num_headers = len(h.macros.bovada_headers)
         for i, column_header in enumerate(h.macros.bovada_headers):
-            if i < num_headers:
+            if i < num_headers - 1:
                 self.file.write(column_header + ',')
             else:
                 self.file.write(column_header)
