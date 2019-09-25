@@ -14,7 +14,7 @@ class Start:
     verbosity - Bool, extra print statements
     """
 
-    def __init__(self, fn='mlb5', game_type='mlb', run=True, verbosity=False):
+    def __init__(self, fn='all', game_type='all', run=True, verbosity=False)::
         self.fn = fn
         self.gt = game_type
 
@@ -34,4 +34,4 @@ class Start:
 
 
 if __name__ == "__main__":
-    sip = Start(fn='all_test3', game_type='all')
+    sip = Start(fn='all', game_type='all')
