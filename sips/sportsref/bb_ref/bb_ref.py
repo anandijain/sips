@@ -2,8 +2,8 @@ import time
 
 import bs4
 
-import sips.gym_sip.h as h
-import sips.mlb.bb_ref.h.
+import sips.h as h
+import sips.sportsref.h as ref_utils
 
 # class MLB:
 # 	def __init__(self):
