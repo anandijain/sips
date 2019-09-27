@@ -1,0 +1,16 @@
+{
+  "fn": "all",
+  "game_type": "all",
+  "games":
+  [
+    {
+      "sport": "FOOT",
+      "game_ids": [
+        5742435,
+        5742551,
+        5742511
+      ]
+    }
+  ],
+  "verbosity": false
+}

@@ -510,26 +510,18 @@ class Score:
         self.dir_isdown = self.clock.get('direction')
 
     def win_check(self):
-        # a = self.quarter[-1] == 0 or self.quarter[-1] == -1
-        # b = self.quarter[-1] == self.num_quarters
-        # c = self.secs[-1] == 0 or self.secs[-1] == -1
-        # d = self.status[-1] == 0
-        # win = b and c and d
-        # win2 = a and c and d
-        # print('ended {}'.format(self.ended))
-        # print('last q {}'.format(self.quarter[-1]))
-        # print('status {}\n'.format(self.status[-1]))
-
         if self.ended == 0:
             if self.quarter[-1] == -1 and self.status[-1] == 0:
                 if self.a_pts[-1] > self.h_pts[-1]:
                     self.a_win.append(1)
                     self.h_win.append(0)
+                    self.ended = 1
                     print('a_team win')
 
                 elif self.h_pts[-1] > self.a_pts[-1]:
                     self.a_win.append(0)
                     self.h_win.append(1)
+                    self.ended = 1
                     print('h_team win')
 
     def date_split(self):
