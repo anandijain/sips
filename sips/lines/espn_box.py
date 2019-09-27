@@ -1,32 +1,49 @@
 import requests as r
 import bs4
 
+def espn_box_tds(tds):
+    x = None
+    prev = None
+    data = []
+    for td in tds:
+        txt = td.text
+        if txt == 'TEAM':
+            x = 1
+        if prev == 1:
+            data.append(td.text)
+        prev = x
+    return data
 
-def newstats_to_team_stats(newstats, page):
+
+def espn_teamstats(page):
     a_newstats = []
     h_newstats = []
-    for i, newstat in enumerate(newstats):
-        if len(newstat) == 2:
-            a_newstat = newstat[0].find_all('td')
-            h_newstat = newstat[1].find_all('td')
-            del a_newstat[0]
-            del h_newstat[0]
-            a_newstats.append(a_newstat)
+    # if table_index % 2 == 1, then home_team
+
+    tables = page.find_all('div', {'class' : 'content desktop'})
+    for i, table in enumerate(tables):
+        header = table.find('thead')
+        len_header = len(header.find_all('th')) - 1  # - 1 for 'TEAM'
+        tds = table.find_all('td')
+        data = espn_box_tds(tds)
+        if i % 2 == 1:
+            if len(data) == 0:
+                h_newstat = ['NaN' for _ in range(len_header)]
+            else:
+                h_newstat = data
             h_newstats.append(h_newstat)
         else:
-            table = page.find_all('div', {'class' : 'content desktop'})
-            num_cols = table[i * 2].find_all('thead')
-            real_num = num_cols[0].find_all('th')
-            del real_num[0]
-            a_newstat = ['NaN' for _ in range(len(real_num))]
-            h_newstat = ['NaN' for _ in range(len(real_num))]
+            if len(data) == 0:
+                a_newstat = ['NaN' for _ in range(len_header)]
+            else:
+                a_newstat = data
             a_newstats.append(a_newstat)
-            h_newstats.append(h_newstat)
     return a_newstats, h_newstats
 
-def parse_teamstats(a_newstats, h_newstats):
+def parse_teamstats(teamstats):
+    a_newstats, h_newstats = teamstats
     real_stats = []
-    for team_newstats in (a_newstats, h_newstats):
+    for team_newstats in teamstats:
         for team_newstat in team_newstats:
             for stat in team_newstat:
                 try:
@@ -45,7 +62,7 @@ def espn_box_teamnames(page):
     destinations = page.find_all('span', {'class' : 'long-name'})
     names = [team.text for team in teams]
     cities = [destination.text for destination in destinations]
-    a_team, h_team = [dest + ' ' + name for (dest, name) in zip(names, cities)]
+    a_team, h_team = [dest + ' ' + name  for (dest, name) in zip(cities, names)]
     return a_team, h_team
 
 def get_page(link):
@@ -65,13 +82,11 @@ def get_boxscore(link='https://www.espn.com/nfl/boxscore?gameId=401127863'):
     page = get_page(link)
     stats = get_espn_boxstats(page)
     a_team, h_team = espn_box_teamnames(page)
-    newstats = []
-    for stat in stats:
-        newstat = stat[0].find_all('tr', {'class' : 'highlight'})
-        newstats.append(newstat)
-
-    a_newstats, h_newstats = newstats_to_team_stats(newstats, page)
-    real_stats = parse_teamstats(a_newstats, h_newstats)
-
+    team_stats = espn_teamstats(page)
+    real_stats = parse_teamstats(team_stats)
     real_stats.extend([a_team, h_team])
     return real_stats
+
+if __name__ == "__main__":
+    real_stats = get_boxscore()
+    print(real_stats)
