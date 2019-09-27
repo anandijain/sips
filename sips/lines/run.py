@@ -316,7 +316,7 @@ def match_events(bov_events, espn_events):
 def main():
     # b, e = get_events()
     # rows = match_events(b, e)
-    stats = get_boxscore()
+    stats = get_boxscore(link='https://www.espn.com/nfl/boxscore?gameId=401127863')
     return stats
 
 if __name__ == "__main__":
