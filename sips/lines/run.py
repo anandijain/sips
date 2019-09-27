@@ -2,6 +2,8 @@
 import requests as r
 import time
 
+from sips.lines.espn_box import get_boxscore
+
 import json
 
 bov ="https://www.bovada.lv/services/sports/event/v2/events/A/description/football?marketFilterId=def&eventsLimit=50&lang=en"
@@ -16,87 +18,6 @@ class BovEvent:
     def __init__(self, event):
         # [sport, game_id, a_team, h_team, cur_time,  a_ps, h_ps, a_ml, h_ml, a_tot, h_tot, a_ou, h_ou]
         pass
-
-def get_boxscore(link='https://www.espn.com/nfl/boxscore?gameId=401127863'):
-    req = r.get(link).text
-    p = bs4.BeautifulSoup(req, 'html.parser')
-    teams = p.find_all('span', {'class'n : 'short-name'})
-    destinations = p.find_all('span', {'class' : 'long-name'})
-    a_name = teams[0].text
-    h_name = teams[1].text
-    a_destination = destinations[0].text
-    h_destination = destinations[1].text
-    a_team = a_destination + ' ' + a_name
-    h_team = h_destination + ' ' + h_name
-    passing = p.find_all('div', {'id' : 'gamepackage-passing'})
-    rushing = p.find_all('div', {'id' : 'gamepackage-rushing'})
-    receiving = p.find_all('div', {'id' : 'gamepackage-receiving'})
-    interceptions = p.find_all('div', {'id' : 'gamepackage-interceptions'})
-    fumbles = p.find_all('div', {'id' : 'gamepackage-fumbles'})
-    defensive = p.find_all('div', {'id' : 'gamepackage-defensive'})
-    kickReturns = p.find_all('div', {'id' : 'gamepackage-kickReturns'})
-    puntReturns = p.find_all('div', {'id' : 'gamepackage-puntReturns'})
-    kicking = p.find_all('div', {'id' : 'gamepackage-kicking'})
-    punting = p.find_all('div', {'id' : 'gamepackage-punting'})
-    stats = [passing, rushing, receiving, interceptions, fumbles, defensive, kickReturns, puntReturns, kicking, punting]
-    newstats = []
-    for stat in stats:
-        newstat = stat[0].find_all('tr', {'class' : 'highlight'})
-        newstats.append(newstat)
-    a_newstats = []
-    h_newstats = []
-    for i, newstat in enumerate(newstats):
-        if len(newstat) == 2:
-            a_newstat = newstat[0].find_all('td')
-            h_newstat = newstat[1].find_all('td')
-            del a_newstat[0]
-            del h_newstat[0]
-            a_newstats.append(a_newstat)
-            h_newstats.append(h_newstat)
-        elif len(newstat) == 1:
-            table = p.find_all('div', {'class' : 'content desktop'})
-            num = table[i * 2].find_all('thead')
-            real_num = num[0].find_all('th')
-            del real_num[0]
-            a_newstat = ['NaN' for _ in range(len(real_num))]
-            h_newstat = ['NaN' for _ in range(len(real_num))]
-            a_newstats.append(a_newstat)
-            h_newstats.append(h_newstat)
-        elif len(newstat) == 0:
-            table = p.find_all('div', {'class' : 'content desktop'})
-            num = table[i * 2].find_all('thead')
-            real_num = num[0].find_all('th')
-            del real_num[0]
-            a_newstat = ['NaN' for _ in range(len(real_num))]
-            h_newstat = ['NaN' for _ in range(len(real_num))]
-            a_newstats.append(a_newstat)
-            h_newstats.append(h_newstat)
-    real_stats = []
-    for h_newstat in h_newstats:
-        for stat in h_newstat:
-            try:
-                real_stat = stat.text
-                print(real_stat)
-                if real_stat == 'TEAM':
-                    continue
-            except AttributeError:
-                real_stat = stat
-            real_stats.append(real_stat)
-    for a_newstat in a_newstats:
-        for stat in a_newstat:
-            try:
-                real_stat = stat.text
-                print(real_stat)
-                if real_stat == 'TEAM':
-                    continue
-            except AttributeError:
-                real_stat = stat
-            real_stats.append(real_stat)
-
-    real_stats.append(h_team)
-    real_stats.append(a_team)
-
-    return real_stats
 
 
 def bov_team_to_id(team_name):
@@ -116,7 +37,8 @@ def get_bov_games(config_path):
 
 def get_and_compare():
     bov, espn = get_events()
-    compare(bov, espn)
+    rows = match_events(bov, espn)
+    return rows
 
 def get_bov_events():
     bov_json = r.get(bov).json()
@@ -311,7 +233,7 @@ def espn_event_weather(event):
         if not hi_temp:
             hi_temp = 'NaN'
     else:
-        display_weather, condition_id, temp, hi_temp = 'NaN', 'NaN', 'NaN', 'NaN'
+        display_weather, condition_id, temp, hi_temp = ['NaN' for _ in range(4)]
 
     return [display_weather, condition_id, temp, hi_temp]
 
@@ -325,7 +247,7 @@ def espn_event_odds(event):
         provider = odds['provider']['name']
         priority = odds['provider']['priority']
     else:
-        details, over_under, provider, priority = 'NaN', 'NaN', 'NaN', 'NaN'
+        details, over_under, provider, priority = ['NaN' for _ in range(4)]
 
     return [details, over_under, provider, priority]
 
@@ -372,7 +294,7 @@ def espn_teams(event):
         h_team = team_two['team']['displayName']
     return a_team, h_team
 
-def compare(bov_events, espn_events):
+def match_events(bov_events, espn_events):
     num_matched = 0
     rows = []
     for event in bov_events:
@@ -392,10 +314,10 @@ def compare(bov_events, espn_events):
     return rows
 
 def main():
-    b, e = get_events()
-    rows = compare(b, e)
-    print(rows)
-    return rows
+    # b, e = get_events()
+    # rows = match_events(b, e)
+    stats = get_boxscore()
+    return stats
 
 if __name__ == "__main__":
     rows = main()
