@@ -155,10 +155,11 @@ class Sippy:
 
     def run(self):
         while True:
-            self.step()
-        except KeyboardInterrupt:
-            print('interrupted')
-            pass
+            try:
+                self.step()
+            except KeyboardInterrupt:
+                print('interrupted')
+                break
 
     def set_league_dict(self, league):
         '''
@@ -207,7 +208,7 @@ class Sippy:
                 print(game)
             except TypeError:
                 return '.'
-
+        return '.'
 
 class Game:
     def __init__(self, event, access_time, gtype):
@@ -307,7 +308,7 @@ class Game:
             except TypeError:
                 print('.', end='|')
                 continue
-        return '\n'
+        return ' '
 
 class Lines:
     def __init__(self, json):

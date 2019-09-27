@@ -3,15 +3,13 @@ import bs4
 
 def espn_box_tds(tds):
     x = None
-    prev = None
     data = []
     for td in tds:
+        if x == 1:
+            data.append(td.text)
         txt = td.text
         if txt == 'TEAM':
             x = 1
-        if prev == 1:
-            data.append(td.text)
-        prev = x
     return data
 
 
