@@ -155,7 +155,7 @@ class Sippy:
 
     def run(self):
         while True:
-            self.step()]
+            self.step()
         except KeyboardInterrupt:
             print('interrupted')
             pass
