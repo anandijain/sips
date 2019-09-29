@@ -1,5 +1,7 @@
-import requests as r
 import time
+import json
+
+import requests as r
 
 from sips.lines.espn_box import get_boxscore
 
@@ -7,7 +9,7 @@ import sips.lines.bov as bov
 import sips.lines.espn_api as espn_api
 import sips.lines.espn_box as espn_box
 
-import json
+
 
 def get_and_compare():
     bov, espn = get_events()
@@ -17,7 +19,8 @@ def get_and_compare():
 def get_events():
     bov_events = bov.get_bov_events()
     espn_events = espn_api.get_espn_events()
-    return bov_events, espn_events
+    espn_box_events = espn_box.get_live_boxes()
+    return bov_events, espn_events, espn_boxes
 
 def match_events(bov_events, espn_events):
     num_matched = 0

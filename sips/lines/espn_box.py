@@ -1,22 +1,95 @@
 import requests as r
 import bs4
 
+import time
 
-def construct_espn_links():
-    ids = get_espn_ids()
+DELAY=0.05
+TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:time')
+TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:score')
+TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:live')
+
+def espn_boxlinks(ids):
+    if not ids:
+        ids = get_espn_ids()
     url = 'https://www.espn.com/nfl/boxscore?gameId='
     links = [url + id for id in ids]
     return links
 
 
-def get_espn_ids():
+def espn_time_ids(page=None):
+    if not page:
+        page = espn_schedule()
+    unparsed_ids = page.find_all('a', {'name' : '&lpos=nfl:schedule:time'})
+    time_ids = parse_ids(unparsed_ids)
+    return time_ids
+
+
+def espn_score_ids(page=None):
+    if not page:
+        page = espn_schedule()
+    unparsed_ids = page.find_all('a', {'name' : '&lpos=nfl:schedule:score'})
+    score_ids = parse_ids(unparsed_ids)
+    return score_ids
+
+def espn_live_ids(page=None):
+    if not page:
+        page = espn_schedule()
+    unparsed_ids = page.find_all('a', {'name' : '&lpos=nfl:schedule:live'})
+    live_ids = parse_live_ids(unparsed_ids)
+    return live_ids
+
+
+def espn_live_links(page=None):
+    if not page:
+        page = espn_schedule()
+    live_ids = espn_live_ids(page)
+    links = espn_boxlinks(live_ids)
+    return links
+
+
+def espn_schedule():
     espn_id_link = 'https://www.espn.com/nfl/schedule'
     p = get_page(espn_id_link)
-    score_ids = p.find_all('a', {'name' : '&lpos=nfl:schedule:score'})
-    time_ids = p.find_all('a', {'name' : '&lpos=nfl:schedule:time'})
-    unparsed_ids = score_ids + time_ids
-    ids = parse_ids(unparsed_ids)
+    return p
+
+
+def get_espn_ids():
+    p = espn_schedule()
+    live_ids = espn_live_ids(p)
+    score_ids = espn_score_ids(p)
+    time_ids = espn_time_ids(p)
+    ids =  live_ids + score_ids + time_ids
     return ids
+
+
+def get_live_pages():
+    ids = espn_live_ids()
+    pages = []
+    # add multithreading
+    for id in ids:
+        pages.append(get_page(id_to_boxlink(id)))
+    return pages
+
+
+def get_live_boxes(pages=None):
+    if not pages:
+        pages = get_live_pages()
+    boxes = []
+    for p in pages:
+        boxes.append(get_boxscore(p))
+    return boxes
+
+
+def parse_live_id(tag):
+    id = tag['href'].split('=')[-1]
+    return id
+
+
+def parse_live_ids(tags):
+    ret = []
+    for tag in tags:
+        ret.append(parse_live_id(tag))
+    return ret
 
 
 def parse_ids(ids):
@@ -26,6 +99,10 @@ def parse_ids(ids):
             id = tag['href'].split('/')[-1]
             parsed_ids.append(id)
     return parsed_ids
+
+
+def id_to_boxlink(id):
+    return 'https://www.espn.com/nfl/boxscore?gameId=' + id
 
 
 def espn_box_tds(tds):
@@ -92,18 +169,20 @@ def espn_box_teamnames(page):
     return a_team, h_team
 
 
-def get_pages():
-    links = construct_espn_links()
+def get_pages(links):
+    if not links:
+        links = espn_boxlinks()
     boxes = []
     for link in links:
         box = get_boxscore(link)
         boxes.append(box)
     return boxes
 
-    
+
 def get_page(link):
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, 'html.parser')
+    time.sleep(DELAY)
     return p
 
 

@@ -22,8 +22,7 @@
 */*/*.csv
 */*/*/*.csv
 
-sips/gym_sip/data
-
+sips/lines/data
 
 # don't upload models to git
 sips/models/
