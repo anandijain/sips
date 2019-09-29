@@ -21,6 +21,7 @@ def full_fn(fn):
     # return os.path.join(sips.__path__, path)
     return str_path
 
+
 def df_cols():
     df = Helpers.get_df()
     try:
@@ -52,6 +53,7 @@ def get_games(fn='mlb', output='list'):
     games = chunk(df, output=out_type)
     games = remove_missed_wins(games)
     return games
+
 
 def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team'], one_hot=False, scale_times=False):
     # complete_fn = full_fn(fn)

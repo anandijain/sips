@@ -1,6 +1,33 @@
 import requests as r
 import bs4
 
+
+def construct_espn_links():
+    ids = get_espn_ids()
+    url = 'https://www.espn.com/nfl/boxscore?gameId='
+    links = [url + id for id in ids]
+    return links
+
+
+def get_espn_ids():
+    espn_id_link = 'https://www.espn.com/nfl/schedule'
+    p = get_page(espn_id_link)
+    score_ids = p.find_all('a', {'name' : '&lpos=nfl:schedule:score'})
+    time_ids = p.find_all('a', {'name' : '&lpos=nfl:schedule:time'})
+    unparsed_ids = score_ids + time_ids
+    ids = parse_ids(unparsed_ids)
+    return ids
+
+
+def parse_ids(ids):
+    parsed_ids = []
+    if ids:
+        for tag in ids:
+            id = tag['href'].split('/')[-1]
+            parsed_ids.append(id)
+    return parsed_ids
+
+
 def espn_box_tds(tds):
     x = None
     data = []
@@ -65,6 +92,15 @@ def espn_box_teamnames(page):
     return a_team, h_team
 
 
+def get_pages():
+    links = construct_espn_links()
+    boxes = []
+    for link in links:
+        box = get_boxscore(link)
+        boxes.append(box)
+    return boxes
+
+    
 def get_page(link):
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, 'html.parser')
