@@ -50,7 +50,6 @@ def match_lines_boxes(lines, boxes):
         print(f'bteams: {bteams}')
         print(f'eteams: {eteams}')
         for boxscore in boxes:
-            # print(boxscore)
             eteams = boxscore[-2:]
             if list(bteams) == list(eteams):
                 print(f'games matched: {bteams}')

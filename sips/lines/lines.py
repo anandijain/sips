@@ -3,6 +3,9 @@ import os.path
 
 import time
 import requests
+import requests_futures
+from requests_futures.sessions import FuturesSession
+from concurrent.futures import ThreadPoolExecutor
 
 import matplotlib.pyplot as plt
 
@@ -24,6 +27,8 @@ class Sippy:
         print("~~~~sippywoke~~~~")
         self.games = []
         self.events = []
+
+        self.session = FuturesSession(executor=ThreadPoolExecutor(max_workers=2))
 
         self.links = []
         self.all_urls = h.macros.build_urls()
@@ -95,12 +100,13 @@ class Sippy:
                 self.new_game(event, access_time)
 
     def json_events(self):
-        pages = []
+        # pages = []
+        pages = [self.session.get(l).result().json() for l in self.links]
         events = []
-        for link in self.links:
-            pages.append(req(link))
-            if self.verbosity is True:
-                print('.', end='')
+        # for link in self.links:
+        #     pages.append(req(link))
+        #     if self.verbosity is True:
+        #         print('.', end='')
 
         for page in pages:
             try:

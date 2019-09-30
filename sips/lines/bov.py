@@ -62,6 +62,14 @@ def bov_lines(events=None):
         lines.append(bov_line(event))
     return lines
 
+def bov_header():
+    return ['sport', 'game_id', 'a_team', 'h_team', 'cur_time', 'last_mod', 'num_markets', 'live', \
+        'quarter', 'secs', 'a_pts', 'h_pts', 'status', \
+        'a_ps', 'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', \
+        'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
+
+
+
 def bov_line(event):
     '''
     [sport, game_id, a_team, h_team, cur_time, last_mod, num_markets, live],
