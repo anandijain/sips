@@ -628,11 +628,13 @@ def write_json(file_name, json):
     file.close()
 
 
-def write_header(file):
-    num_headers = len(h.macros.bovada_headers)
-    for i, column_header in enumerate(h.macros.bovada_headers):
-        if i < num_headers:
-            file.write(column_header + ',')
+def write_header(file, headers=None):
+    if not headers:
+        headers = h.macros.bovada_headers
+    num_headers = len(headers)
+    for i, column_name in enumerate(headers):
+        if i < num_headers - 1:
+            file.write(column_name + ',')
         else:
-            file.write(column_header)
+            file.write(column_name)
     file.write('\n')
