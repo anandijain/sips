@@ -3,61 +3,84 @@ import bs4
 
 import time
 
+ESPN_ROOT='https://www.espn.com'
+
 DELAY=0.05
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:time')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:score')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:live')
 
-def espn_boxlinks(ids=None):
+
+def get_espn_sports():
+    sports = 'nfl', 'mlb', 'nba', 'college-football', 'mens-college-basketball'
+    return sports
+
+def espn_boxlinks(ids=None, sport='nfl'):
     if not ids:
-        ids = get_espn_ids()
-    url = 'https://www.espn.com/nfl/boxscore?gameId='
+        ids = get_espn_ids(sport)
+    url = ESPN_ROOT + '/' + sport + '/boxscore?gameId='
     links = [url + id for id in ids]
     return links
 
 
-def espn_time_ids(page=None):
+def espn_time_ids(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule()
-    unparsed_ids = page.find_all('a', {'name' : '&lpos=nfl:schedule:time'})
+        page = espn_schedule(sport)
+    unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:time'})
     time_ids = parse_ids(unparsed_ids)
     return time_ids
 
 
-def espn_score_ids(page=None):
+def espn_score_ids(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule()
-    unparsed_ids = page.find_all('a', {'name' : '&lpos=nfl:schedule:score'})
+        page = espn_schedule(sport)
+    unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:score'})
     score_ids = parse_ids(unparsed_ids)
     return score_ids
 
-def espn_live_ids(page=None):
+
+def espn_live_ids(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule()
-    unparsed_ids = page.find_all('a', {'name' : '&lpos=nfl:schedule:live'})
+        page = espn_schedule(sport)
+    unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:live'})
     live_ids = parse_live_ids(unparsed_ids)
     return live_ids
 
+def get_all_ids(page=None, sports=get_espn_sports()):
+    ids = {}
+    for sport in sports:
+        ids[sport] = get_espn_ids(sport)
 
-def espn_live_links(page=None):
+    return ids
+
+def espn_live_links(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule()
-    live_ids = espn_live_ids(page)
-    links = espn_boxlinks(live_ids)
+        page = espn_schedule(sport)
+    live_ids = espn_live_ids(page, sport)
+    links = espn_boxlinks(live_ids, sport)
     return links
 
 
-def espn_schedule():
-    espn_id_link = 'https://www.espn.com/nfl/schedule'
+def espn_schedules(sport='nfl'):
+    # if not sports:
+    #     sports = get_espn_sports()
+    links = []
+    espn_id_link = '/' + sport + '/schedule'
     p = get_page(espn_id_link)
     return p
 
 
-def get_espn_ids():
-    p = espn_schedule()
-    live_ids = espn_live_ids(p)
-    score_ids = espn_score_ids(p)
-    time_ids = espn_time_ids(p)
+def espn_schedule(sport='nfl'):
+    espn_id_link = ESPN_ROOT + '/' + sport + '/schedule'
+    p = get_page(espn_id_link)
+    return p
+
+
+def get_espn_ids(sport='nfl'):
+    p = espn_schedule(sport)
+    live_ids = espn_live_ids(p, sport)
+    score_ids = espn_score_ids(p, sport)
+    time_ids = espn_time_ids(p, sport)
     ids =  live_ids + score_ids + time_ids
     return ids
 
@@ -101,8 +124,8 @@ def parse_ids(ids):
     return parsed_ids
 
 
-def id_to_boxlink(id):
-    return 'https://www.espn.com/nfl/boxscore?gameId=' + id
+def id_to_boxlink(id, sport='nfl'):
+    return ESPN_ROOT + '/' + sport + '/boxscore?gameId=' + id
 
 
 def espn_box_tds(tds):
@@ -186,7 +209,7 @@ def get_page(link):
     return p
 
 
-def get_boxscore(link='https://www.espn.com/nfl/boxscore?gameId=401127863'):
+def get_boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
     page = get_page(link)
     a_team, h_team = espn_box_teamnames(page)
     team_stats = espn_teamstats(page)
