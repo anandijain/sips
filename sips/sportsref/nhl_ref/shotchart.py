@@ -1,6 +1,7 @@
 import bs4
 import requests as r
 
+
 import pandas as pd
 import numpy as np
 
@@ -9,6 +10,14 @@ import sips.sportsref.h.parse as parse
 link = 'https://www.hockey-reference.com/boxscores/201904100NYI.html'
 root = 'https://www.hockey-reference.com'
 
+
+def get_divs_list(charts):
+    chart_list = []
+    for chart in charts:
+        divs = chart.find_all('div')
+        chart_list.append(divs)
+    # print(f'len chart_list: {len(chart_list)}')
+    return chart_list
 
 def grab_charts(link):
     # given a link to a hockey-refference boxscore, returns div, class: shotchart
@@ -20,10 +29,6 @@ def grab_charts(link):
     charts = chart_html.find_all('div', {'class': 'shotchart'})
     return charts
 
-
-def grab_shot_divs(chart):
-    # must be a shotchart div
-    return chart.find_all('div')
 
 def shot_title(title):
     shot_outcome, player = title.split(' - ')
@@ -39,22 +44,21 @@ def shot_type(t):
     return ret
 
 
-def div_dict(div, dict=None):
-    if not dict:
-        dict = {'x': [], 'y': [], 'shot_type': [], 'title': [], 'player': []}
+def div_dict_row(div, dict, game_id):
     x, y = div_coords(div)
     # print(x, y)
     type = shot_type(div['class'])
     title, player = shot_title(div['title'])
 
+    dict['game_id'].append(game_id)
     dict['x'].append(x)
     dict['y'].append(y)
     dict['shot_type'].append(type)
-
     dict['title'].append(title)
     dict['player'].append(player)
 
     return dict
+
 
 def div_coords(div):
     # positions = top == y, left == x
@@ -63,59 +67,111 @@ def div_coords(div):
     x, y = [int(c.split('p')[0]) for c in (x, y)]
     return x, y
 
-def parse_chart(div_list):
+
+def parse_chart(div_list, game_id):
     # top, left, shot_type, title, player
     coords = []
-    dict = {'x': [], 'y': [], 'shot_type': [], 'title': [], 'player': []}
+    dict = {'game_id': [], 'x': [], 'y': [], 'shot_type': [], 'title': [], 'player': []}
     for div in div_list:
         try:
             cs = div_coords(div)
         except KeyError:
             continue
-        dict = div_dict(div, dict)
-        if cs:
-            coords.append(cs)
+        dict = div_dict_row(div, dict, game_id)
 
-    # print(coords)
-    return coords, dict
+    return dict
 
-def get_divs_list(charts):
-    chart_list = []
-    for chart in charts:
-        divs = grab_shot_divs(chart)
-        chart_list.append(divs)
-    print(f'len chart_list: {len(chart_list)}')
-    return chart_list
+
 
 def dict_to_numpy(dict):
-    df = pd.DataFrame(dl)
-    return df.values
+    df = pd.DataFrame(dict).values
+    return df
 
+def dicts_to_numpy(dicts):
+    dfs = []
+    for d in dicts:
+        df = pd.DataFrame(d).values
+        dfs.append(df)
+
+    return dfs
 
 def serialize():
     pass
 
-def grab(link):
+def grab(link, fn=None):
+    game_id = sfx_to_gameid(link)
     charts = grab_charts(link=link)
     chart_list = get_divs_list(charts)
-    coords_list = []
     dict_list = []
     for chart in chart_list:
-        coords, arr = parse_chart(chart)
+        dict = parse_chart(chart, game_id)
+        if len(dict['x']) > 0:
+            dict_list.append(dict)
 
-        if coords:
-            coords_list += coords
-        if arr:
-            dict_list.append(arr)
+    if fn:
+        append_csv_dicts(fn, dict_list)
 
-    # print(coords_list, dict_list)
-    return coords_list, dict_list
+    return dict_list
+
+def append_csv_dicts(fn, dicts):
+    with open(fn, 'a') as f:
+        for dict in dicts:
+            df = pd.DataFrame(dict)
+            df.to_csv(f, header=False)
+
+def sfx_to_gameid(sfx):
+    '''
+    /boxscores/201810040OTT.html to 201810040OTT
+    '''
+    return sfx.split('/')[-1].split('.')[0]
+
+def boxlinks():
+    df = pd.read_csv('nhl_boxlinks.csv')
+    sfxs = df.iloc[:, 1].values
+    return sfxs
 
 
+def main():
+    '''
+    outputs one large DataFrame
+    game_id, x, y, type, outcome, player
+    '''
 
-def main(link=link):
+    write_path = "./data/shots.csv"
+    init_file(fn=write_path)
 
+    sfxs = boxlinks()
+
+    for i, sfx in enumerate(sfxs):
+        link = root + sfx
+        grab(link, fn=write_path)
+
+        if i % 200 == 0:
+            print(f'cur_game: {sfx_to_gameid(sfx)}')
+
+def init_file(fn='shots.csv'):
+    columns = ['game_id', 'x', 'y', 'type', 'outcome', 'player']
+    f = open(fn, 'w+')
+    write_header(f, columns)
+    f.close()
+
+
+# takes in list of strings
+def write_header(file, columns):
+	length = len(columns)
+	for i, col in enumerate(columns):
+
+		file.write(col)
+
+		if i == length - 1:
+			file.write('\n')
+		else:
+			file.write(',')
 
 
 if __name__ == '__main__':
-    main(link=link)
+    main()
+    # dl = grab(link=link)
+    # dl
+    # dl[0]
+    # pass

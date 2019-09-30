@@ -1,3 +1,5 @@
+import bs4
+
 def comments(page):
 	comments = page.findAll(text=lambda text:isinstance(text, bs4.Comment))
 	return comments
@@ -11,25 +13,17 @@ def parse_table(table, split='th'):
 	rows = tbody.find_all('tr')
 	data_rows = [[] for i in range(len(r))]
 	for row in rows:
-
 		row_class = row.get('class')
-		
 		if row_class == 'spacer':
 			continue
-		
 		print(row.text)
-
 		row_data = []
-		
 		things = row.find_all(split)
-		
 		for thing in things:
 			row_data.append(thing)
-		
-			print(thing.text)
-	
-		data_rows.append(row_data)
 
+			print(thing.text)
+		data_rows.append(row_data)
 	return data_rows
 
 
@@ -48,7 +42,7 @@ def write_table(table, fn, split='th'):
 	columns_row = thead.tr
 	col_items = columns_row.find_all('th')
 	for i, col in enumerate(col_items):
-		
+
 		file.write(col.text)
 
 		if i == len(col_items) - 1:
@@ -63,7 +57,7 @@ def write_table(table, fn, split='th'):
 			row_data = row.find_all(split)
 			for i, data_pt in enumerate(row_data):
 				file.write(data_pt.text)
-				
+
 				if i == len(row_data) - 1:
 					file.write('\n')
 				else:

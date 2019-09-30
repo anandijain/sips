@@ -7,10 +7,10 @@ import requests as r
 
 headers = {'User-Agent': 'Mozilla/5.0'}
 
-def page(url): 
+def page(url):
     site = None
     i = 0
-    while site == None:
+    while not site:
         try:
             site = r.get(url, headers=headers)
         except ConnectionError:
@@ -55,4 +55,3 @@ def req(url):
     except ValueError:
         time.sleep(2)
         return
-
