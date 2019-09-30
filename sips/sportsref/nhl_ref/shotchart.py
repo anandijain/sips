@@ -150,6 +150,7 @@ def main():
             game_id = sfx_to_gameid(sfx)
             print(game_id)
 
+
 def init_file(fn='shots.csv'):
     columns = ['game_id', 'x', 'y', 'type', 'outcome', 'player']
     f = open(fn, 'w+')
@@ -164,7 +165,7 @@ def write_header(file, columns):
 
 		file.write(col)
 
-		if i == length - 1:
+		if i < length - 1:
 			file.write('\n')
 		else:
 			file.write(',')
