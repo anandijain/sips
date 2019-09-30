@@ -14,8 +14,12 @@ def grab(link, fn=None):
     game_id = sfx_to_gameid(link)
     charts = grab_charts(link=link)
     divs = get_divs(charts)
-    if len(divs) > 0:
-        rows = divs_to_arr(divs)
+
+    if len(divs) == 0:
+        return 0
+
+    rows = divs_to_arr(divs)
+
 
     df = cat_id(rows, game_id)
     # df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
@@ -165,15 +169,18 @@ def main():
     init_file(fn=write_path)
 
     sfxs = boxlinks()
-
-    for i, sfx in enumerate(sfxs):
+    # for testing
+    # links = np.random.permutation(boxlinks())
+    meta_df = pd.DataFrame(columns=['game_id', 'num_rows'])
+    for i, sfx in enumerate(links):
         link = root + sfx
-        grab(link, fn=write_path)
-
+        game_id = sfx_to_gameid(sfx)
+        df = grab(link, fn=write_path)
+        meta_df = meta_df.append({'game_id': game_id, 'num_rows': len(df)}, ignore_index=True)
         if i % 200 == 0:
             game_id = sfx_to_gameid(sfx)
             print(game_id)
-
+    meta_df.to_csv('./data/meta_shots.csv')
 
 def init_file(fn='shots.csv'):
     columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
