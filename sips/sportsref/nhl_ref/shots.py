@@ -172,7 +172,7 @@ def main():
     # for testing
     # links = np.random.permutation(boxlinks())
     meta_df = pd.DataFrame(columns=['game_id', 'num_rows'])
-    for i, sfx in enumerate(links):
+    for i, sfx in enumerate(sfxs):
         link = root + sfx
         game_id = sfx_to_gameid(sfx)
         df = grab(link, fn=write_path)
