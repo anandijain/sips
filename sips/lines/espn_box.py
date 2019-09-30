@@ -27,24 +27,30 @@ def espn_time_ids(page=None, sport='nfl'):
     if not page:
         page = espn_schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:time'})
-    time_ids = parse_ids(unparsed_ids)
-    return time_ids
+    # time_ids = parse_ids(unparsed_ids)
+    # print(f'time_ids: {time_ids}')
+
+    return unparsed_ids
 
 
 def espn_score_ids(page=None, sport='nfl'):
     if not page:
         page = espn_schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:score'})
-    score_ids = parse_ids(unparsed_ids)
-    return score_ids
+    # score_ids = parse_ids(unparsed_ids)
+    # print(f'score_ids: {score_ids}')
+
+
+    return unparsed_ids
 
 
 def espn_live_ids(page=None, sport='nfl'):
     if not page:
         page = espn_schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:live'})
-    live_ids = parse_live_ids(unparsed_ids)
-    return live_ids
+    # live_ids = parse_live_ids(unparsed_ids)
+    # print(f'live_ids: {live_ids}')
+    return unparsed_ids
 
 def get_all_ids(page=None, sports=get_espn_sports()):
     ids = {}
@@ -61,13 +67,16 @@ def espn_live_links(page=None, sport='nfl'):
     return links
 
 
-def espn_schedules(sport='nfl'):
-    # if not sports:
-    #     sports = get_espn_sports()
-    links = []
-    espn_id_link = '/' + sport + '/schedule'
-    p = get_page(espn_id_link)
-    return p
+def espn_schedules(sports=['nfl']):
+    if not sports:
+        sports = get_espn_sports()
+
+    pages = []
+    for sport in sports:
+            espn_id_link = '/' + sport + '/schedule'
+            p = get_page(espn_id_link)
+            pages.append(p)
+    return pages
 
 
 def espn_schedule(sport='nfl'):
@@ -81,7 +90,8 @@ def get_espn_ids(sport='nfl'):
     live_ids = espn_live_ids(p, sport)
     score_ids = espn_score_ids(p, sport)
     time_ids = espn_time_ids(p, sport)
-    ids =  live_ids + score_ids + time_ids
+    time_score_ids = parse_ids(score_ids + time_ids + live_ids)
+    ids =  live_ids + time_score_ids
     return ids
 
 
@@ -104,23 +114,51 @@ def get_live_boxes(pages=None):
 
 
 def parse_live_id(tag):
+    # print(tag)
     id = tag['href'].split('=')[-1]
     return id
 
 
 def parse_live_ids(tags):
     ret = []
-    for tag in tags:
-        ret.append(parse_live_id(tag))
+    if isinstance(tags, dict):
+        for k,v in tags.items():
+            v = parse_live_id(v)
+        return items
+    else:
+        for tag in tags:
+            ret.append(parse_live_id(tag))
     return ret
 
 
-def parse_ids(ids):
+def tag_to_id(tag):
+    id = tag['href'].split('/')[-1]
+    return id
+
+def parse_id_dict(tags_dict):
+    for k, v in tags_dict.items():
+        tags_dict[k] = [parse_live_id(tag) for tag in v]
+    return tags_dict
+
+
+def parse_ids(tags):
     parsed_ids = []
-    if ids:
-        for tag in ids:
-            id = tag['href'].split('/')[-1]
+    if tags:
+        if isinstance(tags, dict):
+            return parse_id_dict(tags)
+        for tag in tags:
+            print(tag)
+            try:
+                id = tag_to_id(tag)
+            except TypeError:
+                pass
+            try:
+                id = id.split('=')[-1]
+            except TypeError:
+                pass
             parsed_ids.append(id)
+    else:
+        return None
     return parsed_ids
 
 
