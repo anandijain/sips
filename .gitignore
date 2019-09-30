@@ -1,32 +1,15 @@
 */__pycache__/
-*/*/__pycache__/
-*/*/*/__pycache__/
-*/*/*/*/__pycache__/
 
 */.ipynb_checkpoints/
-*/*/.ipynb_checkpoints/
-*/*/*/.ipynb_checkpoints/
 
 *.swp
-*/*.swp
-*/*/*.swp
-*/*/*/*.swp
 
 *.out
-*/*.out
-*/*/*.out
-*/*/*/*.out
 
 *.csv
-*/*.csv
-*/*/*.csv
-*/*/*/*.csv
 
-sips/lines/data
-
-# don't upload models to git
-sips/models/
-sips/gym_sip/models/
+data/
+models/
 
 sips.egg-info/
 sips/gym_sip/gym_sip.egg-info
