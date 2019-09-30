@@ -19,7 +19,7 @@ def get_and_compare():
 def get_events():
     bov_events = bov.get_bov_events()
     espn_events = espn_api.get_espn_events()
-    espn_box_events = espn_box.get_live_boxes()
+    espn_boxes= espn_box.get_boxscores()
     return bov_events, espn_events, espn_boxes
 
 def match_events(bov_events, espn_events):
@@ -40,6 +40,26 @@ def match_events(bov_events, espn_events):
                 rows.append(row)
                 num_matched += 1
     print(f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
+    print(f'num_matched: {num_matched}')
+    return rows
+
+def match_lines_boxes(lines, boxes):
+    num_matched = 0
+    rows = []
+    eteams = None
+    for line in lines:
+        bteams = bov.teams_from_line(line)
+        print(f'bteams: {bteams}')
+        print(f'eteams: {eteams}')
+        for boxscore in boxes:
+            # print(boxscore)
+            eteams = boxscore[-2:]
+            if list(bteams) == list(eteams):
+                print(f'games matched: {bteams}')
+                row = line + boxscore
+                rows.append(row)
+                num_matched += 1
+    print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
     print(f'num_matched: {num_matched}')
     return rows
 

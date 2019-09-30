@@ -8,7 +8,7 @@ TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:time')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:score')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:live')
 
-def espn_boxlinks(ids):
+def espn_boxlinks(ids=None):
     if not ids:
         ids = get_espn_ids()
     url = 'https://www.espn.com/nfl/boxscore?gameId='
@@ -169,7 +169,7 @@ def espn_box_teamnames(page):
     return a_team, h_team
 
 
-def get_pages(links):
+def get_boxscores(links=None):
     if not links:
         links = espn_boxlinks()
     boxes = []
