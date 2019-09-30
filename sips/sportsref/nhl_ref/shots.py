@@ -176,7 +176,10 @@ def main():
         link = root + sfx
         game_id = sfx_to_gameid(sfx)
         df = grab(link, fn=write_path)
-        meta_df = meta_df.append({'game_id': game_id, 'num_rows': len(df)}, ignore_index=True)
+        
+        if df:
+            meta_df = meta_df.append({'game_id': game_id, 'num_rows': len(df)}, ignore_index=True)
+
         if i % 200 == 0:
             game_id = sfx_to_gameid(sfx)
             print(game_id)
