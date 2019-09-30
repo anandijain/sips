@@ -18,6 +18,8 @@ def grab(link, fn=None):
         rows = divs_to_arr(divs)
 
     df = cat_id(rows, game_id)
+    # df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
+
     if fn:
         append_csv(fn, df)
 
@@ -52,7 +54,6 @@ def arr_row(div):
 def cat_id(rows, id):
     df = pd.DataFrame(rows)
     df['game_id'] = id
-    df.columns = ['x', 'y', 'type', 'outcome', 'player', 'game_id']
     return df
 
 def grab_charts(link):
@@ -175,7 +176,7 @@ def main():
 
 
 def init_file(fn='shots.csv'):
-    columns = ['x', 'y', 'type', 'outcome', 'player', 'game_id']
+    columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
     f = open(fn, 'w+')
     write_header(f, columns)
     f.close()
