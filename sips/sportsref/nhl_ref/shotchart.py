@@ -147,7 +147,8 @@ def main():
         grab(link, fn=write_path)
 
         if i % 200 == 0:
-            print(f'cur_game: {sfx_to_gameid(sfx)}')
+            game_id = sfx_to_gameid(sfx)
+            print(game_id)
 
 def init_file(fn='shots.csv'):
     columns = ['game_id', 'x', 'y', 'type', 'outcome', 'player']
