@@ -16,7 +16,7 @@ def grab(link, fn=None):
     divs = get_divs(charts)
 
     if len(divs) == 0:
-        return 0
+        return None
 
     rows = divs_to_arr(divs)
 
@@ -168,17 +168,20 @@ def main():
     write_path = "./data/shots.csv"
     init_file(fn=write_path)
 
-    sfxs = boxlinks()
+    # sfxs = boxlinks()
     # for testing
-    # links = np.random.permutation(boxlinks())
+    sfxs = np.random.permutation(boxlinks())
     meta_df = pd.DataFrame(columns=['game_id', 'num_rows'])
     for i, sfx in enumerate(sfxs):
         link = root + sfx
         game_id = sfx_to_gameid(sfx)
         df = grab(link, fn=write_path)
-        
-        if df:
-            meta_df = meta_df.append({'game_id': game_id, 'num_rows': len(df)}, ignore_index=True)
+        try:
+            length = len(df)
+        except TypeError:
+            continue
+
+        meta_df = meta_df.append({'game_id': game_id, 'num_rows': len(df)}, ignore_index=True)
 
         if i % 200 == 0:
             game_id = sfx_to_gameid(sfx)
