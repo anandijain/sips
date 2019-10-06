@@ -48,9 +48,9 @@ def espn_live_ids(page=None, sport='nfl'):
     if not page:
         page = espn_schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:live'})
-    # live_ids = parse_live_ids(unparsed_ids)
+    live_ids = parse_live_ids(unparsed_ids)
     # print(f'live_ids: {live_ids}')
-    return unparsed_ids
+    return live_ids
 
 def get_all_ids(page=None, sports=get_espn_sports()):
     ids = {}
@@ -256,5 +256,5 @@ def get_boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
     return real_stats
 
 if __name__ == "__main__":
-    real_stats = get_boxscore()
+    real_stats = get_boxscores()
     print(real_stats)
