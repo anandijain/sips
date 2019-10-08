@@ -11,21 +11,21 @@ TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:score')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:live')
 
 
-def get_espn_sports():
+def get_sports():
     sports = 'nfl', 'mlb', 'nba', 'college-football', 'mens-college-basketball'
     return sports
 
-def espn_boxlinks(ids=None, sport='nfl'):
+def boxlinks(ids=None, sport='nfl'):
     if not ids:
-        ids = get_espn_ids(sport)
+        ids = get_ids(sport)
     url = ESPN_ROOT + '/' + sport + '/boxscore?gameId='
     links = [url + id for id in ids]
     return links
 
 
-def espn_time_ids(page=None, sport='nfl'):
+def time_ids(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule(sport)
+        page = schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:time'})
     # time_ids = parse_ids(unparsed_ids)
     # print(f'time_ids: {time_ids}')
@@ -33,9 +33,9 @@ def espn_time_ids(page=None, sport='nfl'):
     return unparsed_ids
 
 
-def espn_score_ids(page=None, sport='nfl'):
+def score_ids(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule(sport)
+        page = schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:score'})
     # score_ids = parse_ids(unparsed_ids)
     # print(f'score_ids: {score_ids}')
@@ -44,32 +44,32 @@ def espn_score_ids(page=None, sport='nfl'):
     return unparsed_ids
 
 
-def espn_live_ids(page=None, sport='nfl'):
+def live_ids(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule(sport)
+        page = schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:live'})
     live_ids = parse_live_ids(unparsed_ids)
     # print(f'live_ids: {live_ids}')
     return live_ids
 
-def get_all_ids(page=None, sports=get_espn_sports()):
+def get_all_ids(page=None, sports=get_sports()):
     ids = {}
     for sport in sports:
-        ids[sport] = get_espn_ids(sport)
+        ids[sport] = get_ids(sport)
 
     return ids
 
-def espn_live_links(page=None, sport='nfl'):
+def live_links(page=None, sport='nfl'):
     if not page:
-        page = espn_schedule(sport)
-    live_ids = espn_live_ids(page, sport)
-    links = espn_boxlinks(live_ids, sport)
+        page = schedule(sport)
+    live_ids = live_ids(page, sport)
+    links = boxlinks(live_ids, sport)
     return links
 
 
-def espn_schedules(sports=['nfl']):
+def schedules(sports=['nfl']):
     if not sports:
-        sports = get_espn_sports()
+        sports = get_sports()
 
     pages = []
     for sport in sports:
@@ -79,24 +79,24 @@ def espn_schedules(sports=['nfl']):
     return pages
 
 
-def espn_schedule(sport='nfl'):
+def schedule(sport='nfl'):
     espn_id_link = ESPN_ROOT + '/' + sport + '/schedule'
     p = get_page(espn_id_link)
     return p
 
 
-def get_espn_ids(sport='nfl'):
-    p = espn_schedule(sport)
-    live_ids = espn_live_ids(p, sport)
-    score_ids = espn_score_ids(p, sport)
-    time_ids = espn_time_ids(p, sport)
+def get_ids(sport='nfl'):
+    p = schedule(sport)
+    live_ids = live_ids(p, sport)
+    score_ids = score_ids(p, sport)
+    time_ids = time_ids(p, sport)
     time_score_ids = parse_ids(score_ids + time_ids + live_ids)
     ids =  live_ids + time_score_ids
     return ids
 
 
 def get_live_pages():
-    ids = espn_live_ids()
+    ids = live_ids()
     pages = []
     # add multithreading
     for id in ids:
@@ -166,7 +166,7 @@ def id_to_boxlink(id, sport='nfl'):
     return ESPN_ROOT + '/' + sport + '/boxscore?gameId=' + id
 
 
-def espn_box_tds(tds):
+def box_tds(tds):
     x = None
     data = []
     for td in tds:
@@ -178,7 +178,7 @@ def espn_box_tds(tds):
     return data
 
 
-def espn_teamstats(page):
+def teamstats(page):
     a_newstats = []
     h_newstats = []
     # if table_index % 2 == 1, then home_team
@@ -187,7 +187,7 @@ def espn_teamstats(page):
         header = table.find('thead')
         len_header = len(header.find_all('th')) - 1  # - 1 for 'TEAM'
         tds = table.find_all('td')
-        data = espn_box_tds(tds)
+        data = box_tds(tds)
         if i % 2 == 1:
             if len(data) == 0:
                 h_newstat = ['NaN' for _ in range(len_header)]
@@ -220,7 +220,7 @@ def parse_teamstats(teamstats):
     return real_stats
 
 
-def espn_box_teamnames(page):
+def box_teamnames(page):
     # A @ H always
     teams = page.find_all('span', {'class' : 'short-name'})
     destinations = page.find_all('span', {'class' : 'long-name'})
@@ -232,7 +232,7 @@ def espn_box_teamnames(page):
 
 def get_boxscores(links=None):
     if not links:
-        links = espn_boxlinks()
+        links = boxlinks()
     boxes = []
     for link in links:
         box = get_boxscore(link)
@@ -249,8 +249,8 @@ def get_page(link):
 
 def get_boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
     page = get_page(link)
-    a_team, h_team = espn_box_teamnames(page)
-    team_stats = espn_teamstats(page)
+    a_team, h_team = box_teamnames(page)
+    team_stats = teamstats(page)
     real_stats = parse_teamstats(team_stats)
     real_stats.extend([a_team, h_team])
     return real_stats
