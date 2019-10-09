@@ -4,9 +4,7 @@ import json
 import requests as r
 
 import sips.lines.bov as bov
-import sips.lines.espn_api as espn_api
-import sips.lines.espn_box as espn_box
-
+import sips.lines.espn
 
 
 def get_and_compare():
@@ -16,7 +14,7 @@ def get_and_compare():
 
 def get_events():
     bov_events = bov.get_bov_events()
-    espn_events = espn_api.get_espn_events()
+    espn_events = api.get_espn_events()
     espn_boxes= espn_box.scores()
     return bov_events, espn_events, espn_boxes
 
@@ -29,11 +27,11 @@ def match_events(bov_events, espn_events):
         print(f'bteams: {bteams}')
         print(f'eteams: {eteams}')
         for espn_event in espn_events:
-            eteams = espn_api.espn_teams(espn_event)
+            eteams = api.espn_teams(espn_event)
             if list(bteams) == list(eteams):
                 print(f'games matched: {bteams}')
                 line = bov.bov_line(event)
-                espn_data = espn_api.parse_espn_event(espn_event)
+                espn_data = api.parse_espn_event(espn_event)
                 row = line + espn_data
                 rows.append(row)
                 num_matched += 1

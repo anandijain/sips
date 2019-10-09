@@ -5,32 +5,32 @@ import json
 
 espn = "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
 
-def get_espn_events():
+def req_events():
     espn_json = r.get(espn).json()
     events = espn_json['events']
     return events
 
-def espn_events(events=None):
+def events(events=None):
     if not events:
-        events = get_espn_events()
+        events = req_events()
     game_data = []
     for event in events:
         print(event['id'])
-        game = parse_espn_event(event)
+        game = parse_event(event)
         game_data.append(game)
     return game_data
 
-def parse_espn_event(event):
-    date = espn_event_desc(event)
-    clock = espn_event_clock(event)
-    state = espn_event_state(event)
-    weather = espn_event_weather(event)
-    odds = espn_event_odds(event)
-    tickets = espn_event_tickets(event)
+def parse_event(event):
+    d = desc(event)
+    c = clock(event)
+    s = state(event)
+    w = weather(event)
+    o = odds(event)
+    t = tickets(event)
 
-    return date + clock + state + weather + odds + tickets
+    return d + c + s + w + o + t
 
-def espn_event_desc(event):
+def desc(event):
     # date, id
     date = event['date']
     game_id = event['id']
@@ -38,14 +38,14 @@ def espn_event_desc(event):
     short_name = event['shortName']
     return [date, game_id]
 
-def espn_event_clock(event):
+def clock(event):
     # clock, period
     status = event['status']
     clock = status['clock']
     period = status['period']
     return [clock, period]
 
-def espn_event_state(event):
+def state(event):
     # completed, detail, state
     meta = event['status']['type']
     completed = meta['completed']
@@ -53,7 +53,7 @@ def espn_event_state(event):
     state = meta['state']
     return [completed, detail, state]
 
-def espn_event_weather(event):
+def weather(event):
     # display_weather, condition_id, temp
     weather = event.get('weather')
     if weather:
@@ -71,7 +71,7 @@ def espn_event_weather(event):
 
     return [display_weather, condition_id, temp, hi_temp]
 
-def espn_event_odds(event):
+def odds(event):
     comps = event['competitions'][0]
     odds = comps.get('odds')
     if odds:
@@ -85,7 +85,7 @@ def espn_event_odds(event):
 
     return [details, over_under, provider, priority]
 
-def espn_event_tickets(event):
+def tickets(event):
     comps = event['competitions'][0]
     attendance = comps['attendance']
     tickets = comps.get('tickets')
@@ -100,7 +100,7 @@ def espn_event_tickets(event):
 
     return [attendance, seats_available, lo_price]
 
-def espn_event_competitors(event):
+def competitors(event):
     competitors = comps['competitors']
 
     for competitor in competitors:
@@ -116,7 +116,7 @@ def espn_event_competitors(event):
 
     return [a_record, h_record, a_score, h_score, a_team, h_team]
 
-def espn_teams(event):
+def teams(event):
     # returns away, home
     team_one = event['competitions'][0]['competitors'][0]
     team_two = event['competitions'][0]['competitors'][1]
@@ -127,3 +127,6 @@ def espn_teams(event):
         a_team = team_one['team']['displayName']
         h_team = team_two['team']['displayName']
     return a_team, h_team
+
+if __name__ == '__main__':
+    evs = events()
