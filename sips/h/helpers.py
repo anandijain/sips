@@ -8,8 +8,6 @@ import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
 
-# import sips
-
 from .calc import *
 from .loaders import *
 from .macros import *
@@ -23,9 +21,9 @@ def full_fn(fn):
 
 
 def df_cols():
-    df = Helpers.get_df()
+    df = get_df()
     try:
-        loader = loaders.DfCols(df)
+        loader = h.DfCols(df)
     except Exception:
         loader = None
         pass

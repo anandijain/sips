@@ -15,6 +15,7 @@ def get_sports():
     sports = 'nfl', 'mlb', 'nba', 'college-football', 'mens-college-basketball'
     return sports
 
+
 def boxlinks(ids=None, sport='nfl'):
     if not ids:
         ids = get_ids(sport)
@@ -27,9 +28,6 @@ def time_ids(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:time'})
-    # time_ids = parse_ids(unparsed_ids)
-    # print(f'time_ids: {time_ids}')
-
     return unparsed_ids
 
 
@@ -37,10 +35,6 @@ def score_ids(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:score'})
-    # score_ids = parse_ids(unparsed_ids)
-    # print(f'score_ids: {score_ids}')
-
-
     return unparsed_ids
 
 
@@ -49,21 +43,21 @@ def live_ids(page=None, sport='nfl'):
         page = schedule(sport)
     unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:live'})
     live_ids = parse_live_ids(unparsed_ids)
-    # print(f'live_ids: {live_ids}')
     return live_ids
+
 
 def get_all_ids(page=None, sports=get_sports()):
     ids = {}
     for sport in sports:
         ids[sport] = get_ids(sport)
-
     return ids
+
 
 def live_links(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
-    live_ids = live_ids(page, sport)
-    links = boxlinks(live_ids, sport)
+    ids = live_ids(page, sport)
+    links = boxlinks(ids, sport)
     return links
 
 
@@ -87,11 +81,11 @@ def schedule(sport='nfl'):
 
 def get_ids(sport='nfl'):
     p = schedule(sport)
-    live_ids = live_ids(p, sport)
-    score_ids = score_ids(p, sport)
-    time_ids = time_ids(p, sport)
-    time_score_ids = parse_ids(score_ids + time_ids + live_ids)
-    ids =  live_ids + time_score_ids
+    ids_live = live_ids(p, sport)
+    ids_score = score_ids(p, sport)
+    ids_time = time_ids(p, sport)
+    ids_parsed = parse_ids(ids_score + ids_time)
+    ids =  ids_live + ids_parsed
     return ids
 
 
@@ -135,6 +129,7 @@ def tag_to_id(tag):
     id = tag['href'].split('/')[-1]
     return id
 
+
 def parse_id_dict(tags_dict):
     for k, v in tags_dict.items():
         tags_dict[k] = [parse_live_id(tag) for tag in v]
@@ -147,7 +142,7 @@ def parse_ids(tags):
         if isinstance(tags, dict):
             return parse_id_dict(tags)
         for tag in tags:
-            print(tag)
+            # print(tag)
             try:
                 id = tag_to_id(tag)
             except TypeError:
@@ -156,6 +151,7 @@ def parse_ids(tags):
                 id = id.split('=')[-1]
             except TypeError:
                 pass
+            print(id)
             parsed_ids.append(id)
     else:
         return None
@@ -230,16 +226,6 @@ def box_teamnames(page):
     return a_team, h_team
 
 
-def get_boxscores(links=None):
-    if not links:
-        links = boxlinks()
-    boxes = []
-    for link in links:
-        box = get_boxscore(link)
-        boxes.append(box)
-    return boxes
-
-
 def get_page(link):
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, 'html.parser')
@@ -247,7 +233,17 @@ def get_page(link):
     return p
 
 
-def get_boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
+def boxscores(links=None):
+    if not links:
+        links = boxlinks()
+    boxes = []
+    for link in links:
+        box = boxscore(link)
+        boxes.append(box)
+    return boxes
+
+
+def boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
     page = get_page(link)
     a_team, h_team = box_teamnames(page)
     team_stats = teamstats(page)
@@ -255,6 +251,7 @@ def get_boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
     real_stats.extend([a_team, h_team])
     return real_stats
 
+
 if __name__ == "__main__":
-    real_stats = get_boxscores()
+    real_stats = boxscores()
     print(real_stats)

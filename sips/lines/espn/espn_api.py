@@ -10,6 +10,7 @@ def req_events():
     events = espn_json['events']
     return events
 
+
 def events(events=None):
     if not events:
         events = req_events()
@@ -19,6 +20,7 @@ def events(events=None):
         game = parse_event(event)
         game_data.append(game)
     return game_data
+
 
 def parse_event(event):
     d = desc(event)
@@ -30,6 +32,7 @@ def parse_event(event):
 
     return d + c + s + w + o + t
 
+
 def desc(event):
     # date, id
     date = event['date']
@@ -38,12 +41,14 @@ def desc(event):
     short_name = event['shortName']
     return [date, game_id]
 
+
 def clock(event):
     # clock, period
     status = event['status']
     clock = status['clock']
     period = status['period']
     return [clock, period]
+
 
 def state(event):
     # completed, detail, state
@@ -52,6 +57,7 @@ def state(event):
     detail = meta['detail']
     state = meta['state']
     return [completed, detail, state]
+
 
 def weather(event):
     # display_weather, condition_id, temp
@@ -71,6 +77,7 @@ def weather(event):
 
     return [display_weather, condition_id, temp, hi_temp]
 
+
 def odds(event):
     comps = event['competitions'][0]
     odds = comps.get('odds')
@@ -84,6 +91,7 @@ def odds(event):
         details, over_under, provider, priority = ['NaN' for _ in range(4)]
 
     return [details, over_under, provider, priority]
+
 
 def tickets(event):
     comps = event['competitions'][0]
@@ -99,6 +107,7 @@ def tickets(event):
         seats_available, lo_price = 'NaN', 'NaN'
 
     return [attendance, seats_available, lo_price]
+
 
 def competitors(event):
     competitors = comps['competitors']
@@ -116,6 +125,7 @@ def competitors(event):
 
     return [a_record, h_record, a_score, h_score, a_team, h_team]
 
+
 def teams(event):
     # returns away, home
     team_one = event['competitions'][0]['competitors'][0]
@@ -127,6 +137,7 @@ def teams(event):
         a_team = team_one['team']['displayName']
         h_team = team_two['team']['displayName']
     return a_team, h_team
+
 
 if __name__ == '__main__':
     evs = events()

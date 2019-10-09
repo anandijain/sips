@@ -4,34 +4,44 @@ import json
 import requests as r
 
 import sips.lines.bov as bov
-import sips.lines.espn
+from sips.lines.espn import eb, api
 
 
 def get_and_compare():
-    bov, espn = get_events()
+    bov, api_evs, box_evs = get_events()
     rows = match_events(bov, espn)
+    # rows = match_lines_boxes(bov, box_evs)
     return rows
 
+
+def box_lines_comp():
+    lines = bov.lines()
+    boxes = eb.boxscores()
+    rows = match_lines_boxes(lines, boxes)
+    return rows
+
+
 def get_events():
-    bov_events = bov.get_bov_events()
-    espn_events = api.get_espn_events()
-    espn_boxes= espn_box.scores()
+    bov_events = bov.events()
+    espn_events = api.events()
+    espn_boxes = eb.boxscores()
     return bov_events, espn_events, espn_boxes
+
 
 def match_events(bov_events, espn_events):
     num_matched = 0
     rows = []
     eteams = None
     for event in bov_events:
-        bteams = bov.bov_teams(event)
+        bteams = bov.teams(event)
         print(f'bteams: {bteams}')
         print(f'eteams: {eteams}')
         for espn_event in espn_events:
-            eteams = api.espn_teams(espn_event)
+            eteams = api.teams(espn_event)
             if list(bteams) == list(eteams):
                 print(f'games matched: {bteams}')
-                line = bov.bov_line(event)
-                espn_data = api.parse_espn_event(espn_event)
+                line = bov.parse_event(event)
+                espn_data = api.parse_event(espn_event)
                 row = line + espn_data
                 rows.append(row)
                 num_matched += 1
@@ -39,18 +49,19 @@ def match_events(bov_events, espn_events):
     print(f'num_matched: {num_matched}')
     return rows
 
+
 def match_lines_boxes(lines, boxes):
     num_matched = 0
     rows = []
     eteams = None
     for line in lines:
         bteams = bov.teams_from_line(line)
-        print(f'bteams: {bteams}')
-        print(f'eteams: {eteams}')
+        # print(f'bteams: {bteams}')
+        # print(f'eteams: {eteams}')
         for boxscore in boxes:
             eteams = boxscore[-2:]
             if list(bteams) == list(eteams):
-                print(f'games matched: {bteams}')
+                print(f'games matched: {bteams, eteams}')
                 row = line + boxscore
                 rows.append(row)
                 num_matched += 1
@@ -58,9 +69,10 @@ def match_lines_boxes(lines, boxes):
     print(f'num_matched: {num_matched}')
     return rows
 
+
 def main():
-    rows = get_and_compare()
-    # print(rows)
+    rows = box_lines_comp()
+    print(rows)
     return rows
 
 

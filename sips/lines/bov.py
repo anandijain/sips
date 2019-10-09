@@ -1,12 +1,16 @@
-import requests as r
 import time
 import json
 
+import requests as r
 import requests_futures
 from requests_futures.sessions import FuturesSession
+
 import sips.h.macros as m
-bov = "https://www.bovada.lv/services/sports/event/v2/events/A/description/football/nfl"
-bov_scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
+
+
+bov = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/football/nfl'
+bov_scores_url = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
+
 
 def async_req(links):
     session = FuturesSession()
@@ -14,32 +18,35 @@ def async_req(links):
     return jsons
 
 
-def get_bov_ids(events):
+def ids(events):
     if not events:
-        events = get_bov_events()
+        events = get_events()
     ids = []
     for event in events:
         game_id = event['id']
         ids.append(game_id)
     return ids
 
-def get_bov_games(config_path):
+
+def games(config_path):
     with open(config_path) as config:
         conf = json.load(config)
     ids = conf['games'][0]['game_ids']
-    bov_events = get_bov_events()
+    bov_events = get_events()
     ret = []
     for game_id in ids:
         for event in bov_events:
             if int(event['id']) == game_id:
-                ret.append(bov_line(event))
+                ret.append(parse_event(event))
     return ret
 
-def bov_json(link=bov):
+
+def req_json(link=bov):
     bov_json = r.get(link).json()
     return bov_json
 
-def bov_events_sports():
+
+def events_sports():
     jsons = async_req(m.build_urls())
     bov_events = []
     for json in jsons:
@@ -49,28 +56,31 @@ def bov_events_sports():
         bov_events += events
     return bov_events
 
-def get_bov_events():
-    json = bov_json()
+
+def get_events():
+    json = req_json()
     bov_events = json[0]['events']
     return bov_events
 
-def bov_lines(events=None):
+
+def lines(events=None):
     if not events:
-        events = get_bov_events()
-    lines = []
-    for event in events:
-        lines.append(bov_line(event))
+        events = get_events()
+    lines = [parse_event(e) for e in events]
+    # lines = []
+    # for event in events:
+    #     lines.append(parse_event(event))
     return lines
 
-def bov_header():
+
+def header():
     return ['sport', 'game_id', 'a_team', 'h_team', 'cur_time', 'last_mod', 'num_markets', 'live', \
         'quarter', 'secs', 'a_pts', 'h_pts', 'status', \
         'a_ps', 'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', \
         'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
 
 
-
-def bov_line(event):
+def parse_event(event):
     '''
     [sport, game_id, a_team, h_team, cur_time, last_mod, num_markets, live],
     [quarter, secs, a_pts, h_pts, status], [
@@ -79,17 +89,17 @@ def bov_line(event):
     '''
     sport = event['sport']
     game_id = event['id']
-    a_team, h_team = bov_teams(event)
+    a_team, h_team = teams(event)
     cur_time = time.time()
     last_mod = event['lastModified']
     num_markets = event['numMarkets']
     live = event['live']
-    quarter, secs, a_pts, h_pts, status = bov_score(game_id)
+    quarter, secs, a_pts, h_pts, status = score(game_id)
 
 
     display_groups = event['displayGroups'][0]
     markets = display_groups['markets']
-    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = bov_markets(markets)
+    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = parse_markets(markets)
 
     game_start_time = event['startTime']
 
@@ -100,29 +110,31 @@ def bov_line(event):
 
     return ret
 
+
 def teams_from_line(line):
     return line[2:4]
 
 
-def bov_markets(markets):
+def parse_markets(markets):
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, \
             a_hcap_tot, h_hcap_tot, a_ou, h_ou = ["NaN" for _ in range(12)]
     for market in markets:
         desc = market['description']
         outcomes = market['outcomes']
         if desc == 'Point Spread':
-            a_ps, h_ps, a_hcap, h_hcap = parse_bov_spread(outcomes)
+            a_ps, h_ps, a_hcap, h_hcap = spread(outcomes)
         elif desc == 'Moneyline':
-            a_ml, h_ml = parse_bov_ml(outcomes)
+            a_ml, h_ml = moneyline(outcomes)
         elif desc == 'Total':
-            a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = parse_bov_tot(outcomes)
+            a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = total(outcomes)
 
     data = [a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, \
             a_hcap_tot, h_hcap_tot, a_ou, h_ou]
     return data
 
 
-def parse_bov_spread(outcomes):
+def spread(outcomes):
+    a_ps, a_hcap, h_ps, h_hcap = ['NaN' for _ in range(4)]
     for outcome in outcomes:
         price = outcome['price']
         if outcome['type'] == 'A':
@@ -133,7 +145,10 @@ def parse_bov_spread(outcomes):
             h_hcap = price['handicap']
     return a_ps, h_ps, a_hcap, h_hcap
 
-def parse_bov_ml(outcomes):
+
+def moneyline(outcomes):
+    a_ml = 'NaN'
+    h_ml = 'NaN'
     for outcome in outcomes:
         price = outcome['price']
         if outcome['type'] == 'A':
@@ -141,14 +156,12 @@ def parse_bov_ml(outcomes):
         else:
             h_ml = price['american']
 
-    if not a_ml:
-        a_ml = "NaN"
-    if not h_ml:
-        h_ml = "NaN"
-
     return a_ml, h_ml
 
-def parse_bov_tot(outcomes):
+
+def total(outcomes):
+    if not outcomes:
+        return ['NaN' for _ in range(6)]
     a_price = outcomes[0]['price']
     h_price = outcomes[1]['price']
     a_tot = a_price['american']
@@ -160,7 +173,7 @@ def parse_bov_tot(outcomes):
     return [a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]
 
 
-def bov_teams(event):
+def teams(event):
     # returns away, home
     team_one = event['competitors'][0]
     team_two = event['competitors'][1]
@@ -172,15 +185,17 @@ def bov_teams(event):
         h_team = team_two['name']
     return a_team, h_team
 
-def bov_game_json(game_id):
+
+def game_json(game_id):
     game_json = r.get(bov_scores_url + game_id).json()
     time.sleep(0.05)
     return game_json
 
-def bov_score(game_id):
+
+def score(game_id):
     [quarter, secs, a_pts, h_pts, status] = ['NaN' for _ in range(5)]
 
-    json = bov_game_json(game_id)
+    json = game_json(game_id)
     if json.get('Error'):
         return [quarter, secs, a_pts, h_pts, status]
     clock = json.get('clock')
@@ -195,3 +210,7 @@ def bov_score(game_id):
         status = 1
 
     return [quarter, secs, a_pts, h_pts, status]
+
+if __name__ == '__main__':
+    l = lines()
+    print(l)
