@@ -38,7 +38,7 @@ class Start:
 
 def main():
     game_types = ['basketball', 'baseball', 'football']
-    sip = Start(fn='list_test', game_type=game_types)
+    sip = Start(fn='all', game_type=game_types)
     return sip
 
 
