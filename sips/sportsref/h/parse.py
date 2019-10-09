@@ -4,9 +4,11 @@ def comments(page):
 	comments = page.findAll(text=lambda text:isinstance(text, bs4.Comment))
 	return comments
 
+
 def get_table(page, table_id):  # given bs4 page and table id, finds table using bs4. returns tbody
 	table = page.find('table', {'id': table_id})
 	return table
+
 
 def parse_table(table, split='th'):
 	tbody = table.tbody

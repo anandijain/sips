@@ -130,6 +130,7 @@ class DfCols(Dataset):
     def __len__(self):
         return self.data_len
 
+
 class LineGen(Dataset):
     def __init__(self, game_df):
         self.df = game_df

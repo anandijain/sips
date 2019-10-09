@@ -1,14 +1,13 @@
 import os
 import os.path
-
 import time
+
 import requests
 import requests_futures
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import ThreadPoolExecutor
 
 import matplotlib.pyplot as plt
-
 import numpy as np
 
 import sips.h as h
@@ -173,9 +172,14 @@ class Sippy:
           'esports', 'football/nfl', 'football/college-football', 'tennis', 'volleyball', 'hockey']
         '''
         try:
-            self.links = self.all_urls_dict[league]
+            if isinstance(league, list):
+                for sport in league:
+                    self.links += self.all_urls_dict[sport]
+            else:
+                self.links = self.all_urls_dict[league]
         except KeyError:
             # all links
+            print('using all links')
             for key in self.all_urls_dict.keys():
                 self.links += self.all_urls_dict[key]
 
@@ -315,6 +319,7 @@ class Game:
                 print('.', end='|')
                 continue
         return ' '
+
 
 class Lines:
     def __init__(self, json):
@@ -591,6 +596,7 @@ class Market:
     def __repr__(self):
         print('away: {}'.format(self.a))
         print('home: {}'.format(self.h))
+
 
 def req(url):
     try:

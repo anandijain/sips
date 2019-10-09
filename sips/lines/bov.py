@@ -211,6 +211,10 @@ def score(game_id):
 
     return [quarter, secs, a_pts, h_pts, status]
 
+# def main():
+#     while True:
+
+
 if __name__ == '__main__':
     l = lines()
     print(l)

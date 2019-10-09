@@ -3,7 +3,7 @@ import warnings
 import pickle
 
 import pandas as pd
-import numpy as np 
+import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -89,7 +89,7 @@ class Run:
 			winner = winners[i]
 			h_line = h_lines[i]
 			a_line = a_lines[i]
-			evhome = home_winprob * h.calc._eq(h_line) - away_winprob 
+			evhome = home_winprob * h.calc._eq(h_line) - away_winprob
 			evaway = away_winprob * h.calc._eq(a_line) - home_winprob
 
 			if winner == 'H':
@@ -118,7 +118,7 @@ class Run:
 
 
 
-		total_roi = all_df['roi'].sum() 
+		total_roi = all_df['roi'].sum()
 
 a = Run()
 g1 = [[1643, 1533, 116.5, 119, 106.5, 118.5]]

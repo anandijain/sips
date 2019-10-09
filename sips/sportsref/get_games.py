@@ -1,6 +1,6 @@
 import mlbgame as m
 import pandas as pd
-import numpy as np 
+import numpy as np
 
 def games_to_csv(year_range):
 	# year range is a tuple. eg (2010, 2019)
@@ -11,7 +11,7 @@ def games_to_csv(year_range):
 
 def get_game():
 	game_stats = mlbgame.team_stats('2016_08_02_nyamlb_nynmlb_1')
-	return game_stats 
+	return game_stats
 
-g = get_game()
-
+if __name__ == '__main__':
+	g = get_game()
