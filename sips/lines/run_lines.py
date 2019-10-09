@@ -38,8 +38,7 @@ class Start:
 
 def main():
     game_types = ['basketball', 'baseball', 'football']
-    sip = Start(fn='list_test', game_type=game_types, run=False)
-    print(sip.sip.links)
+    sip = Start(fn='list_test', game_type=game_types)
     return sip
 
 
