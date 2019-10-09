@@ -237,7 +237,7 @@ class Game:
         self.score = Score(self.game_id)
         self.lines = Lines(event)
         self.link = event['link']
-        self.delta = None
+        self.delta = 'NaN'
 
     def get_teams(self, event):
         team_one = event['competitors'][0]
@@ -300,7 +300,7 @@ class Game:
     def __repr__(self):
         ret = ''
         desc_str = '\n' + self.desc + '\n'
-        if self.delta is not None:
+        if self.delta is not 'NaN':
             delta_str = 'time delta: ' + str(self.delta)
         else:
             delta_str = 'time delta: None'

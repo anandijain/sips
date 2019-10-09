@@ -39,7 +39,7 @@ suffixes = ['?marketFilterId=def&liveOnly=true&lang=en',
 
 
 sports = ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
-        'volleyball', 'hockey']
+        'volleyball', 'hockey', 'badminton', 'table-tennis']
 
 
 def build_urls():

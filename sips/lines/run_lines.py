@@ -10,7 +10,7 @@ class Start:
         list or single elt
 
         ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
-        'volleyball', 'hockey']
+        'volleyball', 'hockey', 'badminton', 'table-tennis']
 
     run - Bool, to automatically run
 
