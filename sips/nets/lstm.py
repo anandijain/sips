@@ -89,8 +89,10 @@ class FileLoader:
         self.files = os.listdir(directory)
         self.length = len(self.files)
         self.dir = directory
+        self.file = self.files[0]
 
     def __getitem__(self, index):
+        self.file = self.files[index]
         df = pd.read_csv(self.dir + self.files[index])
         return df.iloc[:, 1:5].values
 
@@ -187,7 +189,7 @@ if __name__ == "__main__":
             data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
             torch.save(model.state_dict(), save_path)
             model.hidden = model.init_hidden()
-            print(f'new stock: {data_idx}')
+            print(f'new stock: {fileset.file}, num: {data_idx}')
             for i, (x, y) in enumerate(data_loader):
                 optimiser.zero_grad()
                 # print(x)
