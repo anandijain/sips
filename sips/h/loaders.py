@@ -162,3 +162,38 @@ class LineGen(Dataset):
             x = torch.cat((torch.tensor(self.X[i], dtype=torch.float), pg))
             y = torch.tensor(self.Y[i], dtype=torch.float)
             self.tups.append((x, y))
+
+class PlayerDataset(Dataset):
+    def __init__(self, window=1, fn='./data/static/lets_try5.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'], team_columns=None):
+        self.projections_frame = pd.read_csv(fn)
+        self.transform(self.projections_frame)
+        self.team_columns = team_columns
+        self.predict_columns = predict_columns
+        self.window = window
+    def transform(self, df):
+        self.projections_frame = self.projections_frame.drop_duplicates()
+        dfs = self.projections_frame.groupby('playerid')
+        bigcsv = []
+        for i in dfs:
+            df = i[1]
+            length = len(df)
+            df = df.sort_values(by=['age'])
+            if df.pass_yds.astype(bool).sum(axis=0) > .4*length:
+                    bigcsv.append(df)
+        self.projections_frame = pd.concat(bigcsv)
+
+    def __len__(self):
+        return len(self.projections_frame)
+
+    def __getitem__(self, index):
+        past = torch.tensor(np.array(self.projections_frame[index:index+self.window][self.predict_columns + self.team_columns]))
+        past = torch.tensor(past.reshape(-1, 1))
+        team_data = torch.tensor(self.projections_frame.iloc[index+self.window][self.team_columns])
+        # past = past.t()
+        y = torch.tensor(self.projections_frame.iloc[index+self.window][self.predict_columns])
+        past = past.float()
+        team_data = team_data.float()
+        x = torch.cat((past.flatten(), team_data.flatten())).view(1, 1, -1)
+
+        tup = (x, y)
+        return tup
