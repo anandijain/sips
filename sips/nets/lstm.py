@@ -20,10 +20,10 @@ log_interval = 100
 break_idx = 100
 
 save_folder = './models/'
-save_fn = 'lstm_players.pt'
+save_fn = 'lstm.pt'
 
 save_path = save_folder + save_fn
-directory = "/home/sippycups/absa/data/stocks/Data/Stocks/"
+directory = '/home/sippycups/absa/data/stocks/Data/Stocks/'
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
@@ -103,7 +103,6 @@ class FileLoader:
 
     def __len__(self):
         return self.length
-
 
 class LSTMLoader(Dataset):
     def __init__(self, data, window_len=1, predict_window=1):
