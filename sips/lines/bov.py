@@ -8,7 +8,7 @@ from requests_futures.sessions import FuturesSession
 import sips.h.macros as m
 
 
-bov = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/football/nfl'
+bov = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/'
 bov_scores_url = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
 
 
@@ -41,8 +41,10 @@ def games(config_path):
     return ret
 
 
-def req_json(link=bov):
-    bov_json = r.get(link).json()
+def req_json(link=bov, sport='football/nfl'):
+    full_link = link + sport
+    print(full_link)
+    bov_json = r.get(full_link).json()
     return bov_json
 
 
@@ -57,8 +59,15 @@ def events_sports():
     return bov_events
 
 
-def get_events():
-    json = req_json()
+def get_events(sport='mlb'):
+    try:
+        sport = m.league_to_sport_and_league[sport]
+    except KeyError:
+        print('forcing nfl')
+        sport = m.league_to_sport_and_league['nfl']
+
+    json = req_json(sport=sport)
+    print(json)
     bov_events = json[0]['events']
     return bov_events
 

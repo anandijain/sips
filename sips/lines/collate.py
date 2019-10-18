@@ -21,10 +21,10 @@ def box_lines_comp():
     return rows
 
 
-def get_events():
-    bov_events = bov.events()
-    espn_events = api.events()
-    espn_boxes = eb.boxscores()
+def get_events(sport='mlb'):
+    bov_events = bov.get_events(sport=sport)
+    espn_events = api.events(sport=sport)
+    espn_boxes = eb.boxscores(sport=sport)
     return bov_events, espn_events, espn_boxes
 
 
@@ -35,7 +35,7 @@ def match_events(bov_events, espn_events):
     for event in bov_events:
         bteams = bov.teams(event)
         print(f'bteams: {bteams}')
-        print(f'eteams: {eteams}')
+        pridfnt(f'eteams: {eteams}')
         for espn_event in espn_events:
             eteams = api.teams(espn_event)
             if list(bteams) == list(eteams):

@@ -1,17 +1,22 @@
 import requests as r
 import time
-
 import json
 
-espn = "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+from sips.h import macros as m
+espn = 'http://site.api.espn.com/apis/site/v2/sports/'
 
-def req_events():
-    espn_json = r.get(espn).json()
+def req_events(sport='nfl'):
+    try:
+        sport = m.league_to_sport_and_league[sport]
+    except KeyError:
+        print('forcing nfl')
+        sport = m.league_to_sport_and_league['nfl']
+    espn_json = r.get(espn + sport + '/scoreboard').json()
     events = espn_json['events']
     return events
 
 
-def events(events=None):
+def events(events=None, sport='nfl'):
     if not events:
         events = req_events()
     game_data = []
