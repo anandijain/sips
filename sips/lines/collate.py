@@ -3,15 +3,15 @@ import json
 
 import requests as r
 
-import sips.lines.bov as bov
+from sips.lines.bov import bov
 from sips.lines.espn import eb, api
 
 
 def get_and_compare():
     bov, api_evs, box_evs = get_events()
-    rows = match_events(bov, espn)
-    # rows = match_lines_boxes(bov, box_evs)
-    return rows
+    rows = match_events(bov, api_evs)
+    lines_boxes = match_lines_boxes(bov, box_evs)
+    return rows, lines_boxes
 
 
 def box_lines_comp():
@@ -28,6 +28,7 @@ def get_events(sport='mlb'):
     return bov_events, espn_events, espn_boxes
 
 
+
 def match_events(bov_events, espn_events):
     num_matched = 0
     rows = []
@@ -35,7 +36,7 @@ def match_events(bov_events, espn_events):
     for event in bov_events:
         bteams = bov.teams(event)
         print(f'bteams: {bteams}')
-        pridfnt(f'eteams: {eteams}')
+        print(f'eteams: {eteams}')
         for espn_event in espn_events:
             eteams = api.teams(espn_event)
             if list(bteams) == list(eteams):
