@@ -68,6 +68,7 @@ def bet_on_team(driver, amt, mkt_type=2, team_name='Washington Redskins', verbos
     print(f'to_click.text: {to_click.text}')
 
     to_click.click()
+    time.sleep(1)
 
     set_wager(driver, 0, amt)
 
@@ -183,28 +184,6 @@ def team_names_from_games(games, zip_out=False, verbose=False):
     return ret
 
 
-def main():
-    '''
-
-    '''
-    driver = get_driver()
-    time.sleep(2.5)
-    games = get_games(driver)
-    team_names_from_games(games, verbose=True)
-
-    buttons = get_buttons(driver)
-    trigger_review_slip_alert(driver, buttons)
-    for bet_num, b in enumerate(buttons):
-        bet(driver, b, bet_num * 20, bet_num, verbose=True)
-
-        # make two bets
-        if bet_num > 1:
-            break
-    time.sleep(1)
-    delete_bets(driver, [0])
-    return driver
-
-
 def get_buttons(driver=None, verbose=False):
     '''
 
@@ -216,8 +195,6 @@ def get_buttons(driver=None, verbose=False):
     mkts = mkts_from_games(games, verbose=verbose)
     buttons = buttons_from_mkts(mkts, verbose=verbose)
     return buttons
-
-
 
 
 def mkts_from_game(game, verbose=False):
@@ -275,7 +252,7 @@ def buttons_from_mkts(mkts, verbose=False):
     return buttons
 
 
-def get_driver(sport='football/nfl', minimize=False):
+def get_driver(sport='football/nfl', minimize=False, sleep=None):
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--incognito")
@@ -285,7 +262,10 @@ def get_driver(sport='football/nfl', minimize=False):
 
     if minimize:
         driver.minimize_window()
-        
+    
+    if sleep:
+        time.sleep(sleep)
+
     return driver
 
 
@@ -297,7 +277,50 @@ def to_soup(driver):
     return p
 
 
+def quick_bet(driver=None):
+    
+    if not driver:
+        driver = get_driver(sleep=2.5)
+    
+    buttons = get_buttons(driver)
+    trigger_review_slip_alert(driver, buttons)
+    time.sleep(0.5)
+    bet(driver, buttons[5], 350, index=0, verbose=False)
+    # trigger_review_slip_alert(driver, buttons)
+
+    time.sleep(0.5)
+    g = bet_on_team(driver, 350)
+    return g
+    
+
+def main():
+    '''
+
+    '''
+    driver = get_driver()
+    games = get_games(driver)
+    team_names_from_games(games, verbose=True)
+
+    buttons = get_buttons(driver)
+    trigger_review_slip_alert(driver, buttons)
+
+    for bet_num, b in enumerate(buttons):
+        bet(driver, b, bet_num * 20, bet_num, verbose=True)
+
+        # make two bets
+        if bet_num > 1:
+            break
+
+    time.sleep(1)
+    delete_bets(driver, [0])
+
+    return driver
+
+
 if __name__ == '__main__':
-    d = main()
+    d = get_driver(sleep=2.5)
+    g = quick_bet(d)
     time.sleep(5)
-    d.close()
+
+    # d = main()
+    # d.close()
