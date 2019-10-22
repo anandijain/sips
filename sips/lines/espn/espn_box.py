@@ -233,9 +233,9 @@ def get_page(link):
     return p
 
 
-def boxscores(links=None):
+def boxscores(links=None, sport='nfl'):
     if not links:
-        links = boxlinks()
+        links = boxlinks(sport=sport)
     boxes = []
     for link in links:
         box = boxscore(link)

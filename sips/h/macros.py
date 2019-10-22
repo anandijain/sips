@@ -41,6 +41,12 @@ suffixes = ['?marketFilterId=def&liveOnly=true&lang=en',
 sports = ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
         'volleyball', 'hockey', 'badminton', 'table-tennis']
 
+league_to_sport_and_league = {
+    'nfl': 'football/nfl',
+    'nba': 'basketball/nba',
+    'mlb': 'baseball/mlb'
+}
+# fix_league_to_sport_and_league()
 
 def build_urls():
     urls = []
