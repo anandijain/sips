@@ -13,16 +13,52 @@ IGNORE_FLAG_ID = 'custom-checkbox'
 ALERT_CLASS_NAME = 'sp-overlay-alert__button'
 
 RISK_ID = 'default-input--risk'
+WIN_AMT_ID = 'default-input--win'
 
-def bet(driver, button, amt):
+RISK_AMT_DIV_NAME = 'custom-field risk-field'
+WIN_AMT_DIV_NAME = 'custom-field win-field'
+
+TOP_LINE_CLASS = 'top-line'
+
+'''
+rn games refered to by 
+
+
+'''
+
+def bet(driver, button, amt, index=0, verbose=False):
     '''
-
+    ideally input args are (driver, game_id, amt)
     '''
     button.click()
-    wager_box = driver.find_element_by_id(RISK_ID)
+    time.sleep(1)
+    wager_boxes = driver.find_elements_by_id(RISK_ID)
+    wager_box = wager_boxes[index]
     wager_box.send_keys(amt)
+    
+    win_amt = driver.find_element_by_id(WIN_AMT_ID).text
 
-    return 
+    if verbose:
+        print(f'betting: {amt} to win {win_amt}')
+
+    return win_amt
+
+
+def delete_bets(driver, indices):
+    '''
+
+    '''
+    if isinstance(indices, int):
+        indices = [indices]
+    
+    top_lines = driver.find_elements_by_class_name(TOP_LINE_CLASS)
+    delete_bet_buttons = [tl.find_element_by_tag_name('button') for tl in top_lines]
+
+    for i in indices:
+        delete_bet_buttons[i].click()
+        print(f'bet[{i}] deleted')
+
+
 
 
 def accept_review_step_skip(driver):
@@ -64,12 +100,21 @@ def main():
     time.sleep(2.5)
     buttons = get_buttons(driver)
     trigger_review_slip_alert(driver, buttons)
-    bet(driver, buttons[0], 250)
+    for bet_num, b in enumerate(buttons):
+        bet(driver, b, bet_num * 20, bet_num, verbose=True)
+
+        # make two bets
+        if bet_num > 1:
+            break
+
+    delete_bets(driver, [0])
     return driver
+
+
 
 def get_buttons(driver=None, verbose=True):
     '''
-    
+
     '''
     if not driver:
         driver = get_driver()
@@ -116,6 +161,9 @@ def test_button_counts():
 
 
 def all_bet_buttons(driver):
+    '''
+    i think this will only wou
+    '''
     bet_buttons = driver.find_elements_by_class_name(BET_BUTTON)
     return bet_buttons
 
