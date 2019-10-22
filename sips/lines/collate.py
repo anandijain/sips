@@ -28,7 +28,6 @@ def get_events(sport='mlb'):
     return bov_events, espn_events, espn_boxes
 
 
-
 def match_events(bov_events, espn_events):
     num_matched = 0
     rows = []

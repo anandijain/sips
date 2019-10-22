@@ -6,8 +6,8 @@ from selenium.webdriver.common.keys import Keys
 
 ROOT_URL = 'https://www.bovada.lv/sports/'
 GAME_CLASS = 'coupon-content'
-MARKETS = 'markets-container'
-BET_BUTTON = 'bet-btn'
+MARKETS_CLASS = 'markets-container'
+BET_BUTTON_CLASS = 'bet-btn'
 
 IGNORE_FLAG_ID = 'custom-checkbox'
 ALERT_CLASS_NAME = 'sp-overlay-alert__button'
@@ -32,16 +32,64 @@ def bet(driver, button, amt, index=0, verbose=False):
     '''
     button.click()
     time.sleep(1)
-    wager_boxes = driver.find_elements_by_id(RISK_ID)
-    wager_box = wager_boxes[index]
-    wager_box.send_keys(amt)
-    
+
+    set_wager(driver, index, amt)
     win_amt = driver.find_element_by_id(WIN_AMT_ID).text
 
     if verbose:
         print(f'betting: {amt} to win {win_amt}')
 
     return win_amt
+
+def set_wager(driver, index, amt):
+    wager_boxes = driver.find_elements_by_id(RISK_ID)
+    wager_box = wager_boxes[index]
+    wager_box.send_keys(amt)
+
+
+def bet_on_team(driver, amt, mkt_type=2, team_name='Washington Redskins', verbose=False):
+    '''
+    mkt_type: 0 is point spread, 1 is moneyline, 2 is over under
+    '''
+    games = get_games(driver, verbose=verbose)
+    game = game_from_team_name(games, team_name=team_name, verbose=verbose)
+    teams = teams_from_game(game)
+    if team_name == teams[0]:
+        is_fav = False
+    else:
+        is_fav = True
+
+    bet_buttons = get_bet_buttons(game)
+
+    btn_index = mkt_type * 2 + int(is_fav)
+    print(f'btn_index: {btn_index}')
+    to_click = bet_buttons[btn_index]
+
+    print(f'to_click.text: {to_click.text}')
+
+    to_click.click()
+
+    set_wager(driver, 0, amt)
+
+    if verbose:
+        print(f'betting: {amt} on {team_name} at {time.asctime()} in {teams} game')
+
+    return game
+
+
+def game_from_team_name(games, team_name='Washington Redskins', verbose=False):
+    '''
+    rn just takes in 1 game => double header issue for mlb
+    '''
+    for game in games:
+        teams = teams_from_game(game)
+        if team_name in teams:
+            if verbose:
+                print(f'found {team_name} game')
+            return game
+    if verbose:
+        print(f'{team_name} game NOT found')
+    return None
 
 
 def delete_bets(driver, indices):
@@ -57,6 +105,19 @@ def delete_bets(driver, indices):
         delete_bet_button = tl.find_element_by_tag_name('button')
         delete_bet_button.click()
         print(f'bet[{i}] deleted')
+
+
+def trigger_review_slip_alert(driver, buttons=None):
+    '''
+
+    '''
+    if not buttons:
+        buttons = get_buttons(driver)
+
+    button = buttons[0]
+    button.click()
+    time.sleep(1)
+    accept_review_step_skip(driver)
 
 
 def accept_review_step_skip(driver):
@@ -77,6 +138,7 @@ def accept_review_step_skip(driver):
 def get_games(driver=None, verbose=False):
     '''
     uses selenium to find the 'coupon-content'(s)
+    each game has a tag_name of 'section'
     '''
     if not driver:
         driver = get_driver()
@@ -84,28 +146,38 @@ def get_games(driver=None, verbose=False):
     games = driver.find_elements_by_class_name(GAME_CLASS)
     
     if verbose:
-        print(f'len(lines): {len(lines)}')
+        print(f'len(games): {len(games)}')
         _ = [print(g.text) for g in games]
 
     return games
+
+
+def get_team_names(driver):
+    name_elements = driver.find_elements_by_class_name('name')
+    team_names = [name.text for name in name_elements]
+    return team_names
+
+
+def teams_from_game(game, verbose=False):
+    names = game.find_elements_by_tag_name('h4')
+    dog = names[0].text
+    fav = names[1].text
+
+    if verbose:
+        print(f'dog: {dog}')
+        print(f'fav: {fav}\n')
+    return dog, fav
 
 
 def team_names_from_games(games, zip_out=False, verbose=False):
     dogs = []
     favs = []
     for game in games:
-        names = game.find_elements_by_tag_name('h4')
-        dog = names[0].text
-        fav = names[1].text
-        # dog = game.find_element_by_class_name('competitor-name').text
-        # fav = game.find_element_by_class_name('competitor-name favorite').text
-        if verbose:
-            print(f'dog: {dog}')
-            print(f'fav: {fav}\n')
+        dog, fav = teams_from_game(game, verbose=verbose)
         dogs.append(dog)
         favs.append(fav)
     if zip_out:
-        ret = zip(dogs, favs)
+        ret = list(zip(dogs, favs))
     else:
         ret = (dogs, favs)
     return ret
@@ -146,48 +218,46 @@ def get_buttons(driver=None, verbose=False):
     return buttons
 
 
-def trigger_review_slip_alert(driver, buttons=None):
-    '''
 
-    '''
-    if not buttons:
-        buttons = get_buttons(driver)
 
-    button = buttons[0]    
-    button.click()
-    time.sleep(1)
-    accept_review_step_skip(driver)
+def mkts_from_game(game, verbose=False):
+
+    game_mkts = game.find_elements_by_class_name(MARKETS_CLASS)
+
+    if verbose:
+        _ = [print(mkt.text) for mkt in game_mkts]
+    
+    return game_mkts
 
 
 def mkts_from_games(games, verbose=False):
     '''
-    returns MARKETS class name with selenium
+    returns MARKETS_CLASS class name with selenium
     '''
     mkts = []
 
     for game in games:
-        game_mkts = game.find_elements_by_class_name(MARKETS)
+        game_mkts = mkts_from_game(game, verbose=verbose)
         mkts += game_mkts
         
     if verbose:
         print(f'len(mkts): {len(mkts)}')
-        _ = [print(mkt.text) for mkt in mkts]
     return mkts
 
 
 def test_button_counts():
     driver = get_driver()
     buttons = get_buttons(driver)
-    all_btns = all_bet_buttons(driver)
+    all_btns = get_bet_buttons(driver)
     print(f'new fxn: len(btns): {len(all_btns)}')
     print(f'old fxn: len(btns): {len(buttons)}')
 
 
-def all_bet_buttons(driver):
+def get_bet_buttons(element):
     '''
-    i think this will only wou
+    
     '''
-    bet_buttons = driver.find_elements_by_class_name(BET_BUTTON)
+    bet_buttons = element.find_elements_by_class_name(BET_BUTTON_CLASS)
     return bet_buttons
 
 
@@ -197,7 +267,7 @@ def buttons_from_mkts(mkts, verbose=False):
     '''
     buttons = []
     for mkt in mkts:
-        mkt_buttons = mkt.find_elements_by_class_name(BET_BUTTON)
+        mkt_buttons = mkt.find_elements_by_class_name(BET_BUTTON_CLASS)
         buttons += mkt_buttons
     if verbose:
         print(f'len(buttons): {len(buttons)}')
@@ -205,13 +275,17 @@ def buttons_from_mkts(mkts, verbose=False):
     return buttons
 
 
-def get_driver(sport='football/nfl'):
+def get_driver(sport='football/nfl', minimize=False):
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--incognito")
 
     driver = webdriver.Chrome(chrome_options=chrome_options)
     driver.get(ROOT_URL + sport)
+
+    if minimize:
+        driver.minimize_window()
+        
     return driver
 
 
