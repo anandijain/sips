@@ -125,14 +125,21 @@ def teams(event):
     '''
     returns away, home team names (str)
     '''
-    team_one = event['competitors'][0]
-    team_two = event['competitors'][1]
+    comps = event.get('competitors')
+
+    if not comps:
+        return 'NaN', 'NaN'
+    
+    team_one = comps[0]
+    team_two = comps[1]
+
     if team_one['home']:
         h_team = team_one['name']
         a_team = team_two['name']
     else:
         a_team = team_one['name']
         h_team = team_two['name']
+        
     return a_team, h_team
 
 
@@ -141,7 +148,7 @@ def score(game_id):
     given a game_id, returns the score data of the game
     '''
     [quarter, secs, a_pts, h_pts, status] = ['NaN' for _ in range(5)]
-    
+
     game_url = BOV_SCORES_URL + game_id
     json_data = req_json(url=game_url)
 
@@ -175,10 +182,10 @@ def req_json(sport='football/nfl', url=None):
     requests the bovada link, and specific sport as arg
     '''
     if not url:
-        full_link = BOV_URL + sport
-        print(f'no url given. url was set to: {full_link}')
+        url = BOV_URL + sport
+        print(f'no url given. url was set to: {url}')
 
-    bov_json = r.get(full_link).json()
+    bov_json = r.get(url).json()
     return bov_json
 
 
@@ -193,33 +200,29 @@ def get_ids(events):
     return ids
 
 
-def event_dict_from_jsons(jsons, key='id'):
+def dict_from_events(events, key='id', rows=True):
     '''
-    constructs a dictionary of events
-    key must be in the event json data
-    '''
-    events = events_from_jsons(jsons)
-    i = 0
-    print(f'events{[i]}: {events[i]}')
-    event_dict = {event[key]: event for event in events}
+    returns a dictionary of (key, event) or (key, list)
 
-    for event in events:
-        game_id = event[key]
-        event_dict[game_id] = event
+    key must be in the event json data
+    rows: (bool)
+        - if true, set key-vals to rows
+    '''
+    event_dict = {e[key]: parse_event(e) if rows else e for e in events}
 
     return event_dict
 
 
-def events_from_jsons(jsons):
+def list_from_jsons(jsons, rows=False):
     '''
     jsons is a list of dictionaries for each sport 
     returns a list of events
     '''
-    bov_events = [event for j in jsons for event in events_from_json(j)]
-    return bov_events
+    events = [parse_event(e) if rows else e for j in jsons for e in json_events(j)]
+    return events
 
 
-def events_from_json(json_dict):
+def json_events(json_dict):
     '''
     simply accesses the events in the json
     '''
