@@ -1,7 +1,4 @@
 # macros.py for highly usable data
-
-data = '/data/'
-
 url = 'https://www.baseball-reference.com'
 
 bk_url = 'https://www.basketball-reference.com'

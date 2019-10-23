@@ -1,5 +1,7 @@
 import bs4
 
+from sips.h.new_macros import sports_ref as m
+
 def comments(page):
 	comments = page.findAll(text=lambda text:isinstance(text, bs4.Comment))
 	return comments
@@ -13,7 +15,7 @@ def get_table(page, table_id):  # given bs4 page and table id, finds table using
 def parse_table(table, split='th'):
 	tbody = table.tbody
 	rows = tbody.find_all('tr')
-	data_rows = [[] for i in range(len(r))]
+	data_rows = [[] for i in range(len(rows))]
 	for row in rows:
 		row_class = row.get('class')
 		if row_class == 'spacer':
@@ -35,7 +37,7 @@ def write_table(table, fn, split='th'):
 	except AttributeError:
 		return
 	try:
-		file = open('.' + m.data + fn + '.csv', 'w')
+		file = open('.' + '/data/' + fn + '.csv', 'w')
 	except FileExistsError:
 		print('skip')
 		return
@@ -65,5 +67,5 @@ def write_table(table, fn, split='th'):
 				else:
 					file.write(',')
 
-	print('{} written to {}'.format(fn, m.data))
+	print('{} written to {}'.format(fn, './data/'))
 	file.close()

@@ -3,14 +3,15 @@ import time
 import json
 
 from sips.h import macros as m
+
 espn = 'http://site.api.espn.com/apis/site/v2/sports/'
 
 def req_events(sport='nfl'):
     try:
-        sport = m.league_to_sport_and_league[sport]
+        sport = m.sport_to_suffix[sport]
     except KeyError:
         print('forcing nfl')
-        sport = m.league_to_sport_and_league['nfl']
+        sport = m.sport_to_suffix['nfl']
     espn_json = r.get(espn + sport + '/scoreboard').json()
     events = espn_json['events']
     return events
