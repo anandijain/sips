@@ -1,8 +1,10 @@
+'''
+utils for bovada selenium better.py program
+'''
 import time
 import bs4
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 
 from sips.lines.bov import better
 
@@ -47,7 +49,9 @@ def get_games(driver, verbose=False):
 
 
 def mkts_from_game(game, verbose=False):
-
+    '''
+    gets tags of class name 'markets-container'
+    '''
     game_mkts = game.find_elements_by_class_name(MARKETS_CLASS)
 
     if verbose:
@@ -83,7 +87,7 @@ def buttons_from_mkts(mkts, verbose=False):
         print(f'len(buttons): {len(buttons)}')
         _ = [print(button.text) for button in buttons]
     return buttons
-    
+
 
 def get_bet_buttons(element):
     '''
@@ -110,7 +114,7 @@ def bet_buttons_via_games(driver=None, verbose=False):
 def locate_btn(game, team_name, mkt_type, verbose=False):
     '''
     given selenium game, team_name, and mkt_type
-    returns find the specific bet button for the givens 
+    returns find the specific bet button for the givens
 
     game: selenium obj
     team_name: str
@@ -130,23 +134,26 @@ def to_soup(driver):
     '''
     driver is selenium webdriver
     '''
-    p = bs4.BeautifulSoup(driver.page_source, 'html.parser')
-    return p
+    soup = bs4.BeautifulSoup(driver.page_source, 'html.parser')
+    return soup
 
 
 def find_bet_button(team_name, mkt_type, driver, verbose=False):
-    gs = get_games(driver)
-    g = game_from_team_name(gs, team_name, verbose=verbose)
-    if not g:
+    '''
+    finds the bet button related to the bet being made
+    '''
+    games = get_games(driver)
+    game = game_from_team_name(games, team_name, verbose=verbose)
+    if not game:
         print(f'wtf')
 
-    buttons = get_bet_buttons(g)
-    index = btn_index(g, mkt_type, team_name)
+    buttons = get_bet_buttons(game)
+    index = btn_index(game, mkt_type, team_name)
     to_click = buttons[index]
     driver.execute_script("return arguments[0].scrollIntoView();", to_click)
 
     if verbose:
-        print(f'game: {g}')
+        print(f'game: {game}')
         print(f'len buttons: {len(buttons)}')
         for i, button in enumerate(buttons):
             print(f'button{[i]}: {button.text}')
@@ -170,6 +177,9 @@ def game_from_team_name(games, team_name, verbose=False):
 
 
 def team_names_from_games(games, zip_out=False, verbose=False):
+    '''
+    given list of games (selenium), create a list of the team names
+    '''
     dogs = []
     favs = []
     for game in games:
@@ -184,7 +194,9 @@ def team_names_from_games(games, zip_out=False, verbose=False):
 
 
 def btn_index(game, mkt_type, team_name='Washington Redskins'):
-
+    '''
+    since bovada has dogs above and favs below
+    '''
     teams = teams_from_game(game)
 
     if team_name == teams[0]:
@@ -197,6 +209,10 @@ def btn_index(game, mkt_type, team_name='Washington Redskins'):
 
 
 def teams_from_game(game, verbose=False):
+    '''
+    game: selenium element
+    dog, fav: both str
+    '''
     names = game.find_elements_by_tag_name('h4')
     dog = names[0].text
     fav = names[1].text
@@ -211,7 +227,7 @@ def set_wager(driver, index, amt):
     '''
     assumes that there is something in the betslip
     '''
-    
+
     wager_boxes = driver.find_elements_by_id(RISK_ID)
 
     try:
@@ -221,7 +237,7 @@ def set_wager(driver, index, amt):
 
         wager_boxes = driver.find_elements_by_id(RISK_ID)
         wager_box = wager_boxes[index]
-        
+
     wager_box.send_keys(amt)
 
 
@@ -279,4 +295,3 @@ def base_driver(screen=None):
         driver.minimize_window()
 
     return driver
-

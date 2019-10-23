@@ -1,24 +1,32 @@
+'''
+uses the bovada api to get json data for odds and scores
+'''
 import time
 import json
 
 import requests as r
-import requests_futures
 from requests_futures.sessions import FuturesSession
 
 import sips.h.macros as m
 
 
-bov = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/'
-bov_scores_url = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
+BOV_URL = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/'
+BOV_SCORES_URL = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
 
 
 def async_req(links):
+    '''
+    asyncronous request of the list of links
+    '''
     session = FuturesSession()
-    jsons = [session.get(l).result().json() for l in links]
+    jsons = [session.get(link).result().json() for link in links]
     return jsons
 
 
-def ids(events):
+def get_ids(events):
+    '''
+    returns the ids for all bov events given
+    '''
     if not events:
         events = get_events()
     ids = []
@@ -29,6 +37,9 @@ def ids(events):
 
 
 def games(config_path):
+    '''
+    reading in config, we return the lines for the games specified
+    '''
     with open(config_path) as config:
         conf = json.load(config)
     ids = conf['games'][0]['game_ids']
@@ -41,7 +52,10 @@ def games(config_path):
     return ret
 
 
-def req_json(link=bov, sport='football/nfl'):
+def req_json(link=BOV_URL, sport='football/nfl'):
+    '''
+    requests the bovada link, and specific sport as arg
+    '''
     full_link = link + sport
     print(full_link)
     bov_json = r.get(full_link).json()
@@ -49,40 +63,49 @@ def req_json(link=bov, sport='football/nfl'):
 
 
 def events_sports():
-    jsons = async_req(m.build_urls())
+    '''
+    gets all events for all the sports specified in macros.py
+    '''
+    json_data = async_req(m.build_urls())
     bov_events = []
-    for json in jsons:
-        if not json:
+    for data in json_data:
+        if not data:
             continue
-        events = json[0]['events']
+        events = data[0]['events']
         bov_events += events
     return bov_events
 
 
 def get_events(sport='mlb'):
+    '''
+    given a specific sport, return the events
+    '''
     try:
         sport = m.league_to_sport_and_league[sport]
     except KeyError:
         print('forcing nfl')
         sport = m.league_to_sport_and_league['nfl']
 
-    json = req_json(sport=sport)
-    print(json)
-    bov_events = json[0]['events']
+    json_data = req_json(sport=sport)
+    print(json_data)
+    bov_events = json_data[0]['events']
     return bov_events
 
 
-def lines(events=None):
+def lines(events=None, sport='mlb'):
+    '''
+    returns the lines for a given sport
+    '''
     if not events:
-        events = get_events()
-    lines = [parse_event(e) for e in events]
-    # lines = []
-    # for event in events:
-    #     lines.append(parse_event(event))
-    return lines
+        events = get_events(sport=sport)
+    rows = [parse_event(e) for e in events]
+    return rows
 
 
 def header():
+    '''
+    column names for dataframe
+    '''
     return ['sport', 'game_id', 'a_team', 'h_team', 'cur_time', 'last_mod', 'num_markets', 'live', \
         'quarter', 'secs', 'a_pts', 'h_pts', 'status', \
         'a_ps', 'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', \
@@ -108,7 +131,8 @@ def parse_event(event):
 
     display_groups = event['displayGroups'][0]
     markets = display_groups['markets']
-    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = parse_markets(markets)
+    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, \
+    h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = parse_markets(markets)
 
     game_start_time = event['startTime']
 
@@ -121,10 +145,16 @@ def parse_event(event):
 
 
 def teams_from_line(line):
+    '''
+    return the a_team and h_team indices in row list
+    '''
     return line[2:4]
 
 
 def parse_markets(markets):
+    '''
+    parse market dict in bov event
+    '''
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, \
             a_hcap_tot, h_hcap_tot, a_ou, h_ou = ["NaN" for _ in range(12)]
     for market in markets:
@@ -143,6 +173,9 @@ def parse_markets(markets):
 
 
 def spread(outcomes):
+    '''
+    gets both teams spread data
+    '''
     a_ps, a_hcap, h_ps, h_hcap = ['NaN' for _ in range(4)]
     for outcome in outcomes:
         price = outcome['price']
@@ -156,6 +189,9 @@ def spread(outcomes):
 
 
 def moneyline(outcomes):
+    '''
+    gets both teams moneyline
+    '''
     a_ml = 'NaN'
     h_ml = 'NaN'
     for outcome in outcomes:
@@ -169,6 +205,9 @@ def moneyline(outcomes):
 
 
 def total(outcomes):
+    '''
+    gets the over_under
+    '''
     if not outcomes:
         return ['NaN' for _ in range(6)]
     a_price = outcomes[0]['price']
@@ -183,7 +222,9 @@ def total(outcomes):
 
 
 def teams(event):
-    # returns away, home
+    '''
+    returns away, home team names (str)
+    '''
     team_one = event['competitors'][0]
     team_two = event['competitors'][1]
     if team_one['home']:
@@ -196,34 +237,36 @@ def teams(event):
 
 
 def game_json(game_id):
-    game_json = r.get(bov_scores_url + game_id).json()
+    '''
+    requests the json data for the specific game for score data
+    '''
+    json_data = r.get(BOV_SCORES_URL + game_id).json()
     time.sleep(0.05)
-    return game_json
+    return json_data
 
 
 def score(game_id):
+    '''
+    given a game_id, returns the score data of the game
+    '''
     [quarter, secs, a_pts, h_pts, status] = ['NaN' for _ in range(5)]
 
-    json = game_json(game_id)
-    if json.get('Error'):
+    json_data = game_json(game_id)
+    if json_data.get('Error'):
         return [quarter, secs, a_pts, h_pts, status]
-    clock = json.get('clock')
+    clock = json_data.get('clock')
     if clock:
         quarter = clock['periodNumber']
         secs = clock['relativeGameTimeInSecs']
 
-    a_pts = json['latestScore']['visitor']
-    h_pts = json['latestScore']['home']
+    a_pts = json_data['latestScore']['visitor']
+    h_pts = json_data['latestScore']['home']
     status = 0
-    if json['gameStatus'] == "IN_PROGRESS":
+    if json_data['gameStatus'] == "IN_PROGRESS":
         status = 1
 
     return [quarter, secs, a_pts, h_pts, status]
 
-# def main():
-#     while True:
-
-
 if __name__ == '__main__':
-    l = lines()
-    print(l)
+    RET = lines()
+    print(RET)
