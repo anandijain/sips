@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 
 import sips.h.parse as parse
+import sips.h.openers as io
+
 
 link = 'https://www.hockey-reference.com/boxscores/201904100NYI.html'
 root = 'https://www.hockey-reference.com'
@@ -191,21 +193,8 @@ def main():
 def init_file(fn='shots.csv'):
     columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
     f = open(fn, 'w+')
-    write_header(f, columns)
+    io.write_list(f, columns)
     f.close()
-
-
-# takes in list of strings
-def write_header(file, columns):
-	length = len(columns)
-	for i, col in enumerate(columns):
-
-		file.write(col)
-
-		if i >= length - 1:
-			file.write('\n')
-		else:
-			file.write(',')
 
 
 if __name__ == '__main__':

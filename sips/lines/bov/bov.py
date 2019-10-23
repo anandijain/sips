@@ -13,22 +13,12 @@ import sips.h.macros as m
 from sips.lines.bov.utils import bov_utils as utils
 
 
-def games(config_path):
-    '''
-    reading in config, we return the lines for the games specified
-    '''
-    with open(config_path) as config:
-        conf = json.load(config)
-    ids = conf['games'][0]['game_ids']
-    lines_dict = lines(conf['sport'])
-
-
-def get_events(sport, output='list'):
+def get_events(sports=['nba', 'mlb', 'nfl'], output='list'):
     '''
     gets all events for all the sports specified in macros.py
     output: either 'list' or 'dict', where each key is the game_id
     '''
-    jsons = [utils.req_json(sport)]
+    jsons = [utils.req_json(utils.match_sport_str(sport)) for sport in sports]
     events = utils.list_from_jsons(jsons)
 
     if output == 'dict':
@@ -37,14 +27,16 @@ def get_events(sport, output='list'):
     return events
 
 
-def lines(sport='nba', output='dict', verbose=False):
+def lines(sports, output='dict', verbose=False):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
     '''
-    sport = utils.match_sport_str(sport)
-    json_data = utils.req_json(sport)
-    events = utils.json_events(json_data)
+    if not sports:
+        print(f'sports is None')
+        return
+    jsons = [utils.req_json(utils.match_sport_str(s)) for s in sports]
+    events = utils.list_from_jsons(jsons)
 
     if output == 'dict':
         data = utils.dict_from_events(events, rows=True)
@@ -57,7 +49,7 @@ def lines(sport='nba', output='dict', verbose=False):
 
 
 def main():
-    data = lines()
+    data = lines(["nba", "nfl", "mlb"])
     print(data)
     return data
 

@@ -139,7 +139,7 @@ def teams(event):
     else:
         a_team = team_one['name']
         h_team = team_two['name']
-        
+
     return a_team, h_team
 
 
@@ -183,7 +183,7 @@ def req_json(sport='football/nfl', url=None):
     '''
     if not url:
         url = BOV_URL + sport
-        print(f'no url given. url was set to: {url}')
+        # print(f'no url given. url was set to: {url}')
 
     bov_json = r.get(url).json()
     return bov_json
@@ -208,6 +208,7 @@ def dict_from_events(events, key='id', rows=True):
     rows: (bool)
         - if true, set key-vals to rows
     '''
+    print(f'len events: {len(events)}')
     event_dict = {e[key]: parse_event(e) if rows else e for e in events}
 
     return event_dict

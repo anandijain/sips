@@ -4,8 +4,16 @@ import time
 import bs4
 import requests as r
 
-
 headers = {'User-Agent': 'Mozilla/5.0'}
+
+def write_list(file, list):
+    length = len(list)
+    for i, elt in enumerate(list):
+        file.write(str(elt))
+        if i == length - 1:
+            file.write('\n')
+        else:
+            file.write(',')
 
 def page(url):
     site = None
