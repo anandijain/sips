@@ -50,7 +50,7 @@ def get_driver(sport='football/nfl', sleep=1.5):
     return driver
 
 
-def bet(team_name, mkt_type, amt, driver=None, verbose=False):
+def bet(team_name, mkt_type, amt, index, driver=None, verbose=False):
     '''
     ideally input args are (driver, game_id, amt)
     and returns the index of the top-line where it is currently located
@@ -59,7 +59,7 @@ def bet(team_name, mkt_type, amt, driver=None, verbose=False):
     button = u.find_bet_button(team_name, mkt_type, driver, verbose)
     button.send_keys("\n")
     time.sleep(1)
-    u.set_wager(driver, 0, amt)
+    u.set_wager(driver, index, amt)
     time.sleep(1)
 
 
@@ -80,17 +80,19 @@ def delete_bets(driver, indices):
         print(f'bet[{i}] deleted')
 
 
-
 class Better:
-    def __init__(self, driver=None, test=True, verbose=True):
+    def __init__(self, driver=None, log_in=False, verbose=True):
         '''
-        betslip is a stack data structure
+        the log_in is sick but the captcha sucks, we are literally just fuelling waymo
         '''
         if driver:
             self.driver = driver
         else:
             self.driver = get_driver()
-            
+        
+        if log_in:
+            login(self.driver)
+
         self.verbose = verbose
         self.to_place = {
             0: ('Los Angeles Chargers', 0, 150),
@@ -100,21 +102,21 @@ class Better:
         self.to_delete = [1, 2]
         self.bet_slip = []
 
-        if test:
-            self.run()
+        self.run()
 
     def run(self):
         self.place()
         delete_bets(self.driver, self.to_delete)
-        self.bet_slip = [bet for bet in self.bet_slip if bet not in self.to_delete]
+        to_delete = [self.to_place[x] for x in self.to_delete]
+        self.bet_slip = [bet for bet in self.bet_slip if bet not in to_delete]
 
     def place(self):
-        for v in self.to_place.values():
-            bet(v[0], v[1], v[2], self.driver, verbose=self.verbose)
+        for k, v in enumerate(self.to_place.values()):
+            bet(v[0], v[1], v[2], k, self.driver, verbose=self.verbose)
             self.bet_slip.append(v)
     
     def info(self):
-        print(f'self.to_place: {self.to_place}')
+        print(f'initial self.to_place: {self.to_place}')
         for i, b in enumerate(self.bet_slip):
             print(f'bet[{i}]: {b[0]}')
 
@@ -128,7 +130,8 @@ def main():
     time.sleep(5)
     return b
 
+
 if __name__ == '__main__':
     b = main()
-    time.sleep(5)
+    time.sleep(60)
     b.driver.close()
