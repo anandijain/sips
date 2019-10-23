@@ -13,6 +13,8 @@ from .loaders import *
 from .macros import *
 import stat
 
+# todo trash this code 
+
 def full_fn(fn):
     str_path = './sips/gym_sip/data/static/' + fn + '.csv'
     # path = Path(str_path)
@@ -120,7 +122,6 @@ def remove_missed_wins(games):
 def drop_null_times(df, columns=['lms_date', 'lms_time']):
     # given pandas df and list of strings for columns. convert '0' values to np.datetime64
     init_len = len(df)
-
     for col in columns:
         df[col] = df[col].replace('0', np.nan)
 
@@ -130,7 +131,7 @@ def drop_null_times(df, columns=['lms_date', 'lms_time']):
         delta = init_len - after_len
 
         print('len(df) before: {}, after length: {}, delta: {}'.format(init_len, after_len, delta))
-        return df
+    return df
 
 
 def dates(df):
@@ -187,13 +188,6 @@ def apply_min_game_len(games, min_lines=500):
         return games
 
 
-def df_info(df):
-    # TODO
-    # given pd df, return the general important info in console
-    # num games, teams, etc
-    pass
-
-
 def random_game(games):
     game_id, game = random.choice(list(games.items()))
     print('game_id: {}'.format(game_id))
@@ -239,11 +233,6 @@ def sk_scale(df):
 
 def select_dtypes(df, dtypes=['number']):
     return df.select_dtypes(include=dtypes)
-
-
-def teams_given_state(state):
-    # given np array, representing a state (csv_line). returns tuple of teams
-    return state
 
 
 def num_flat_features(x):

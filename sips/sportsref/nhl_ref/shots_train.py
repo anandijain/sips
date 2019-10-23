@@ -8,10 +8,12 @@ def to_cat_codes(df, col):
     df[col] = pd.Categorical(df[col])
     return df[col].cat.codes
 
+
 def convert_cols(df, columns):
     for col in columns:
         df[col] = to_cat_codes(df, col)
     return df
+
 
 def parse_shots_df(df):
     cols = ['type', 'outcome', 'player', 'game_id']
@@ -36,6 +38,7 @@ def get_compiled_model():
                 loss='binary_crossentropy',
                 metrics=['accuracy'])
     return model
+
 
 def datasets():
     train = pd.read_csv('./data/test.csv')
@@ -74,6 +77,7 @@ def main():
     model.save('./data/model1/test')
     model.summary()
     return model
+
 
 if __name__ == '__main__':
     model = main()

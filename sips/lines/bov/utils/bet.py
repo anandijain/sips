@@ -25,7 +25,6 @@ WIN_AMT_DIV_NAME = 'custom-field win-field'
 
 TOP_LINE_CLASS = 'top-line'
 
-
 MARKET_NAMES = {
     0: 'point_spread',
     1: 'money_line',

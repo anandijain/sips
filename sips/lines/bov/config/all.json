@@ -2,7 +2,5 @@
   "fn": "all",
   "game_type": "all",
   "games": [],
-  "verbosity": false,
-
-  
+  "verbosity": false  
 }

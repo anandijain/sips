@@ -6,6 +6,7 @@ import requests as r
 from sips.lines.bov import bov
 from sips.lines.espn import eb, api
 
+from sips.lines.bov.utils import bov_utils
 
 def get_and_compare():
     bov, api_evs, box_evs = get_events()
@@ -33,14 +34,14 @@ def match_events(bov_events, espn_events):
     rows = []
     eteams = None
     for event in bov_events:
-        bteams = bov.teams(event)
+        bteams = bov_utils.teams(event)
         print(f'bteams: {bteams}')
         print(f'eteams: {eteams}')
         for espn_event in espn_events:
             eteams = api.teams(espn_event)
             if list(bteams) == list(eteams):
                 print(f'games matched: {bteams}')
-                line = bov.parse_event(event)
+                line = bov_utils.parse_event(event)
                 espn_data = api.parse_event(espn_event)
                 row = line + espn_data
                 rows.append(row)
@@ -55,7 +56,7 @@ def match_lines_boxes(lines, boxes):
     rows = []
     eteams = None
     for line in lines:
-        bteams = bov.teams_from_line(line)
+        bteams = bov_utils.teams_from_line(line)
         # print(f'bteams: {bteams}')
         # print(f'eteams: {eteams}')
         for boxscore in boxes:

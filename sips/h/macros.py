@@ -41,15 +41,18 @@ suffixes = ['?marketFilterId=def&liveOnly=true&lang=en',
 sports = ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
         'volleyball', 'hockey', 'badminton', 'table-tennis']
 
-league_to_sport_and_league = {
+
+sport_to_suffix = {
     'nfl': 'football/nfl',
     'nba': 'basketball/nba',
     'mlb': 'baseball/mlb'
 }
 
-# fix_league_to_sport_and_league()
 
 def build_urls():
+    '''
+    returns list of urls
+    '''
     urls = []
     for sport in sports:
         for suffix in suffixes:
@@ -58,6 +61,11 @@ def build_urls():
 
 
 def build_url_dict():
+    '''
+    returns dictionary of {
+        sport (str) : url (str)
+    }
+    '''
     urls = {}
     for sport in sports:
         urls[sport] = [lines_url + sport + suffix for suffix in suffixes]
