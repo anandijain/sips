@@ -1,3 +1,4 @@
+import os
 import time
 import json 
 
@@ -18,6 +19,9 @@ class Lines:
         , sport='nfl', wait=5, start=True, write_new=False, verbose=False
     '''
     def __init__(self, config_path='./config/newl.json'):
+        self.dir = '../data/lines/'
+        if not os.path.exists(self.dir):
+            os.mkdir(self.dir)
 
         with open(config_path) as config:
             self.config = json.load(config)
@@ -80,17 +84,18 @@ def init_file(fn):
     io.write_list(f, utils.header())
     f.close()
 
+
 def write_data(file_dict, data_dict):
     '''
 
     '''
     for k, v in data_dict.items():
         f = file_dict.get(k)
-        fn = '../data/' + str(k) + '.csv'
-
+        fn = '../data/lines/' + str(k) + '.csv'
         if not f:
             file_dict[k] = fn
-            init_file(fn)
+            if not os.path.isfile(fn):
+                init_file(fn)
 
         f = open(fn, 'a')
 
