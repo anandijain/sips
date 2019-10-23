@@ -4,10 +4,11 @@ import bs4
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-ROOT_URL = 'https://www.bovada.lv/sports/'
+ROOT_URL = 'https://www.bovada.lv/'
 GAME_CLASS = 'coupon-content'
 MARKETS_CLASS = 'markets-container'
 BET_BUTTON_CLASS = 'bet-btn'
+SELECTED_BETS_CLASS = 'bet-btn selected'
 
 IGNORE_FLAG_ID = 'custom-checkbox'
 ALERT_CLASS_NAME = 'sp-overlay-alert__button'
@@ -20,17 +21,40 @@ WIN_AMT_DIV_NAME = 'custom-field win-field'
 
 TOP_LINE_CLASS = 'top-line'
 
-'''
-rn games refered to by 
+class Better:
+    def __init__(self):
+        self.driver = get_driver()
 
 
-'''
+def login(driver=None, captcha_wait=60):
+    if not driver:
+        driver = base_driver()
+
+    driver.get(ROOT_URL + '?overlay=login')
+    time.sleep(0.5)
+
+    inputs = driver.find_elements_by_tag_name('input')
+
+    email_field = inputs[0]
+    email_field.send_keys('dahmeh.almos@gmail.com')
+    
+    password_field = inputs[1]
+    password_field.send_keys('BeautifulBeachesinLagos5')
+
+    login_field = inputs[2]
+    login_field.send_keys('\n')
+    
+    print(f'waiting for {captcha_wait} seconds for user to fill out captcha')
+    time.sleep(captcha_wait)
+    # driver.close()
+
 
 def bet(driver, button, amt, index=0, verbose=False):
     '''
     ideally input args are (driver, game_id, amt)
     '''
-    button.click()
+    # button.click()
+    button.send_keys("\n")
     time.sleep(1)
 
     set_wager(driver, index, amt)
@@ -47,34 +71,49 @@ def set_wager(driver, index, amt):
     wager_box.send_keys(amt)
 
 
+def btn_index(game, mkt_type, team_name='Washington Redskins'):
+
+    teams = teams_from_game(game)
+
+    if team_name == teams[0]:
+        is_fav = False
+    else:
+        is_fav = True
+
+    index = mkt_type * 2 + int(is_fav)
+    return index
+
+
+def bet_on_game(game, amt, mkt_type=2, team_name='Washington Redskins', verbose=False):
+    '''
+
+    '''
+    bet_buttons = get_bet_buttons(game)
+    index = btn_index(game, mkt_type, team_name)
+    to_click = bet_buttons[index]
+
+    if verbose:
+        print(f'btn_index: {index}')
+        print(f'to_click.text: {to_click.text}')
+        print(f'betting: {amt} on {team_name} at {time.asctime()}')
+
+    return to_click
+
+
 def bet_on_team(driver, amt, mkt_type=2, team_name='Washington Redskins', verbose=False):
     '''
     mkt_type: 0 is point spread, 1 is moneyline, 2 is over under
     '''
     games = get_games(driver, verbose=verbose)
     game = game_from_team_name(games, team_name=team_name, verbose=verbose)
-    teams = teams_from_game(game)
-    if team_name == teams[0]:
-        is_fav = False
-    else:
-        is_fav = True
 
-    bet_buttons = get_bet_buttons(game)
-
-    btn_index = mkt_type * 2 + int(is_fav)
-    print(f'btn_index: {btn_index}')
-    to_click = bet_buttons[btn_index]
-
-    print(f'to_click.text: {to_click.text}')
-
-    to_click.click()
+    to_click = bet_on_game(game, amt=amt, mkt_type=mkt_type,
+                           team_name=team_name, verbose=verbose)
+    # to_click.click()
+    to_click.send_keys("\n")
     time.sleep(1)
 
     set_wager(driver, 0, amt)
-
-    if verbose:
-        print(f'betting: {amt} on {team_name} at {time.asctime()} in {teams} game')
-
     return game
 
 
@@ -104,7 +143,8 @@ def delete_bets(driver, indices):
     for i in indices:
         tl = top_lines[i]
         delete_bet_button = tl.find_element_by_tag_name('button')
-        delete_bet_button.click()
+        delete_bet_button.send_keys('\n')
+        # delete_bet_button.click()
         print(f'bet[{i}] deleted')
 
 
@@ -112,29 +152,26 @@ def trigger_review_slip_alert(driver, buttons=None):
     '''
 
     '''
+
     if not buttons:
         buttons = get_buttons(driver)
-
+    print(f'buttons: {buttons}')
     button = buttons[0]
-    button.click()
+    button.send_keys('\n')
+    # button.click()
     time.sleep(1)
     accept_review_step_skip(driver)
 
 
 def accept_review_step_skip(driver):
     '''
-
+    accepts the review slip alert
     '''
     labels = driver.find_elements_by_tag_name('label')
     label = labels[7]
-    # not working
-    # input_box = driver.find_element_by_id(IGNORE_FLAG_ID)
-    # label = input_box.find_element_by_tag_name('label')
     label.click()
-    
     button = driver.find_element_by_class_name(ALERT_CLASS_NAME)
-    button.click()
-
+    button.send_keys('\n')
 
 def get_games(driver=None, verbose=False):
     '''
@@ -251,14 +288,18 @@ def buttons_from_mkts(mkts, verbose=False):
         _ = [print(button.text) for button in buttons]
     return buttons
 
-
-def get_driver(sport='football/nfl', minimize=False, sleep=None):
-
+def base_driver():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--incognito")
 
     driver = webdriver.Chrome(chrome_options=chrome_options)
-    driver.get(ROOT_URL + sport)
+    return driver
+
+
+def get_driver(sport='football/nfl', minimize=False, sleep=None):
+
+    driver = base_driver()
+    driver.get(ROOT_URL + 'sports/' + sport)
 
     if minimize:
         driver.minimize_window()
@@ -277,20 +318,42 @@ def to_soup(driver):
     return p
 
 
-def quick_bet(driver=None):
+def quick_bet(team_name='Washington Redskins', amt=20, mkt_type=2, sport='football/nfl', driver=None, verbose=False):
     
     if not driver:
         driver = get_driver(sleep=2.5)
-    
-    buttons = get_buttons(driver)
-    trigger_review_slip_alert(driver, buttons)
-    time.sleep(0.5)
-    bet(driver, buttons[5], 350, index=0, verbose=False)
-    # trigger_review_slip_alert(driver, buttons)
+    # driver.fullscreen_window()
 
+    login(driver)
+    
+    driver.get(ROOT_URL + 'sports/' + sport)
+    time.sleep(2.5)
+
+    # driver.minimize_window()
+    gs = get_games(driver)
+    g = game_from_team_name(gs, team_name=team_name, verbose=True)
+    buttons = get_bet_buttons(g)
+    
+    if verbose:
+        print(f'game: {g}')
+        print(f'len buttons: {len(buttons)}')
+        for i, button in enumerate(buttons):
+            print(f'button{[i]}: {button.text}')
+    
+    # trigger_review_slip_alert(driver, buttons)
     time.sleep(0.5)
-    g = bet_on_team(driver, 350)
-    return g
+    index = btn_index(g, mkt_type, team_name)
+    to_click = buttons[index]
+
+    driver.execute_script("return arguments[0].scrollIntoView();", to_click)
+
+    to_click.send_keys('\n')
+    time.sleep(0.5)
+
+    set_wager(driver, 0, amt)    
+
+    # bet_on_team(driver, 350)
+    return driver, g
     
 
 def main():
@@ -319,8 +382,8 @@ def main():
 
 if __name__ == '__main__':
     d = get_driver(sleep=2.5)
-    g = quick_bet(d)
+    g = quick_bet(driver=d)
+    # d = main()
     time.sleep(5)
 
-    # d = main()
     # d.close()
