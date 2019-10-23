@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 from sips.lines.bov import better
+
 ROOT_URL = 'https://www.bovada.lv/'
 GAME_CLASS = 'coupon-content'
 MARKETS_CLASS = 'markets-container'
@@ -47,7 +48,7 @@ def get_games(driver, verbose=False):
 
 def mkts_from_game(game, verbose=False):
 
-    game_mkts = game.find_elements_by_class_name(u.MARKETS_CLASS)
+    game_mkts = game.find_elements_by_class_name(MARKETS_CLASS)
 
     if verbose:
         _ = [print(mkt.text) for mkt in game_mkts]
@@ -76,7 +77,7 @@ def buttons_from_mkts(mkts, verbose=False):
     '''
     buttons = []
     for mkt in mkts:
-        mkt_buttons = mkt.find_elements_by_class_name(u.BET_BUTTON_CLASS)
+        mkt_buttons = mkt.find_elements_by_class_name(BET_BUTTON_CLASS)
         buttons += mkt_buttons
     if verbose:
         print(f'len(buttons): {len(buttons)}')
@@ -92,13 +93,13 @@ def get_bet_buttons(element):
     return bet_buttons
 
 
-def get_bet_buttons_alt(driver=None, verbose=False):
+def bet_buttons_via_games(driver=None, verbose=False):
     '''
     possibly equivalent to driver.find_elements_by_class_name('bet-btn')
     see get_bet_buttons in bet_utils.py
     '''
     if not driver:
-        driver = get_driver()
+        driver = better.get_driver()
 
     games = get_games(driver, verbose=verbose)
     mkts = get_mkts(games, verbose=verbose)
@@ -133,12 +134,13 @@ def to_soup(driver):
     return p
 
 
-def find_bet_button(team_name, mkt_type, driver=None, verbose=False):
+def find_bet_button(team_name, mkt_type, driver, verbose=False):
     gs = get_games(driver)
-    g = game_from_team_name(gs, team_name=team_name, verbose=True)
+    g = game_from_team_name(gs, team_name, verbose=verbose)
+    if not g:
+        print(f'wtf')
+
     buttons = get_bet_buttons(g)
-
-
     index = btn_index(g, mkt_type, team_name)
     to_click = buttons[index]
     driver.execute_script("return arguments[0].scrollIntoView();", to_click)
@@ -152,7 +154,7 @@ def find_bet_button(team_name, mkt_type, driver=None, verbose=False):
     return to_click
 
 
-def game_from_team_name(games, team_name='Washington Redskins', verbose=False):
+def game_from_team_name(games, team_name, verbose=False):
     '''
     rn just takes in 1 game => double header issue for mlb
     '''
@@ -206,18 +208,31 @@ def teams_from_game(game, verbose=False):
 
 
 def set_wager(driver, index, amt):
+    '''
+    assumes that there is something in the betslip
+    '''
+    
     wager_boxes = driver.find_elements_by_id(RISK_ID)
-    wager_box = wager_boxes[index]
+
+    try:
+        wager_box = wager_boxes[index]
+    except IndexError:
+        accept_review_step_skip(driver)
+
+        wager_boxes = driver.find_elements_by_id(RISK_ID)
+        wager_box = wager_boxes[index]
+        
     wager_box.send_keys(amt)
 
 
 def trigger_review_slip_alert(driver, buttons=None):
     '''
-
+    program clicks a button to trigger the betslip alert,
+    which it then accepts
     '''
 
     if not buttons:
-        buttons = get_bet_buttons_alt(driver)
+        buttons = bet_buttons_via_games(driver)
     print(f'buttons: {buttons}')
     button = buttons[0]
     button.send_keys('\n')
@@ -233,13 +248,14 @@ def accept_review_step_skip(driver):
     labels = driver.find_elements_by_tag_name('label')
     label = labels[7]
     label.click()
-    button = driver.find_element_by_class_name(u.ALERT_CLASS_NAME)
+    button = driver.find_element_by_class_name(ALERT_CLASS_NAME)
     button.send_keys('\n')
+    time.sleep(1.5)
 
 
 def get_team_names(driver):
     '''
-
+    gets the team names of all teams on current driver page
     '''
     name_elements = driver.find_elements_by_class_name('name')
     team_names = [name.text for name in name_elements]
