@@ -318,42 +318,44 @@ def to_soup(driver):
     return p
 
 
-def quick_bet(team_name='Washington Redskins', amt=20, mkt_type=2, sport='football/nfl', driver=None, verbose=False):
-    
-    if not driver:
-        driver = get_driver(sleep=2.5)
-    # driver.fullscreen_window()
-
-    login(driver)
-    
-    driver.get(ROOT_URL + 'sports/' + sport)
-    time.sleep(2.5)
-
-    # driver.minimize_window()
+def get_bet_button(driver=None, team_name='Washington Redskins', amt=20, mkt_type=2, verbose=False):
     gs = get_games(driver)
     g = game_from_team_name(gs, team_name=team_name, verbose=True)
     buttons = get_bet_buttons(g)
-    
+
     if verbose:
         print(f'game: {g}')
         print(f'len buttons: {len(buttons)}')
         for i, button in enumerate(buttons):
             print(f'button{[i]}: {button.text}')
-    
-    # trigger_review_slip_alert(driver, buttons)
-    time.sleep(0.5)
+
     index = btn_index(g, mkt_type, team_name)
     to_click = buttons[index]
-
     driver.execute_script("return arguments[0].scrollIntoView();", to_click)
+    return to_click
 
+def quick_bet(team_name='Washington Redskins', amt=20, mkt_type=2, sport='football/nfl', driver=None, verbose=False):
+    
+    if not driver:
+        driver = get_driver(sleep=2.5)
+    # driver.fullscreen_window()
+    # driver.minimize_window()
+
+    # login(driver)
+    driver.get(ROOT_URL + 'sports/' + sport)
+    time.sleep(2.5)
+    to_click = get_bet_button(driver, team_name, amt, mkt_type)
     to_click.send_keys('\n')
-    time.sleep(0.5)
-
-    set_wager(driver, 0, amt)    
+    try:
+        set_wager(driver, 0, amt)    
+    except:
+        to_click.send_keys('\n')
+        accept_review_step_skip(driver)
+        time.sleep(0.5)
+        set_wager(driver, 0, amt)    
 
     # bet_on_team(driver, 350)
-    return driver, g
+    # return driver
     
 
 def main():
@@ -382,7 +384,7 @@ def main():
 
 if __name__ == '__main__':
     d = get_driver(sleep=2.5)
-    g = quick_bet(driver=d)
+    d = quick_bet(driver=d)
     # d = main()
     time.sleep(5)
 
