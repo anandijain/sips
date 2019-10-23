@@ -106,7 +106,7 @@ class Better:
     def run(self):
         self.place()
         delete_bets(self.driver, self.to_delete)
-        self.bet_slip = [bet for bet in self.bet_slip if x not in self.to_delete]
+        self.bet_slip = [bet for bet in self.bet_slip if bet not in self.to_delete]
 
     def place(self):
         for v in self.to_place.values():
