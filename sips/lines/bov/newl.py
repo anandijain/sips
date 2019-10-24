@@ -44,9 +44,9 @@ class Lines:
             self.run()
 
     def step(self):
-        self.news = bov.lines(self.sports)
+        self.news = bov.lines(self.sports, verbose=self.verbose)
         to_write = prepare_write(self.prevs, self.news)
-        self.files = write_data(self.files, to_write)
+        self.files = write_data(self.files, to_write, verbose=self.verbose)
         self.prevs = self.news
         time.sleep(self.wait)
 
@@ -83,7 +83,7 @@ def init_file(fn):
     f.close()
 
 
-def write_data(file_dict, data_dict):
+def write_data(file_dict, data_dict, verbose=True):
     '''
 
     '''
@@ -98,6 +98,8 @@ def write_data(file_dict, data_dict):
         f = open(fn, 'a')
 
         io.write_list(f, v)
+        if verbose:
+            print(f'writing {v} to game [{k}]')
 
         f.close()
     return file_dict

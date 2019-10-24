@@ -1,10 +1,10 @@
 {
-    "sports": ["nba", "nfl", "mlb"],
+    "sports": ["nba"],
     "wait": 1,
     "write": {
         "new_only": true,
         "file_per_game": true
     },
-    "verbose": false,
+    "verbose": true,
     "start": true
 }

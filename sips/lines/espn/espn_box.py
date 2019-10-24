@@ -18,9 +18,10 @@ def get_sports():
 
 def boxlinks(ids=None, sport='nfl'):
     if not ids:
-        ids = get_ids(sport)
+        ids = get_ids(sport=sport)
     url = ESPN_ROOT + '/' + sport + '/boxscore?gameId='
     links = [url + id for id in ids]
+    print(f'boxlinks: {boxlinks}')
     return links
 
 
@@ -103,7 +104,7 @@ def get_live_boxes(pages=None):
         pages = get_live_pages()
     boxes = []
     for p in pages:
-        boxes.append(get_boxscore(p))
+        boxes.append(boxscore(p))
     return boxes
 
 
@@ -116,9 +117,9 @@ def parse_live_id(tag):
 def parse_live_ids(tags):
     ret = []
     if isinstance(tags, dict):
-        for k,v in tags.items():
+        for v in tags.values():
             v = parse_live_id(v)
-        return items
+        return ret
     else:
         for tag in tags:
             ret.append(parse_live_id(tag))
@@ -200,7 +201,9 @@ def teamstats(page):
 
 
 def parse_teamstats(teamstats):
-    a_newstats, h_newstats = teamstats
+    '''
+    a @ h order
+    '''
     real_stats = []
     for team_newstats in teamstats:
         for team_newstat in team_newstats:
@@ -227,23 +230,25 @@ def box_teamnames(page):
 
 
 def get_page(link):
+    '''
+
+    '''
+    print(f'link: {link}')
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, 'html.parser')
     time.sleep(DELAY)
     return p
 
 
-def boxscores(links=None, sport='nfl'):
-    if not links:
-        links = boxlinks(sport=sport)
-    boxes = []
-    for link in links:
-        box = boxscore(link)
-        boxes.append(box)
+def boxscores(sport='nba'):
+    links = boxlinks(sport=sport)
+    print(f'links: {links}')
+
+    boxes = [boxscore(link) for link in links]
     return boxes
 
 
-def boxscore(link=ESPN_ROOT + '/nfl/boxscore?gameId=401127863'):
+def boxscore(link):
     page = get_page(link)
     a_team, h_team = box_teamnames(page)
     team_stats = teamstats(page)

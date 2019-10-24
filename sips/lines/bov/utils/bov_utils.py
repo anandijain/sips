@@ -183,7 +183,7 @@ def req_json(sport='football/nfl', url=None, sleep=0.25):
     '''
     if not url:
         url = BOV_URL + sport
-        # print(f'no url given. url was set to: {url}')
+        print(f'no url given. url was set to: {url}')
 
     bov_json = r.get(url).json()
     time.sleep(sleep)

@@ -5,9 +5,7 @@ major todo is fixing the time.sleep() calls to using selenium waits
 '''
 import time
 
-from sips.lines.bov import bet_utils as u
-
-
+from sips.lines.bov.utils import bet as u
 
 def login(driver=None, captcha_wait=60):
     '''
