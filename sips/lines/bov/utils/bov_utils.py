@@ -177,7 +177,7 @@ def async_req(links):
     return jsons
 
 
-def req_json(sport='football/nfl', url=None):
+def req_json(sport='football/nfl', url=None, sleep=0.25):
     '''
     requests the bovada link, and specific sport as arg
     '''
@@ -186,6 +186,7 @@ def req_json(sport='football/nfl', url=None):
         # print(f'no url given. url was set to: {url}')
 
     bov_json = r.get(url).json()
+    time.sleep(sleep)
     return bov_json
 
 

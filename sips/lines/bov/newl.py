@@ -27,7 +27,6 @@ class Lines:
             self.config = json.load(config)
         # print(self.config)
         self.sports = self.config.get('sports')
-
         print(f'sports: {self.sports}')
         self.wait = self.config.get('wait')
         self.write_new = self.config.get('write').get('new_only')
@@ -46,7 +45,6 @@ class Lines:
 
     def step(self):
         self.news = bov.lines(self.sports)
-        print(f'self.news: {self.news}')
         to_write = prepare_write(self.prevs, self.news)
         self.files = write_data(self.files, to_write)
         self.prevs = self.news

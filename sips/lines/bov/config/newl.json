@@ -1,5 +1,4 @@
 {
-    "run_id": "all",
     "sports": ["nba", "nfl", "mlb"],
     "wait": 1,
     "write": {
