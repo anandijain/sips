@@ -9,10 +9,19 @@ from sips.lines.espn import eb, api
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils
 
+from nfl_ref import full_package as fp
+
+def get_nfl_ref_data():
+    df = fp.scraper_main()
+
+
 def get_and_compare():
     bov, api_evs, box_evs = get_events()
     rows = match_events(bov, api_evs)
-    lines_boxes = match_lines_boxes(bov, box_evs)
+    # lines_boxes = match_lines_boxes(bov, box_evs)
+    ref_df = get_nfl_ref_data()
+    bov_df = pd.DataFrame(bov.lines(['nfl']))
+    ret = pd.merge(by='outer', on='')
     return rows, lines_boxes
 
 
@@ -34,6 +43,14 @@ def get_events(sports=['nba'], verbose=True):
         print(f'espn_events: {espn_events}')
         print(f'espn_boxes: {espn_boxes}')
     return bov_events, espn_events, espn_boxes
+
+
+# def bov_events_dict(events):
+#     '''
+#     takes in list
+#     '''
+#     for event in events:
+#         bov.team 
 
 
 def match_events(bov_events, espn_events):
