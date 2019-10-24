@@ -16,8 +16,8 @@ def get_and_compare():
     return rows, lines_boxes
 
 
-def box_lines_comp(sports=['nba']):
-    lines = bov.lines(sports)
+def box_lines_comp(sports=['nfl']):
+    lines = bov.lines(sports, output='list')
     sport = sports[0]
     print(f'sports[0]: {sports[0]}')
     boxes = eb.boxscores(sport)
@@ -64,8 +64,8 @@ def match_lines_boxes(lines, boxes):
     eteams = None
     for line in lines:
         bteams = bov_utils.teams_from_line(line)
-        # print(f'bteams: {bteams}')
-        # print(f'eteams: {eteams}')
+        print(f'bteams: {bteams}')
+        print(f'eteams: {eteams}')
         for boxscore in boxes:
             eteams = boxscore[-2:]
             if list(bteams) == list(eteams):

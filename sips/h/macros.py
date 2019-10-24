@@ -49,7 +49,7 @@ sport_to_suffix = {
 }
 
 
-def build_urls():
+def build_urls(sports=sports):
     '''
     returns list of urls
     '''
@@ -60,7 +60,7 @@ def build_urls():
     return urls
 
 
-def build_url_dict():
+def build_url_dict(sports=sports):
     '''
     returns dictionary of {
         sport (str) : url (str)
