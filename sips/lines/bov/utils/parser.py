@@ -17,11 +17,13 @@ def parse_display_groups(event):
             are the three main categories, but can be for any period 
         - 'Period/Alternate Lines'
         - 'Game Props'
+
         
         'Futures'
         'Alternate Lines'
     
     secondary:
+        - '
         - 'Score Props'
         - 'Receiving Props'
         - 'Quarterback Props'
@@ -55,18 +57,9 @@ def reduce_mkt_type(market):
         'Moneyline': 'ml',
         'Total': 'tot'
     }
-    
+
     return MKT_TYPE[desc]
 
-
-# GROUP_TYPE = {
-#     'Game Lines': 'lines',
-#     'Period/Alternate Lines': 'alt_lines',
-#     'Alternate Lines': 'alt_lines',
-#     ''
-#     'Game Props': 'props',
-#     ''
-# }
 
 def parse_lines_group(group):
     '''
@@ -77,13 +70,14 @@ def parse_lines_group(group):
         print('no markets')
         return None
     for market in markets:
-        mkt_type = reduce_mkt_type(market)
+        data_dict = parse_market(market)
 
 def parse_display_group(display_group):
-    group_type = reduce_group_type(display_group)
+    group_type = reduce_group_desc(display_group)
+
     return group_type
     
-def reduce_group_type(display_group):
+def reduce_group_desc(display_group):
     '''
     bins the display groups based on their general content
     as there are many repeats, (eg 'Alternate Lines' and 'Game Lines)
@@ -101,25 +95,57 @@ def reduce_group_type(display_group):
 
 
 def parse_market(market):
-    desc = market.get('description')
-    mkt_type = MKT_TYPE.get(desc)
+    '''
+    given: market in bovada sport json
+    returns: dictionary w (field , field_value)
+    '''
+    data_dict = {}
+    mkt_type = reduce_mkt_type(market)
     if not mkt_type:
         return 'mkt type not supported'
     elif mkt_type == 'ps':
-        parse_spread(market)
+        data = parse_spread(market)
     elif mkt_type == 'ml':
-        parse_moneyline(market)
+        data = parse_moneyline(market)
     elif mkt_type == 'tot':
-        parse_total(market)
+        data = parse_total(market)
+    data_dict.update(data)
+    return data_dict
 
-def parse_moneyline():
-    pass
+def parse_moneyline(market):
+    data_dict = {}
+    outcomes = market.get('outcomes')
+    if not outcomes:
+        print('market has no outcomes data')
+        return None
+    period = market.get('period')
+    period_keys = ['abbreviation', 'live']
+    period_dict = parse_json(period, period_keys)
+    data.update(period_dict)
+    for outcome in outcomes:
+        outcome_data = parse_json()
 
-def parse_spread():
-    pass
+    return data
 
-def parse_total():
-    pass
+def parse_spread(market):
+    return data
+
+def parse_total(market):
+    return data
+
+def parse_json(json, keys):
+    '''
+    input: dictionary and list of strings
+    returns dict
+    '''
+    data = {}
+    json_keys = json.keys()
+    for j_key in json_keys:
+        if j_key in keys:
+            d = json.get(k)    
+            data[k] = d
+    return data
 
 if __name__ == "__main__":
     pass
+    

@@ -27,7 +27,7 @@ def get_events(sports=['nba', 'mlb', 'nfl'], output='list'):
     return events
 
 
-def lines(sports, output='dict', verbose=False):
+def lines(sports, output='dict', verbose=False, fixlines=True):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
@@ -35,7 +35,11 @@ def lines(sports, output='dict', verbose=False):
     if not sports:
         print(f'sports is None')
         return
-    jsons = [utils.req_json(utils.match_sport_str(s)) for s in sports]
+    sfx = '?marketFilterId=def&liveOnly=true&lang=en'
+    links = [utils.match_sport_str(s) + sfx for s in sports]
+    jsons = [utils.req_json(l) for l in links]
+    if fixlines:
+        jsons = []
     events = utils.list_from_jsons(jsons)
 
     if output == 'dict':

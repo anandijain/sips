@@ -16,7 +16,7 @@ def get_and_compare():
     return rows, lines_boxes
 
 
-def box_lines_comp(sports=['nba']):
+def box_lines_comp(sports=['nfl']):
     lines = bov.lines(sports, output='list')
     sport = sports[0]
     print(f'sports[0]: {sports[0]}')
