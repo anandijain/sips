@@ -11,6 +11,7 @@ from requests_futures.sessions import FuturesSession
 from pydash import at
 
 import sips.h.macros as m
+from sips.lines.bov import bov_main
 
 BOV_URL = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/'
 BOV_SCORES_URL = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
@@ -25,7 +26,7 @@ MKT_TYPE = {
 TO_GRAB = {
     'ps': ['american', 'handicap'],  # spread
     'ml': ['american'],
-    'tot': ['american', 'handicap', 'type'],
+    'tot': ['american', 'handicap'],
     'competitors': ['home', 'id', 'name']
 }
 
@@ -40,8 +41,8 @@ def reduce_mkt_type(market_desc):
     try:
         reduced = MKT_TYPE[market_desc]
     except KeyError:
-        print('market not supported')
-        return None
+        # print(f'{market_desc} not supported')
+        return 'ml'
     return reduced
 
 
@@ -65,6 +66,30 @@ def parse_json(json, keys, output='dict'):
         return data
     else:
         return None
+
+
+def parse_display_groups(event):
+    '''
+
+    '''
+    groups = event['displayGroups']
+    full_set = {}
+    for group in groups:
+        desc = group.get('description')
+        if not desc:
+            continue
+        cleaned = clean_desc(desc)
+        data_dict = parse_display_group(group)
+        full_set[cleaned] = data_dict
+
+    print(f'full_set: {full_set}')
+    return full_set
+
+
+def parse_display_group(display_group):
+    group_markets = display_group.get('markets')
+    data = parse_markets(group_markets)
+    return data
 
 
 def parse_event(event):
@@ -111,71 +136,63 @@ def parse_markets(markets):
     #     a_hcap_tot, h_hcap_tot, a_ou, h_ou = ["NaN" for _ in range(12)]
 
     for market in markets:
-
         mkt_type = reduce_mkt_type(market.get('description'))
-        period_info = at(market.get('period'), ['abbreviation', 'live'])
-        mkt_key = mkt_type + '_' + period_info[0]
-        outcomes = market.get('outcomes')
+        print(f'mkt_type: {mkt_type}')
+        if not mkt_type:
+            continue
 
-        if mkt_type == 'ps':
-            a_ps, h_ps, a_hcap, h_hcap = spread(outcomes)
-        elif mkt_type == 'ml':
-            a_ml, h_ml = moneyline(outcomes)
-        elif mkt_type == 'tot':
-            a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = total(outcomes)
+        period = market.get('period')
+        period_info = at(period, 'description', 'abbreviation', 'live')
 
-        all_markets.update()
+        cleaned = clean_desc(period_info[0])
+        mkt_key = mkt_type + '_' + cleaned
 
-    data = [a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
-            a_hcap_tot, h_hcap_tot, a_ou, h_ou]
+        market_data = parse_market(market)
+        all_markets[mkt_key] = market_data
 
-    data = [elt if elt else 'NaN' for elt in data]
-    return data
+    return all_markets
 
 
 def parse_market(market):
     '''
     given: market in bovada sport json
     returns: dictionary w (field , field_value)
-    
-    spread keys: '
-
     '''
-
-    data_dict = {}
+    period = market.get('period')
+    is_live = int(period['live'])
+    print(f'is_live: {is_live}')
     mkt_type = reduce_mkt_type(market.get('description'))
-    period_info = at(market.get('period'), [
-                     'description', 'abbreviation', 'live'])
-    mkt_key = mkt_type + '_' + clean_desc(period_info[0])
-
-    try:
-        # for building dictionary
-        keys = PRICE_LABELS[mkt_type]
-    except:
-        print(f'mkt_type: {mkt_type} not supported')
-        return
 
     outcomes = market.get('outcomes')
 
-    if not outcomes:
-        print('market has no outcomes data')
-        return None
-
     if mkt_type == 'ps':
         data = spread(outcomes)
+        print(f'{mkt_type} data: {data}')
     elif mkt_type == 'ml':
-        data = moneyline(outcomes)
+        data = ml_no_teams(outcomes)
+        print(f'{mkt_type} data: {data}')
     elif mkt_type == 'tot':
         data = total(outcomes)
-
-    data_dict = {mkt_key: (keys, data)}
-    data_dict[mkt_key] = data
-    return data
-
+        print(f'{mkt_type} data: {data}')
+    else:
+        print(f'in parse markets mkt_type: {mkt_type}')
+    ret = data
+    if isinstance(data, dict):
+        ret = []
+        for v in data.values():
+            ret += v
+        print(f'this RET: {ret}')
+    
+    ret.append(is_live)
+    print(f'ret: {ret}')
+    return ret
 
 
 def clean_desc(desc):
-    ret = desc.lower().replace(' ', '_')
+    to_replace = [('-', ''), ('  ', ' '), (' ', '_')]
+    ret = desc.lower()
+    for tup in to_replace:
+        ret = ret.replace(tup[0], tup[1])
     return ret
 
 
@@ -187,11 +204,12 @@ def spread(outcomes):
     for outcome in outcomes:
         price = outcome['price']
         if outcome['type'] == 'A':
-            a_ps, a_hcap = at(price, TO_GRAB['ps'])
+            a_ps, a_hcap = parse_json(price, TO_GRAB['ps'], 'list')
         else:
-            h_ps, h_hcap = at(price, TO_GRAB['ps'])
+            h_ps, h_hcap = parse_json(price, TO_GRAB['ps'], 'list')
 
-    return a_ps, h_ps, a_hcap, h_hcap
+    print(f'a_ps, h_ps, a_hcap, h_hcap: {a_ps, h_ps, a_hcap, h_hcap}')
+    return [a_ps, h_ps, a_hcap, h_hcap]
 
 
 def moneyline(outcomes):
@@ -206,8 +224,24 @@ def moneyline(outcomes):
             a_ml = price['american']
         else:
             h_ml = price['american']
+    print(f'a_ml, h_ml: {a_ml, h_ml}')
+    return [a_ml, h_ml]
 
-    return a_ml, h_ml
+
+def ml_no_teams(outcomes):
+    mls = {}
+    for oc in outcomes:
+        competitor_id = oc.get('competitorId')
+        desc = oc.get('description')
+        cleaned = clean_desc(desc)
+        price = oc.get('price')
+        american = price['american']
+        mls[competitor_id] = [cleaned, american]
+    return mls
+
+
+def total_no_teams():    
+    pass
 
 
 def total(outcomes):
@@ -218,19 +252,28 @@ def total(outcomes):
         return ['NaN' for _ in range(6)]
 
     a_outcome = outcomes[0]
-    a_tot, a_hcap_tot, a_ou = at(a_outcome.get('price'), TO_GRAB['tot'])
-    
+    a_ou = a_outcome.get('type')
+    a_price = a_outcome.get('price')
+    a_tot, a_hcap_tot = parse_json(a_price, TO_GRAB['tot'], 'list')
+
     h_outcome = outcomes[1]
-    h_tot, h_hcap_tot, h_ou = at(h_outcome.get('price'), TO_GRAB['tot'])
+    h_ou = h_outcome.get('type')
+    h_price = h_outcome.get('price')
+    h_tot, h_hcap_tot = parse_json(h_price, TO_GRAB['tot'], 'list')
+
+    print(
+        f'[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]: {[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]}')
 
     return [a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]
 
 
-def competitors(competitors):
+def competitors(competitors, verbose=True):
     '''
     keys: 'home' (bool), 'id' (str), 'name' (str)
     '''
     data = [parse_json(t, TO_GRAB['competitors']) for t in competitors]
+    if verbose:
+        print(f'competitors: {data}') 
     return data  # list of two dictionaries
 
 
@@ -239,42 +282,22 @@ def teams(event):
     returns away, home team names (str)
     '''
     comps = event.get('competitors')
-
     if not comps:
         return 'NaN', 'NaN'
-
-    team_one = comps[0]
-    team_two = comps[1]
-
-    if team_one['home']:
-        h_team = team_one['name']
-        a_team = team_two['name']
-    else:
-        a_team = team_one['name']
-        h_team = team_two['name']
-
+    teams = competitors(comps)
+    a_team, h_team = [team['name'] for team in teams]
     return a_team, h_team
 
 
-def bov_team_ids(event):
+def bov_comp_ids(event):
     '''
-    returns away, home team names (str)
+    get competitor ids
     '''
     comps = event.get('competitors')
-
     if not comps:
         return 'NaN', 'NaN'
-
-    team_one = comps[0]
-    team_two = comps[1]
-
-    if team_one['home']:
-        h_id = team_one['id']
-        a_id = team_two['id']
-    else:
-        a_id = team_one['id']
-        h_id = team_two['id']
-
+    teams = competitors(comps)
+    a_id, h_id = [team['id'] for team in teams]
     return a_id, h_id
 
 
@@ -390,3 +413,6 @@ def header():
             'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps', 'h_ps', 'a_hcap',
             'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', 'a_hcap_tot', 'h_hcap_tot', 'a_ou',
             'h_ou', 'game_start_time']
+
+if __name__ == "__main__":
+    bov_main.main()

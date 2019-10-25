@@ -1,0 +1,27 @@
+    '''
+    important:
+        - 'Game Lines': (periods: 1H, 2H and Match for each)
+            - 'Moneyline' 
+            - 'Point Spread'
+            - 'Total'
+            are the three main categories, but can be for any period 
+        - 'Period/Alternate Lines'
+        - 'Game Props'
+
+        
+        'Futures'
+        'Alternate Lines'
+    
+    secondary:
+        - '
+        - 'Score Props'
+        - 'Receiving Props'
+        - 'Quarterback Props'
+        - 'Rushing Props'
+        - 'Touchdown Props'
+        - 'Defense/Special Teams Props'
+        - 'Punt Props'
+        - 'Sack Props'
+        - 'Defensive Player Props'
+        - 'Field Goal Props
+    '''
