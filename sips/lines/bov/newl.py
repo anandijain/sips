@@ -44,6 +44,9 @@ class Lines:
             self.run()
 
     def step(self):
+        '''
+
+        '''
         self.news = bov.lines(self.sports, verbose=self.verbose)
         to_write = prepare_write(self.prevs, self.news)
         self.files = write_data(self.files, to_write, verbose=self.verbose)
@@ -51,6 +54,9 @@ class Lines:
         time.sleep(self.wait)
 
     def run(self):
+        '''
+        
+        '''
         try:
             self.prevs = bov.lines(self.sports)
             time.sleep(0.5)

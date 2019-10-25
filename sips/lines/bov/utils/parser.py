@@ -1,5 +1,8 @@
 import requests as r
+
 import sips.h.new_macros
+from sips.lines.bov.utils import bov_utils as utils
+
 def main():
     req = r.get(
         'https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba').json()
@@ -45,20 +48,6 @@ def parse_display_groups(event):
     return full_set
 
 
-def reduce_mkt_type(market):
-    desc = market.get('description')
-    if not desc:
-        print('no desc in mkt grab')
-        return None
-            
-    MKT_TYPE = {
-        'Point Spread': 'ps',
-        'Runline': 'ps',
-        'Moneyline': 'ml',
-        'Total': 'tot'
-    }
-
-    return MKT_TYPE[desc]
 
 
 def parse_lines_group(group):
@@ -72,9 +61,11 @@ def parse_lines_group(group):
     for market in markets:
         data_dict = parse_market(market)
 
+
 def parse_display_group(display_group):
     group_type = reduce_group_desc(display_group)
-
+    group_markets = display_group['markets']
+    data = utils.parse_markets(group_markets)
     return group_type
     
 def reduce_group_desc(display_group):
@@ -94,36 +85,24 @@ def reduce_group_desc(display_group):
     return reduced_group_type
 
 
-def parse_market(market):
-    '''
-    given: market in bovada sport json
-    returns: dictionary w (field , field_value)
-    '''
-    data_dict = {}
-    mkt_type = reduce_mkt_type(market)
-    if not mkt_type:
-        return 'mkt type not supported'
-    elif mkt_type == 'ps':
-        data = parse_spread(market)
-    elif mkt_type == 'ml':
-        data = parse_moneyline(market)
-    elif mkt_type == 'tot':
-        data = parse_total(market)
-    data_dict.update(data)
-    return data_dict
 
 def parse_moneyline(market):
+    '''
+    eg for different periods:
+    a_ps_m
+    a_ps_1h
+    a_ps_2h
+    a_ps_1q
+    '''
     data_dict = {}
     outcomes = market.get('outcomes')
-    if not outcomes:
-        print('market has no outcomes data')
-        return None
+
     period = market.get('period')
     period_keys = ['abbreviation', 'live']
     period_dict = parse_json(period, period_keys)
-    data.update(period_dict)
+    data_dict.update(period_dict)
     for outcome in outcomes:
-        outcome_data = parse_json()
+        outcome_data = parse_json(outcome, )
 
     return data
 
@@ -133,18 +112,7 @@ def parse_spread(market):
 def parse_total(market):
     return data
 
-def parse_json(json, keys):
-    '''
-    input: dictionary and list of strings
-    returns dict
-    '''
-    data = {}
-    json_keys = json.keys()
-    for j_key in json_keys:
-        if j_key in keys:
-            d = json.get(k)    
-            data[k] = d
-    return data
+
 
 if __name__ == "__main__":
     pass
