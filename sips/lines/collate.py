@@ -72,23 +72,23 @@ def match_events(bov_events, espn_events):
     return rows
 
 
-def match_lines_boxes(lines, boxes):
+def match_lines_boxes(lines, boxes, verbose=False):
     num_matched = 0
     rows = []
     eteams = None
     for line in lines:
-        bteams = bov_utils.teams_from_line(line)
-        print(f'bteams: {bteams}')
-        print(f'eteams: {eteams}')
+        bteams = sorted(bov_utils.teams_from_line(line))
         for boxscore in boxes:
-            eteams = boxscore[-2:]
+            eteams = sorted(boxscore[-2:])
             if list(bteams) == list(eteams):
-                print(f'games matched: {bteams, eteams}')
+                if verbose:
+                    print(f'games matched: {bteams, eteams}')
                 row = line + boxscore
                 rows.append(row)
                 num_matched += 1
-    print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
-    print(f'num_matched: {num_matched}')
+    if verbose:
+        print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
+        print(f'num_matched: {num_matched}')
     return rows
 
 

@@ -10,13 +10,13 @@ def main():
     es = req[0].get('events')
     for event in es:
         desc = event.get('description')
-        print(f'desc: {desc}')
+        # print(f'desc: {desc}')
         if not desc:
             continue
         event_dict = utils.parse_display_groups(event)
         cleaned = utils.clean_desc(desc)
         all_dict[cleaned] = event_dict
-    print(f'all_dict: {all_dict}')
+    # print(f'all_dict: {all_dict}')
     return all_dict
 
 

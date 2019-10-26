@@ -5,6 +5,7 @@ import json
 import sips.h.openers as io
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
+from sips.h import openers
 
 class Lines:
     '''
@@ -18,16 +19,18 @@ class Lines:
         - if true, data is only written if it is different than previous
         , sport='nfl', wait=5, start=True, write_new=False, verbose=False
     '''
-    def __init__(self, config_path='./config/newl.json'):
+    def __init__(self, config_path='./config/new_lines.json'):
         self.dir = '../data/lines/'
+
         if not os.path.exists(self.dir):
             os.mkdir(self.dir)
 
         with open(config_path) as config:
             self.config = json.load(config)
-        # print(self.config)
+
         self.sports = self.config.get('sports')
         print(f'sports: {self.sports}')
+
         self.wait = self.config.get('wait')
         self.write_new = self.config.get('write').get('new_only')
         self.verbose = self.config.get('verbose')
@@ -37,36 +40,68 @@ class Lines:
         # dict of game files 
         self.files = {}
 
-        self.prevs = None
-        self.news = None
+        self.step_num = 0
+        self.log_path = self.dir + 'LOG.csv'
+        if os.path.isfile(self.log_path):
+            self.log_file = open(self.log_path, 'a')
+        else:
+            log_header = ['index', 'time', 'time_diff', 'num_changes']
+            self.log_file = open(self.log_path, 'a')
+            openers.write_list(self.log_file, log_header)
+        self.files['LOG'] = self.log_file
+
+        self.prev_time = time.time()
+
+        if self.write_new:
+            self.prevs = bov.lines(
+                self.sports, verbose=self.verbose, output='dict')
+            self.current = None
 
         if start:
             self.run()
+
 
     def step(self):
         '''
 
         '''
-        self.news = bov.lines(self.sports, verbose=self.verbose)
-        to_write = prepare_write(self.prevs, self.news)
+        self.new_time = time.time()
+        self.current = bov.lines(self.sports, verbose=self.verbose, output='dict')
+
+        if self.write_new:
+            to_write = compare_and_filter(self.prevs, self.current)
+            self.prevs = self.current
+            time.sleep(self.wait)
+            changes = len(to_write)
+        else:
+            to_write = self.current
+            changes = "NaN"
+        
+        time_delta = self.new_time - self.prev_time
+        self.prev_time = self.new_time
+
         self.files = write_data(self.files, to_write, verbose=self.verbose)
-        self.prevs = self.news
-        time.sleep(self.wait)
+        self.step_num += 1
+        
+        log_data = [self.step_num, self.new_time, time_delta, changes]
+        openers.write_list(self.log_file, log_data)
+        
 
     def run(self):
         '''
         
         '''
         try:
-            self.prevs = bov.lines(self.sports)
-            time.sleep(0.5)
             while True:
                 self.step()
         except KeyboardInterrupt:
             print('interrupted')
+            for fn, f in self.files.items():
+                f.close()
+                print(f'closed {fn}')
 
 
-def prepare_write(prevs, news):
+def compare_and_filter(prevs, news):
     '''
     input: both are dictionaries of (game_id, event) 
 
@@ -74,7 +109,7 @@ def prepare_write(prevs, news):
     '''
 
     to_write = {}
-
+    
     for k, v in news.items():
         if not prevs.get(k) or prevs.get(k) != v:
             to_write[k] = v
@@ -122,4 +157,4 @@ def update_check(prev, new):
 
 
 if __name__ == '__main__':
-    line = Lines('./config/newl.json')
+    line = Lines('./config/new_lines.json')

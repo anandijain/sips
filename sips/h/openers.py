@@ -15,6 +15,7 @@ def write_list(file, list):
         else:
             file.write(',')
 
+
 def page(url):
     site = None
     i = 0

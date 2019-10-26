@@ -13,6 +13,8 @@ from pydash import at
 import sips.h.macros as m
 from sips.lines.bov import bov_main
 
+HEADERS = {'User-Agent': 'Mozilla/5.0'}
+
 BOV_URL = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/'
 BOV_SCORES_URL = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
 
@@ -60,6 +62,7 @@ def parse_json(json, keys, output='dict'):
         if j_key in keys:
             d = json.get(j_key)
             data[j_key] = d
+
     if output == 'list':
         return list(data.values())
     elif output == 'dict':
@@ -99,15 +102,17 @@ def parse_event(event, verbose=False):
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
     a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
     '''
-    sport, game_id, last_mod, num_markets, live = parse_json(event, [
-        'sport', 'id', 'lastModified', 'numMarkets', 'live'], output='list')
+    game_id, sport, live, num_markets, last_mod = parse_json(
+        event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'], output='list')
+
     a_team, h_team = teams(event)
+
     quarter, secs, a_pts, h_pts, status = score(game_id)
 
     display_groups = event['displayGroups'][0]
     markets = display_groups['markets']
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, \
-        h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = parse_markets(markets)
+        h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = grab_row_from_markets(markets)
 
     game_start_time = event['startTime']
     # todo reformat schema [sport, game_id, a_team, h_team, a_ml, h_ml, a_pts, h_pts, quarter, secs, ...]
@@ -118,6 +123,7 @@ def parse_event(event, verbose=False):
 
     if verbose:
         print(f'event: {ret}')
+
     return ret
 
 
@@ -128,7 +134,28 @@ def teams_from_line(line):
     return line[2:4]
 
 
-def parse_markets(markets):
+def grab_row_from_markets(markets):
+    '''
+    parse market dict in bov event
+    '''
+    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, \
+        a_hcap_tot, h_hcap_tot, a_ou, h_ou = ["NaN" for _ in range(12)]
+    for market in markets:
+        desc = market['description']
+        outcomes = market['outcomes']
+        if desc == 'Point Spread':
+            a_ps, h_ps, a_hcap, h_hcap = spread(outcomes)
+        elif desc == 'Moneyline':
+            a_ml, h_ml = moneyline(outcomes)
+        elif desc == 'Total':
+            a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = total(outcomes)
+
+    data = [a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
+            a_hcap_tot, h_hcap_tot, a_ou, h_ou]
+    return data
+
+
+def parse_markets(markets, output='list'):
     '''
     parse market dict in bov event
     '''
@@ -139,7 +166,7 @@ def parse_markets(markets):
 
     for market in markets:
         mkt_type = reduce_mkt_type(market.get('description'))
-        print(f'mkt_type: {mkt_type}')
+        # print(f'mkt_type: {mkt_type}')
         if not mkt_type:
             continue
 
@@ -152,6 +179,8 @@ def parse_markets(markets):
         market_data = parse_market(market)
         all_markets[mkt_key] = market_data
 
+    if output == 'list':
+        return list(all_markets.values())
     return all_markets
 
 
@@ -162,23 +191,20 @@ def parse_market(market):
     '''
     period = market.get('period')
     is_live = int(period['live'])
-    print(f'is_live: {is_live}')
+    # print(f'is_live: {is_live}')
     mkt_type = reduce_mkt_type(market.get('description'))
 
     outcomes = market.get('outcomes')
 
     if mkt_type == 'ps':
         data = spread(outcomes)
-        print(f'{mkt_type} data: {data}')
-    elif mkt_type == 'ml':
-        data = ml_no_teams(outcomes)
-        print(f'{mkt_type} data: {data}')
     elif mkt_type == 'tot':
         data = total(outcomes)
-        print(f'{mkt_type} data: {data}')
     else:
-        print(f'in parse markets mkt_type: {mkt_type}')
+        data = ml_no_teams(outcomes)
+            
     ret = data
+
     if isinstance(data, dict):
         ret = []
         for v in data.values():
@@ -210,7 +236,7 @@ def spread(outcomes):
         else:
             h_ps, h_hcap = parse_json(price, TO_GRAB['ps'], 'list')
 
-    print(f'a_ps, h_ps, a_hcap, h_hcap: {a_ps, h_ps, a_hcap, h_hcap}')
+    # print(f'a_ps, h_ps, a_hcap, h_hcap: {a_ps, h_ps, a_hcap, h_hcap}')
     return [a_ps, h_ps, a_hcap, h_hcap]
 
 
@@ -226,7 +252,7 @@ def moneyline(outcomes):
             a_ml = price['american']
         else:
             h_ml = price['american']
-    print(f'a_ml, h_ml: {a_ml, h_ml}')
+    # print(f'a_ml, h_ml: {a_ml, h_ml}')
     return [a_ml, h_ml]
 
 
@@ -263,13 +289,13 @@ def total(outcomes):
     h_price = h_outcome.get('price')
     h_tot, h_hcap_tot = parse_json(h_price, TO_GRAB['tot'], 'list')
 
-    print(
-        f'[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]: {[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]}')
+    # print(
+    #     f'[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]: {[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]}')
 
     return [a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]
 
 
-def competitors(competitors, verbose=True):
+def competitors(competitors, verbose=False):
     '''
     keys: 'home' (bool), 'id' (str), 'name' (str)
     '''
@@ -312,8 +338,9 @@ def score(game_id):
     game_url = BOV_SCORES_URL + game_id
     json_data = req_json(url=game_url)
 
-    if json_data.get('Error'):
+    if not json_data:
         return [quarter, secs, a_pts, h_pts, status]
+
     clock = json_data.get('clock')
     if clock:
         quarter = clock['periodNumber']
@@ -337,16 +364,26 @@ def async_req(links):
     return jsons
 
 
-def req_json(sport='football/nfl', url=None, sleep=0.25):
+def req_json(sport='football/nfl', url=None, sleep=0.5, verbose=False):
     '''
     requests the bovada link, and specific sport as arg
     '''
     if not url:
         url = BOV_URL + sport
-        print(f'no url given. url was set to: {url}')
-
-    bov_json = r.get(url).json()
+    try:
+        req = r.get(url)
+    except:
+        return None
     time.sleep(sleep)
+
+    try:
+        bov_json = req.json()
+    except:
+        print(f'{url} had no json')
+        return None
+
+    if verbose:
+        print(f"req'd url: {url}")
     return bov_json
 
 
@@ -369,9 +406,7 @@ def dict_from_events(events, key='id', rows=True):
     rows: (bool)
         - if true, set key-vals to rows
     '''
-    print(f'len events: {len(events)}')
     event_dict = {e[key]: parse_event(e) if rows else e for e in events}
-
     return event_dict
 
 
@@ -380,8 +415,8 @@ def list_from_jsons(jsons, rows=False):
     jsons is a list of dictionaries for each sport 
     returns a list of events
     '''
-    events = [parse_event(
-        e) if rows else e for j in jsons for e in json_events(j)]
+    events = [parse_event(e) 
+            if rows else e for j in jsons for e in json_events(j)]
     return events
 
 
