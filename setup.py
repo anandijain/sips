@@ -9,6 +9,6 @@ setup(
    packages=['sips'],  #same as name
    install_requires= \
            ['pandas', 'requests', 'beautifulsoup4', 'numpy', 'gym',
-           'torch', 'seaborn', 'scikit-learn',
+           'torch', 'seaborn', 'scikit-learn', 'requests-futures',
            'matplotlib'] # external packages as dependencies
 )
