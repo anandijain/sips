@@ -8,7 +8,6 @@ def main():
     req = r.get(
         'https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba').json()
     es = req[0].get('events')
-    # print('1') if es else print('0')
     for event in es:
         desc = event.get('description')
         print(f'desc: {desc}')
@@ -17,7 +16,7 @@ def main():
         event_dict = utils.parse_display_groups(event)
         cleaned = utils.clean_desc(desc)
         all_dict[cleaned] = event_dict
-    # print(f'all_dict: {all_dict}')
+    print(f'all_dict: {all_dict}')
     return all_dict
 
 

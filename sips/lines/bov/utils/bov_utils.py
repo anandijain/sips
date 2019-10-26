@@ -92,15 +92,15 @@ def parse_display_group(display_group):
     return data
 
 
-def parse_event(event):
+def parse_event(event, verbose=False):
     '''
     [sport, game_id, a_team, h_team, last_mod, num_markets, live],
     [quarter, secs, a_pts, h_pts, status], [
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
     a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
     '''
-    sport, game_id, last_mod, num_markets, live = at(event, [
-        'sport', 'id', 'lastModified', 'numMarkets', 'live'])
+    sport, game_id, last_mod, num_markets, live = parse_json(event, [
+        'sport', 'id', 'lastModified', 'numMarkets', 'live'], output='list')
     a_team, h_team = teams(event)
     quarter, secs, a_pts, h_pts, status = score(game_id)
 
@@ -116,6 +116,8 @@ def parse_event(event):
            a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
            a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
 
+    if verbose:
+        print(f'event: {ret}')
     return ret
 
 

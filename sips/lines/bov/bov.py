@@ -27,7 +27,7 @@ def get_events(sports=['nba', 'mlb', 'nfl'], output='list'):
     return events
 
 
-def lines(sports, output='dict', verbose=False, fixlines=True):
+def lines(sports, output='list', verbose=True, fixlines=True):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
