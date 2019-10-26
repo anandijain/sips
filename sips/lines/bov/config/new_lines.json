@@ -1,5 +1,5 @@
 {
-    "sports": ["nba", "nfl"],
+    "sports": ["nba", "nfl", "college-football"],
     "wait": 1,
     "flush_rate": 5,
     "write": {

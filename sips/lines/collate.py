@@ -69,12 +69,12 @@ def match_lines_boxes(lines, boxes, verbose=True):
     rows = []
     eteams = None
     for line in lines:
-        bteams = sorted(bov_utils.teams_from_line(line))
+        bteams = bov_utils.teams_from_line(line)
         for boxscore in boxes:
-            eteams = sorted(boxscore[-2:])
+            eteams = boxscore[-2:]
             print(f'bteams: {bteams}')
             print(f'eteams: {eteams}')
-            if list(bteams) == list(eteams):
+            if sorted(list(bteams)) == sorted(list(eteams)):
                 if verbose:
                     print(f'games matched: {bteams, eteams}')
                 row = line + boxscore
