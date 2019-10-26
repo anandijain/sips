@@ -11,18 +11,15 @@ from sips.lines.bov.utils import bov_utils
 
 from nfl_ref import full_package as fp
 
-def get_nfl_ref_data():
-    df = fp.scraper_main()
-
 
 def get_and_compare():
     bov, api_evs, box_evs = get_events()
     rows = match_events(bov, api_evs)
     # lines_boxes = match_lines_boxes(bov, box_evs)
-    ref_df = get_nfl_ref_data()
-    bov_df = pd.DataFrame(bov.lines(['nfl']))
-    ret = pd.merge(by='outer', on='')
-    return rows, lines_boxes
+    # df = fp.scraper_main()
+    # bov_df = pd.DataFrame(bov.lines(['nfl']))
+    # ret = pd.merge(by='outer', on='')
+    return rows
 
 
 def box_lines_comp(sports=['nfl']):
@@ -43,14 +40,6 @@ def get_events(sports=['nba'], verbose=True):
         print(f'espn_events: {espn_events}')
         print(f'espn_boxes: {espn_boxes}')
     return bov_events, espn_events, espn_boxes
-
-
-# def bov_events_dict(events):
-#     '''
-#     takes in list
-#     '''
-#     for event in events:
-#         bov.team 
 
 
 def match_events(bov_events, espn_events):
@@ -75,28 +64,30 @@ def match_events(bov_events, espn_events):
     return rows
 
 
-def match_lines_boxes(lines, boxes):
+def match_lines_boxes(lines, boxes, verbose=True):
     num_matched = 0
     rows = []
     eteams = None
     for line in lines:
-        bteams = bov_utils.teams_from_line(line)
-        print(f'bteams: {bteams}')
-        print(f'eteams: {eteams}')
+        bteams = sorted(bov_utils.teams_from_line(line))
         for boxscore in boxes:
-            eteams = boxscore[-2:]
+            eteams = sorted(boxscore[-2:])
+            print(f'bteams: {bteams}')
+            print(f'eteams: {eteams}')
             if list(bteams) == list(eteams):
-                print(f'games matched: {bteams, eteams}')
+                if verbose:
+                    print(f'games matched: {bteams, eteams}')
                 row = line + boxscore
                 rows.append(row)
                 num_matched += 1
-    print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
-    print(f'num_matched: {num_matched}')
+    if verbose:
+        print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
+        print(f'num_matched: {num_matched}')
     return rows
 
 
 def main():
-    rows = box_lines_comp()
+    rows = box_lines_comp(['college-football'])
     print(rows)
     return rows
 
