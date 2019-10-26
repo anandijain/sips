@@ -44,6 +44,7 @@ sports = ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
 
 sport_to_suffix = {
     'nfl': 'football/nfl',
+    'college-football': 'football/college-football',
     'nba': 'basketball/nba',
     'mlb': 'baseball/mlb'
 }

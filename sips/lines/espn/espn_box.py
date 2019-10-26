@@ -3,9 +3,11 @@ import bs4
 
 import time
 
-ESPN_ROOT='https://www.espn.com'
+from sips.h import openers as o
 
-DELAY=0.05
+ESPN_ROOT='https://www.espn.com/'
+
+
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:time')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:score')
 TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:live')
@@ -19,7 +21,7 @@ def get_sports():
 def boxlinks(ids=None, sport='nfl'):
     if not ids:
         ids = get_ids(sport=sport)
-    url = ESPN_ROOT + '/' + sport + '/boxscore?gameId='
+    url = ESPN_ROOT + sport + '/boxscore?gameId='
     links = [url + id for id in ids]
     print(f'boxlinks: {boxlinks}')
     return links
@@ -69,14 +71,14 @@ def schedules(sports=['nfl']):
     pages = []
     for sport in sports:
             espn_id_link = '/' + sport + '/schedule'
-            p = get_page(espn_id_link)
+            p = o.get_page(espn_id_link)
             pages.append(p)
     return pages
 
 
 def schedule(sport='nfl'):
-    espn_id_link = ESPN_ROOT + '/' + sport + '/schedule'
-    p = get_page(espn_id_link)
+    espn_id_link = ESPN_ROOT + sport + '/schedule'
+    p = o.get_page(espn_id_link)
     return p
 
 
@@ -95,7 +97,7 @@ def get_live_pages():
     pages = []
     # add multithreading
     for id in ids:
-        pages.append(get_page(id_to_boxlink(id)))
+        pages.append(o.get_page(id_to_boxlink(id)))
     return pages
 
 
@@ -160,7 +162,7 @@ def parse_ids(tags):
 
 
 def id_to_boxlink(id, sport='nfl'):
-    return ESPN_ROOT + '/' + sport + '/boxscore?gameId=' + id
+    return ESPN_ROOT + sport + '/boxscore?gameId=' + id
 
 
 def box_tds(tds):
@@ -229,17 +231,6 @@ def box_teamnames(page):
     return a_team, h_team
 
 
-def get_page(link):
-    '''
-
-    '''
-    print(f'link: {link}')
-    req = r.get(link).text
-    p = bs4.BeautifulSoup(req, 'html.parser')
-    time.sleep(DELAY)
-    return p
-
-
 def boxscores(sport='nba'):
     links = boxlinks(sport=sport)
     print(f'links: {links}')
@@ -249,7 +240,7 @@ def boxscores(sport='nba'):
 
 
 def boxscore(link):
-    page = get_page(link)
+    page = o.get_page(link)
     a_team, h_team = box_teamnames(page)
     team_stats = teamstats(page)
     real_stats = parse_teamstats(team_stats)

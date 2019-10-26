@@ -3,18 +3,17 @@ import pandas as pd
 
 import bs4
 
+from sips.h import openers as o
+
 url = "https://www.hockey-reference.com"
 
-def get_page(url):
-    req = r.get(url)
-    p = bs4.BeautifulSoup(req.text, "html.parser")
-    return p
 
 def league_index():
     suffix = "/leagues/"
-    p = get_page(url + suffix)
+    p = o.get_page(url + suffix)
     t = p.find('table', {'id' : 'league_index'})
     return t
+
 
 def find_in_table(t, tup):
     # tup is 3tuple with ('th', 'data-stat', 'season') for example
@@ -27,11 +26,13 @@ def find_in_table(t, tup):
             continue
     return links
 
+
 def link_fix(link):
     split = link.split('.')
     split[0] += "_games." 
     ret = split[0] + split[1]
     return ret
+
 
 def gamelinks_str_fix(links):
     ret = []
@@ -39,17 +40,19 @@ def gamelinks_str_fix(links):
         ret.append(link_fix(link))
     return ret
 
+
 def season_boxlinks(season_url):
     find_tup = ('th', 'data-stat', 'date_game')
-    p = get_page(season_url)
+    p = o.get_page(season_url)
     tables = p.find_all('table')
     ret = []
     for table in tables:    
         ret += find_in_table(table, find_tup)
     return ret
 
+
 def parse_box(boxlink):
-    p = get_page(boxlink)
+    p = o.get_page(boxlink)
     tables = p.find_all('table')
     dfs = []
     for table in tables:
@@ -63,6 +66,7 @@ def parse_box(boxlink):
         df['id'] = id_series
         dfs.append(df)
     return dfs
+
 
 def main(write=True):
     ret = []

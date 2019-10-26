@@ -1,8 +1,9 @@
 {
     "sports": ["nba", "nfl"],
     "wait": 1,
+    "flush_rate": 5,
     "write": {
-        "new_only": false,
+        "new_only": true,
         "file_per_game": true
     },
     "verbose": false,

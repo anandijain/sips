@@ -42,14 +42,6 @@ def get_events(sports=['nba'], verbose=True):
     return bov_events, espn_events, espn_boxes
 
 
-# def bov_events_dict(events):
-#     '''
-#     takes in list
-#     '''
-#     for event in events:
-#         bov.team 
-
-
 def match_events(bov_events, espn_events):
     num_matched = 0
     rows = []
@@ -72,7 +64,7 @@ def match_events(bov_events, espn_events):
     return rows
 
 
-def match_lines_boxes(lines, boxes, verbose=False):
+def match_lines_boxes(lines, boxes, verbose=True):
     num_matched = 0
     rows = []
     eteams = None
@@ -80,6 +72,8 @@ def match_lines_boxes(lines, boxes, verbose=False):
         bteams = sorted(bov_utils.teams_from_line(line))
         for boxscore in boxes:
             eteams = sorted(boxscore[-2:])
+            print(f'bteams: {bteams}')
+            print(f'eteams: {eteams}')
             if list(bteams) == list(eteams):
                 if verbose:
                     print(f'games matched: {bteams, eteams}')
@@ -93,7 +87,7 @@ def match_lines_boxes(lines, boxes, verbose=False):
 
 
 def main():
-    rows = box_lines_comp()
+    rows = box_lines_comp(['college-football'])
     print(rows)
     return rows
 

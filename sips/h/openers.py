@@ -4,7 +4,8 @@ import time
 import bs4
 import requests as r
 
-headers = {'User-Agent': 'Mozilla/5.0'}
+HEADERS = {'User-Agent': 'Mozilla/5.0'}
+
 
 def write_list(file, list):
     length = len(list)
@@ -15,31 +16,24 @@ def write_list(file, list):
         else:
             file.write(',')
 
+    
+def get_page(link, verbose=False):
+    '''
 
-def page(url):
-    site = None
-    i = 0
-    while not site:
-        try:
-            site = r.get(url, headers=headers)
-        except ConnectionError:
-            i += 1
-            time.sleep(2)
-            if i == 5:
-                return
-    page_html = site.content
-    page = bs4.BeautifulSoup(page_html, "html.parser")
-    return page
+    '''
+    DELAY = 0.05
+    if verbose:
+        print(f'link: {link}')
 
-
-def file(file_name):
-    file = open(file_name, "w", encoding="utf-8")
-    return file
+    req = r.get(link, headers=HEADERS).text
+    p = bs4.BeautifulSoup(req, 'html.parser')
+    time.sleep(DELAY)
+    return p
 
 
 def req(url):
     try:
-        req = r.get(url, headers=headers, timeout=10)
+        req = r.get(url, headers=HEADERS, timeout=10)
     except ConnectionResetError:
         print('connection reset error')
         time.sleep(2)

@@ -333,26 +333,33 @@ def score(game_id):
     '''
     given a game_id, returns the score data of the game
     '''
-    [quarter, secs, a_pts, h_pts, status] = ['NaN' for _ in range(5)]
+    [quarter, secs, a_pts, h_pts, game_status] = ['NaN' for _ in range(5)]
 
     game_url = BOV_SCORES_URL + game_id
     json_data = req_json(url=game_url)
 
     if not json_data:
-        return [quarter, secs, a_pts, h_pts, status]
+        return [quarter, secs, a_pts, h_pts, game_status]
 
     clock = json_data.get('clock')
     if clock:
         quarter = clock['periodNumber']
         secs = clock['relativeGameTimeInSecs']
+    latest_score = json_data.get('latestScore')
 
-    a_pts = json_data['latestScore']['visitor']
-    h_pts = json_data['latestScore']['home']
-    status = 0
-    if json_data['gameStatus'] == "IN_PROGRESS":
-        status = 1
+    if not latest_score:
+        a_pts = 0
+        h_pts = 0
+    else:
+        a_pts = latest_score.get('visitor')
+        h_pts = latest_score.get('home')
 
-    return [quarter, secs, a_pts, h_pts, status]
+    status = json_data.get('gameStatus')
+    if status:
+        game_status = status
+    else:
+        status = None
+    return [quarter, secs, a_pts, h_pts, game_status]
 
 
 def async_req(links):

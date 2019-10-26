@@ -31,6 +31,7 @@ class Lines:
         self.sports = self.config.get('sports')
         print(f'sports: {self.sports}')
 
+        self.flush_rate = self.config.get('file_flush_rate')
         self.wait = self.config.get('wait')
         self.write_new = self.config.get('write').get('new_only')
         self.verbose = self.config.get('verbose')
@@ -45,7 +46,7 @@ class Lines:
         if os.path.isfile(self.log_path):
             self.log_file = open(self.log_path, 'a')
         else:
-            log_header = ['index', 'time', 'time_diff', 'num_changes']
+            log_header = ['index', 'time', 'time_diff', 'num_events', 'num_changes']
             self.log_file = open(self.log_path, 'a')
             openers.write_list(self.log_file, log_header)
         self.files['LOG'] = self.log_file
@@ -83,7 +84,7 @@ class Lines:
         self.files = write_data(self.files, to_write, verbose=self.verbose)
         self.step_num += 1
         
-        log_data = [self.step_num, self.new_time, time_delta, changes]
+        log_data = [self.step_num, self.new_time, time_delta, len(self.current), changes]
         openers.write_list(self.log_file, log_data)
         
 
@@ -96,10 +97,10 @@ class Lines:
                 self.step()
         except KeyboardInterrupt:
             print('interrupted')
-            for fn, f in self.files.items():
-                f.close()
-                print(f'closed {fn}')
 
+    def flush_log_file(self):
+        if self.step_num % self.flush_rate == 1:
+            self.log_file.flush()
 
 def compare_and_filter(prevs, news):
     '''
@@ -128,11 +129,11 @@ def write_data(file_dict, data_dict, verbose=True):
     '''
 
     '''
-    for k, v in data_dict.items():
-        f = file_dict.get(k)
-        fn = '../data/lines/' + str(k) + '.csv'
+    for game_id, v in data_dict.items():
+        f = file_dict.get(game_id)
+        fn = '../data/lines/' + str(game_id) + '.csv'
         if not f:
-            file_dict[k] = fn
+            file_dict[game_id] = fn
             if not os.path.isfile(fn):
                 init_file(fn)
 
@@ -140,7 +141,7 @@ def write_data(file_dict, data_dict, verbose=True):
 
         io.write_list(f, v)
         if verbose:
-            print(f'writing {v} to game [{k}]')
+            print(f'writing {v} to game [{game_id}]')
 
         f.close()
     return file_dict
