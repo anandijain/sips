@@ -8,12 +8,20 @@ import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
 
-from .calc import *
-from .loaders import *
-from .macros import *
-import stat
-
+import sips.h as h
 # todo trash this code 
+
+def remove_string_cols(df):
+    cols_to_remove = []
+    for col in df.columns:
+        try:
+            _ = df[col].astype(float)
+        except ValueError:
+            cols_to_remove.append(col)
+            pass
+    # keep only the columns in df that do not contain string
+    df = df[[col for col in df.columns if col not in cols_to_remove]]
+    return df
 
 def full_fn(fn):
     str_path = './sips/gym_sip/data/static/' + fn + '.csv'
@@ -270,7 +278,7 @@ def onehot_teams(a_team, h_team):
     one_hotted = []
 
     for cur_team in [a_team, h_team]:
-        for index, elt in enumerate(macros.az_teams):
+        for index, elt in enumerate(h.macros.az_teams):
             if cur_team == elt:
                 a = pd.Series([0 for i in range(index)])
                 b = pd.Series([1])

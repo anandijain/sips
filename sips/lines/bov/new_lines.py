@@ -1,11 +1,15 @@
 import os
 import time
-import json 
+import json
 
 import sips.h.openers as io
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
 from sips.h import openers
+
+from requests_futures.sessions import FuturesSession
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+
 
 class Lines:
     '''
@@ -19,6 +23,7 @@ class Lines:
         - if true, data is only written if it is different than previous
         , sport='nfl', wait=5, start=True, write_new=False, verbose=False
     '''
+
     def __init__(self, config_path='./config/new_lines.json'):
         self.dir = '../data/lines/'
 
@@ -29,45 +34,51 @@ class Lines:
             self.config = json.load(config)
 
         self.sports = self.config.get('sports')
-        print(f'sports: {self.sports}')
-
-        self.flush_rate = self.config.get('file_flush_rate')
         self.wait = self.config.get('wait')
-        self.write_new = self.config.get('write').get('new_only')
         self.verbose = self.config.get('verbose')
-
         start = self.config['start']
 
-        # dict of game files 
+        file_conf = self.config.get('file')
+        self.write_new = file_conf.get('new_only')
+        # self.file_per_game = file_conf.get('file_per_game')
+        self.flush_rate = file_conf.get('flush_rate')
+        self.keep_open = file_conf.get('keep_open')
+
+        self.session = FuturesSession(
+            executor=ProcessPoolExecutor(max_workers=10))
+
+        # if keep_open, dict of files, else dict of file names
         self.files = {}
+        # todo multiple ways of writing/grouping output
 
         self.step_num = 0
         self.log_path = self.dir + 'LOG.csv'
         if os.path.isfile(self.log_path):
             self.log_file = open(self.log_path, 'a')
         else:
-            log_header = ['index', 'time', 'time_diff', 'num_events', 'num_changes']
+            log_header = ['index', 'time', 'time_diff',
+                          'num_events', 'num_changes']
             self.log_file = open(self.log_path, 'a')
             openers.write_list(self.log_file, log_header)
         self.files['LOG'] = self.log_file
-
+        self.log_data = None
         self.prev_time = time.time()
 
         if self.write_new:
             self.prevs = bov.lines(
-                self.sports, verbose=self.verbose, output='dict')
+                self.sports, output='dict', verbose=self.verbose, session=self.session)
             self.current = None
 
         if start:
             self.run()
-
 
     def step(self):
         '''
 
         '''
         self.new_time = time.time()
-        self.current = bov.lines(self.sports, verbose=self.verbose, output='dict')
+        self.current = bov.lines(
+            self.sports, verbose=self. verbose, output='dict', session=self.session)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
@@ -77,20 +88,24 @@ class Lines:
         else:
             to_write = self.current
             changes = "NaN"
-        
+
         time_delta = self.new_time - self.prev_time
         self.prev_time = self.new_time
+        if self.keep_open:
+            
+        else:
+            self.files = open_and_write(self.files, to_write, verbose=self.verbose)
 
-        self.files = write_data(self.files, to_write, verbose=self.verbose)
         self.step_num += 1
-        
-        log_data = [self.step_num, self.new_time, time_delta, len(self.current), changes]
-        openers.write_list(self.log_file, log_data)
-        
+
+        self.log_data = [self.step_num, self.new_time,
+                         time_delta, len(self.current), changes]
+        openers.write_list(self.log_file, self.log_data)
+        self.flush_log_file()
 
     def run(self):
         '''
-        
+
         '''
         try:
             while True:
@@ -100,7 +115,12 @@ class Lines:
 
     def flush_log_file(self):
         if self.step_num % self.flush_rate == 1:
+            print(f'{self.log_data}')
             self.log_file.flush()
+            if self.keep_open:
+                for game_file in self.files.values():
+                    game_file.flush()
+
 
 def compare_and_filter(prevs, news):
     '''
@@ -110,7 +130,7 @@ def compare_and_filter(prevs, news):
     '''
 
     to_write = {}
-    
+
     for k, v in news.items():
         if not prevs.get(k) or prevs.get(k) != v:
             to_write[k] = v
@@ -119,17 +139,40 @@ def compare_and_filter(prevs, news):
     return to_write
 
 
-def init_file(fn):
+def init_file(fn, keep_open=False):
     f = open(fn, 'a')
     io.write_list(f, utils.header())
-    f.close()
+    if not keep_open:
+        f.close()
+    else:
+        return f
 
 
-def write_data(file_dict, data_dict, verbose=True):
+def write_opened(file_dict, data_dict, verbose=True):
     '''
-
+    read in dictionary with open files as values
+    and write data to files
     '''
-    for game_id, v in data_dict.items():
+    for game_id, vals in data_dict.items():
+        f = file_dict.get(game_id)
+
+        if not f:
+            fn = '../data/lines/' + str(game_id) + '.csv'
+            f = init_file(fn, keep_open=True)
+            file_dict[game_id] = f
+        
+        io.write_list(f, vals)
+        if verbose:
+            print(f'writing {vals} to game [{game_id}]')
+    
+    return file_dict
+
+
+def open_and_write(file_dict, data_dict, verbose=True):
+    '''
+    read in dictionary of file names and compare to new data
+    '''
+    for game_id, vals in data_dict.items():
         f = file_dict.get(game_id)
         fn = '../data/lines/' + str(game_id) + '.csv'
         if not f:
@@ -139,9 +182,9 @@ def write_data(file_dict, data_dict, verbose=True):
 
         f = open(fn, 'a')
 
-        io.write_list(f, v)
+        io.write_list(f, vals)
         if verbose:
-            print(f'writing {v} to game [{game_id}]')
+            print(f'writing {vals} to game [{game_id}]')
 
         f.close()
     return file_dict
@@ -158,4 +201,5 @@ def update_check(prev, new):
 
 
 if __name__ == '__main__':
-    line = Lines('./config/new_lines.json')
+    line = Lines(
+        '/home/sippycups/absa/sips/sips/lines/bov/config/new_lines.json')

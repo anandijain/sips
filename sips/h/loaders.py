@@ -6,7 +6,7 @@ from sklearn import preprocessing
 import torch
 from torch.utils.data import Dataset
 
-from sips.h.helpers import *
+from sips.h import helpers as h
 
 class Df(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):
@@ -64,7 +64,7 @@ class DfGame(Dataset):
 
     def __getitem__(self, index):
         self.game = self.games[index]
-        first_half, second_half = split_game_in_half(self.game)
+        first_half, second_half = h.split_game_in_half(self.game)
         return self.game
 
     def __len__(self):
@@ -108,7 +108,7 @@ class DfCols(Dataset):
 
         self.labels = self.df[self.label_cols]
         # self.labels = self.labels.to_numpy(dtype=float)
-        self.labels = sk_scale(self.labels)
+        self.labels = h.sk_scale(self.labels)
         self.labels = torch.tensor(self.labels)
 
         self.labels_shape = len(self.labels)
@@ -119,7 +119,7 @@ class DfCols(Dataset):
             self.data = self.df[self.train_cols]
 
         # self.data = self.data.to_numpy(dtype=float)
-        self.data = sk_scale(self.data)
+        self.data = h.sk_scale(self.data)
         self.data = torch.tensor(self.data)
 
         self.data_shape = len(self.data[0])
@@ -163,6 +163,7 @@ class LineGen(Dataset):
             y = torch.tensor(self.Y[i], dtype=torch.float)
             self.tups.append((x, y))
 
+
 class PlayerDataset(Dataset):
     def __init__(self, window=1, fn='./data/static/lets_try5.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'], team_columns=None):
         self.projections_frame = pd.read_csv(fn)
@@ -197,3 +198,36 @@ class PlayerDataset(Dataset):
 
         tup = (x, y)
         return tup
+
+
+class LinesLoader(Dataset):
+    def __init__(self, dir='../data/', fn='nfl_history_no_strings.csv'):
+        df = pd.read_csv(dir + fn)
+        df = df.fillna(0)
+        print(df)
+        # print(df)
+        # for i, column in enumerate(df.columns):
+        #     print(f'{i}: {column}')
+            
+        # for i, dtype in enumerate(df.dtypes):
+        #     print(f'{i}: {dtype}')
+
+
+        self.df = pd.get_dummies(df, columns=['a_team', 'h_team', 'Venue'])
+        self.df = h.remove_string_cols(self.df)
+        print(self.df)
+
+        self.target_columns = ['a_win', 'h_win']
+        self.X = self.df.drop(self.target_columns, axis=1)
+        self.y = self.df[self.target_columns]
+        self.length = len(self.df)
+        self.dtypes = self.X.dtypes
+
+    def __getitem__(self, index):
+        X = torch.tensor(self.X.iloc[index].values, dtype=torch.float32)
+        y = torch.tensor(self.y.iloc[index].values)
+        return X, y
+
+    def __len__(self):
+        return self.length
+        
