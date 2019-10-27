@@ -5,10 +5,11 @@ import json
 import sips.h.openers as io
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
-from sips.h import openers
+
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from requests_futures.sessions import FuturesSession
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 
 class Lines:
@@ -38,6 +39,11 @@ class Lines:
         self.verbose = self.config.get('verbose')
         start = self.config['start']
 
+        '''
+        if espn is true, we want to add 
+        '''
+        self.espn = self.config['grab_espn']
+
         file_conf = self.config.get('file')
         self.write_new = file_conf.get('new_only')
         # self.file_per_game = file_conf.get('file_per_game')
@@ -45,7 +51,7 @@ class Lines:
         self.keep_open = file_conf.get('keep_open')
 
         self.session = FuturesSession(
-            executor=ProcessPoolExecutor(max_workers=10))
+            executor=ProcessPoolExecutor())
 
         # if keep_open, dict of files, else dict of file names
         self.files = {}
@@ -59,14 +65,14 @@ class Lines:
             log_header = ['index', 'time', 'time_diff',
                           'num_events', 'num_changes']
             self.log_file = open(self.log_path, 'a')
-            openers.write_list(self.log_file, log_header)
+            io.write_list(self.log_file, log_header)
         self.files['LOG'] = self.log_file
         self.log_data = None
         self.prev_time = time.time()
 
         if self.write_new:
             self.prevs = bov.lines(
-                self.sports, output='dict', verbose=self.verbose, session=self.session)
+                self.sports, output='dict', verbose=self.verbose, session=self.session, espn=self.espn)
             self.current = None
 
         if start:
@@ -77,8 +83,8 @@ class Lines:
 
         '''
         self.new_time = time.time()
-        self.current = bov.lines(
-            self.sports, verbose=self. verbose, output='dict', session=self.session)
+        self.current = bov.lines(self.sports, verbose=self.verbose, 
+                        output='dict', session=self.session, espn=self.espn)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
@@ -91,16 +97,19 @@ class Lines:
 
         time_delta = self.new_time - self.prev_time
         self.prev_time = self.new_time
+
         if self.keep_open:
-            
+            self.files = write_opened(
+                self.files, to_write, verbose=self.verbose)
         else:
-            self.files = open_and_write(self.files, to_write, verbose=self.verbose)
+            self.files = open_and_write(
+                self.files, to_write, verbose=self.verbose)
 
         self.step_num += 1
 
         self.log_data = [self.step_num, self.new_time,
                          time_delta, len(self.current), changes]
-        openers.write_list(self.log_file, self.log_data)
+        io.write_list(self.log_file, self.log_data)
         self.flush_log_file()
 
     def run(self):
@@ -160,11 +169,49 @@ def write_opened(file_dict, data_dict, verbose=True):
             fn = '../data/lines/' + str(game_id) + '.csv'
             f = init_file(fn, keep_open=True)
             file_dict[game_id] = f
-        
+
         io.write_list(f, vals)
         if verbose:
             print(f'writing {vals} to game [{game_id}]')
-    
+
+    return file_dict
+
+
+def async_write_opened(file_dict, data_dict, verbose=True):
+    '''
+    read in dictionary with open files as values
+    and write data to files
+    '''
+
+    args = ((check_if_exists(file_dict, game_id), game_id, val)
+            for game_id, val in data_dict.items())
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = [executor.map(write_for_map, args)]
+        as_completed = concurrent.futures.as_completed(results)
+        file_dict = as_completed[-1]
+
+    return file_dict
+
+
+def write_for_map(file_dict, game_id, vals):
+    file_dict = check_if_exists(file_dict, game_id)
+    f = file_dict[game_id]
+    io.write_list(f, vals)
+    return file_dict
+
+
+def check_if_exists(file_dict, key):
+    '''
+    given a dictionary and a key
+    if key not in dict, init file, add to dict, return updated dict
+    '''
+    f = file_dict.get(key)
+
+    if not f:
+        fn = '../data/lines/' + str(key) + '.csv'
+        f = init_file(fn, keep_open=True)
+        file_dict[key] = f
     return file_dict
 
 

@@ -109,7 +109,7 @@ def merge_lines_scores(lines, scores):
     return ret
 
 
-def dict_from_events(events, key='id', rows=True):
+def dict_from_events(events, key='id', rows=True, grab_score=False):
     '''
     returns a dictionary of (key, event) or (key, list)
 
@@ -117,11 +117,12 @@ def dict_from_events(events, key='id', rows=True):
     rows: (bool)
         - if true, set key-vals to rows
     '''
-    event_dict = {e[key]: parse_event(e) if rows else e for e in events}
+    event_dict = {e[key]: parse_event(
+        e, grab_score=grab_score) if rows else e for e in events}
     return event_dict
 
 
-def parse_event(event, verbose=False, grab_score=False):
+def parse_event(event, verbose=False, grab_score=True):
     '''
     [sport, game_id, a_team, h_team, last_mod, num_markets, live],
     [quarter, secs, a_pts, h_pts, status], [
@@ -132,32 +133,34 @@ def parse_event(event, verbose=False, grab_score=False):
         event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'], output='list')
 
     a_team, h_team = teams(event)
-    if not grab_score:
-        score_url = m.BOV_SCORES_URL + game_id
-        score_data = req_json(score_url)
-        quarter, secs, a_pts, h_pts, status = score(score_data)
 
     display_groups = event['displayGroups'][0]
     markets = display_groups['markets']
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, \
-        h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = grab_row_from_markets(markets)
+        h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = grab_row_from_markets(
+            markets)
 
     game_start_time = event['startTime']
 
     if not grab_score:
-        section_1 = [sport, game_id, a_team, h_team, last_mod, num_markets, live]
+        section_1 = [sport, game_id, a_team,
+                     h_team, last_mod, num_markets, live]
         section_2 = [a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
-                    a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
+                     a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
         ret = [section_1, section_2]
     else:
-        ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live, 
-                quarter, secs, a_pts, h_pts, status, a_ps, h_ps, a_hcap, 
-                h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot,
-                a_ou, h_ou, game_start_time]
+        score_url = m.BOV_SCORES_URL + game_id
+        score_data = req_json(score_url)
 
-    # ret = [sport, game_id, a_team, h_team, a_pts, h_pts, a_ml, h_ml, 
-    #         quarter, secs, status, num_markets, live, a_ps, h_ps, a_hcap, 
-    #         h_hcap, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou, 
+        quarter, secs, a_pts, h_pts, status = score(score_data)
+        ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
+               quarter, secs, a_pts, h_pts, status, a_ps, h_ps, a_hcap,
+               h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot,
+               a_ou, h_ou, game_start_time]
+
+    # ret = [sport, game_id, a_team, h_team, a_pts, h_pts, a_ml, h_ml,
+    #         quarter, secs, status, num_markets, live, a_ps, h_ps, a_hcap,
+    #         h_hcap, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou,
     #         game_start_time, last_mod]
 
     if verbose:
@@ -242,7 +245,7 @@ def parse_market(market):
         data = total(outcomes)
     else:
         data = ml_no_teams(outcomes)
-            
+
     ret = data
 
     if isinstance(data, dict):
@@ -250,7 +253,7 @@ def parse_market(market):
         for v in data.values():
             ret += v
         print(f'this RET: {ret}')
-    
+
     ret.append(is_live)
     print(f'ret: {ret}')
     return ret
@@ -308,7 +311,7 @@ def ml_no_teams(outcomes):
     return mls
 
 
-def total_no_teams():    
+def total_no_teams():
     pass
 
 
@@ -341,7 +344,7 @@ def competitors(competitors, verbose=False):
     '''
     data = [parse_json(t, TO_GRAB['competitors']) for t in competitors]
     if verbose:
-        print(f'competitors: {data}') 
+        print(f'competitors: {data}')
     return data  # list of two dictionaries
 
 
@@ -378,7 +381,7 @@ def get_scores(events, session=None):
 
     links = [m.BOV_SCORES_URL + game_id for game_id in ids]
     raw = o.async_req_dict(links, 'eventId', session=session)
-    scores_dict = {g_id : score(j) for g_id, j in raw.items()}
+    scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 
 
@@ -451,8 +454,8 @@ def list_from_jsons(jsons, rows=False):
     jsons is a list of dictionaries for each sport 
     returns a list of events
     '''
-    events = [parse_event(e) 
-            if rows else e for j in jsons for e in json_events(j)]
+    events = [parse_event(e)
+              if rows else e for j in jsons for e in json_events(j)]
     return events
 
 
@@ -471,10 +474,10 @@ def match_sport_str(sport='mlb'):
     maps string to the url suffix to bovada api
     '''
     try:
-        sport = m.sport_to_suffix[sport]
+        sport = m.SPORT_TO_SUFFIX[sport]
     except KeyError:
         print('forcing nfl')
-        sport = m.sport_to_suffix['nfl']
+        sport = m.SPORT_TO_SUFFIX['nfl']
     return sport
 
 

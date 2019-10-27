@@ -1,12 +1,13 @@
 {
     "sports": ["nba", "nfl", "college-football"],
-    "wait": 1,
+    "wait": 0.5,
     "verbose": false,
+    "grab_espn": true,
     "start": true,
     "file": {
         "new_only": true,
         "file_per_game": true,
-        "keep_open": true,
+        "keep_open": false,
         "flush_rate": 10
     }
 }

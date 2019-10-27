@@ -18,15 +18,6 @@ def get_sports():
     return sports
 
 
-def boxlinks(ids=None, sport='nfl'):
-    if not ids:
-        ids = get_ids(sport=sport)
-    url = ESPN_ROOT + sport + '/boxscore?gameId='
-    links = [url + id for id in ids]
-    print(f'boxlinks: {boxlinks}')
-    return links
-
-
 def time_ids(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
@@ -83,6 +74,9 @@ def schedule(sport='nfl'):
 
 
 def get_ids(sport='nfl'):
+    '''
+
+    '''
     p = schedule(sport)
     ids_live = live_ids(p, sport)
     ids_score = score_ids(p, sport)
@@ -140,22 +134,23 @@ def parse_id_dict(tags_dict):
 
 
 def parse_ids(tags):
+    '''
+
+    '''
     parsed_ids = []
     if tags:
         if isinstance(tags, dict):
             return parse_id_dict(tags)
         for tag in tags:
-            # print(tag)
             try:
-                id = tag_to_id(tag)
+                game_id = tag_to_id(tag)
             except TypeError:
                 pass
             try:
-                id = id.split('=')[-1]
+                game_id = game_id.split('=')[-1]
             except TypeError:
                 pass
-            print(id)
-            parsed_ids.append(id)
+            parsed_ids.append(game_id)
     else:
         return None
     return parsed_ids
@@ -178,6 +173,9 @@ def box_tds(tds):
 
 
 def teamstats(page):
+    '''
+
+    '''
     a_newstats = []
     h_newstats = []
     # if table_index % 2 == 1, then home_team
@@ -212,7 +210,6 @@ def parse_teamstats(teamstats):
             for stat in team_newstat:
                 try:
                     real_stat = stat.text
-                    print(real_stat)
                     if real_stat == 'TEAM':
                         continue
                 except AttributeError:
@@ -222,32 +219,73 @@ def parse_teamstats(teamstats):
 
 
 def box_teamnames(page):
-    # A @ H always
+    '''
+    A @ H always
+    '''
     teams = page.find_all('span', {'class' : 'short-name'})
     destinations = page.find_all('span', {'class' : 'long-name'})
     names = [team.text for team in teams]
     cities = [destination.text for destination in destinations]
+    if not names or not cities:
+        return None
     a_team, h_team = [dest + ' ' + name  for (dest, name) in zip(cities, names)]
     return a_team, h_team
 
 
-def boxscores(sport='nba'):
-    links = boxlinks(sport=sport)
-    print(f'links: {links}')
+def boxlinks(ids=None, sports=['nfl']):
+    '''
 
-    boxes = [boxscore(link) for link in links]
+    '''
+    links = []
+    for sport in sports:
+        if not ids:
+            ids = get_ids(sport=sport)
+        url = ESPN_ROOT + sport + '/boxscore?gameId='
+        sport_links = [url + id for id in ids]
+        links += sport_links
+    return links
+
+
+def boxscores(sports=['nfl'], output='dict'):
+    '''
+    ~ 10 seconds
+    '''
+    links = boxlinks(sports=sports)
+    # print(f'links: {links}')
+    boxes = [boxscore(link) for link in links]        
     return boxes
 
 
 def boxscore(link):
+    '''
+
+    '''
     page = o.get_page(link)
-    a_team, h_team = box_teamnames(page)
+    teams = box_teamnames(page)
+    if teams:
+        a_team, h_team = teams
+    else:
+        a_team, h_team = None, None
     team_stats = teamstats(page)
     real_stats = parse_teamstats(team_stats)
     real_stats.extend([a_team, h_team])
     return real_stats
 
 
-if __name__ == "__main__":
+def main():
+    enum = enumerate
+    start = time.time()
+
     real_stats = boxscores()
+    for i, rs in enum(real_stats):
+        print(f'{i}: {len(rs)}')
+        print(rs)
     print(real_stats)
+    end = time.time()
+    delta = end - start
+    print(f'delta: {delta}')
+    return real_stats
+
+
+if __name__ == "__main__":
+    main()

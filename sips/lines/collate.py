@@ -4,7 +4,8 @@ import json
 import requests as r
 
 from sips.lines.bov import bov
-from sips.lines.espn import eb, api
+from sips.lines.espn import espn_box as eb 
+from sips.lines.espn import espn_api as api
 
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils
@@ -12,29 +13,20 @@ from sips.lines.bov.utils import bov_utils
 from nfl_ref import full_package as fp
 
 
-def get_and_compare():
-    bov, api_evs, box_evs = get_events()
-    rows = match_events(bov, api_evs)
-    # lines_boxes = match_lines_boxes(bov, box_evs)
-    # df = fp.scraper_main()
-    # bov_df = pd.DataFrame(bov.lines(['nfl']))
-    # ret = pd.merge(by='outer', on='')
+def get_and_compare(sports=['nfl', 'nba'], output='dict'):
+    '''
+    access the espn boxscores and api and merge with bovada lines 
+    '''
+    bov, api_evs, boxes = get_events(sports=sports)
+    api_lines_rows = match_api_lines(bov, api_evs)
+    rows = match_lines_boxes(api_lines_rows, boxes, output='dict')
     return rows
 
 
-def box_lines_comp(sports=['nfl']):
-    lines = bov.lines(sports, output='list')
-    sport = sports[0]
-    print(f'sports[0]: {sports[0]}')
-    boxes = eb.boxscores(sport)
-    rows = match_lines_boxes(lines, boxes)
-    return rows
-
-
-def get_events(sports=['nba'], verbose=True):
+def get_events(sports=['nfl'], verbose=False):
     bov_events = bov.get_events(sports=sports)
-    espn_events = api.events(sport=sports[0])
-    espn_boxes = eb.boxscores(sport=sports[0])
+    espn_events = api.req_events(sports=sports)
+    espn_boxes = eb.boxscores(sports=sports)
     if verbose:
         print(f'bov_events: {bov_events}')
         print(f'espn_events: {espn_events}')
@@ -42,55 +34,94 @@ def get_events(sports=['nba'], verbose=True):
     return bov_events, espn_events, espn_boxes
 
 
-def match_events(bov_events, espn_events):
+def match_api_lines(bov_events, espn_events, output='list'):
     num_matched = 0
     rows = []
     eteams = None
+    print(f'espn_events: {espn_events}')
     for event in bov_events:
         bteams = bov_utils.teams(event)
-        print(f'bteams: {bteams}')
-        print(f'eteams: {eteams}')
         for espn_event in espn_events:
             eteams = api.teams(espn_event)
-            if list(bteams) == list(eteams):
+            if sorted(list(bteams)) == sorted(list(eteams)):
                 print(f'games matched: {bteams}')
                 line = bov_utils.parse_event(event)
                 espn_data = api.parse_event(espn_event)
                 row = line + espn_data
                 rows.append(row)
                 num_matched += 1
-    print(f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
+    # print(f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
     print(f'num_matched: {num_matched}')
+    ret = []
+    for row in rows:
+        row = [elt for elt in row if elt != '--']
+        ret.append(row)
+    rows = ret
+
+    if output == 'dict':
+        rows = to_dict(rows, 1)
     return rows
 
 
-def match_lines_boxes(lines, boxes, verbose=True):
+def to_dict(lists, index):
+    '''
+    convert lists to a dictionary where the index-th elt is the key
+    not needed?
+    '''
+    return {l[index]: l for l in lists}
+
+
+def match_lines_boxes(lines, boxes, output='dict', verbose=True):
     num_matched = 0
     rows = []
     eteams = None
     for line in lines:
         bteams = bov_utils.teams_from_line(line)
+        if not bteams:
+            print(f'skip: {line}')
+            continue
         for boxscore in boxes:
             eteams = boxscore[-2:]
-            print(f'bteams: {bteams}')
-            print(f'eteams: {eteams}')
-            if sorted(list(bteams)) == sorted(list(eteams)):
+            if not eteams:
+                print(f'skip: {boxscore}')
+                continue
+            try:
+                teams_same = sorted(list(bteams)) == sorted(list(eteams))
+            except TypeError:
+                continue
+            if teams_same:
                 if verbose:
                     print(f'games matched: {bteams, eteams}')
                 row = line + boxscore
                 rows.append(row)
                 num_matched += 1
+
+    if output == 'dict':
+        rows = {row[1] : row for row in rows}
+
     if verbose:
         print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
         print(f'num_matched: {num_matched}')
     return rows
 
 
-def main():
-    rows = box_lines_comp(['college-football'])
-    print(rows)
+def box_lines_comp(sports=['nfl'], output='dict'):
+    lines = bov.lines(sports, output='list')
+    sport = sports[0]
+    print(f'sports[0]: {sports[0]}')
+    boxes = eb.boxscores(sport)
+    rows = match_lines_boxes(lines, boxes, output=output)
     return rows
 
+
+def main():
+    start = time.time()
+    rows = get_and_compare()
+    end = time.time()
+    delta = end - start
+    print(f'delta: {delta}')
+    print(f'all rows: {rows}')
+    return rows
 
 if __name__ == "__main__":
     rows = main()

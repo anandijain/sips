@@ -55,23 +55,24 @@ def req(url):
         return
 
 
-def async_req(links, session=None):
+def async_req(links, session=None, max_workers=10):
     '''
     asyncronous request of list of links
     '''
     if not session:
-        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=4))
+        session = FuturesSession(
+            executor=ThreadPoolExecutor(max_workers=max_workers))
     
     jsons = [session.get(link).result().json() for link in links]
     return jsons
 
 
-def async_req_dict(links, key, session=None):
+def async_req_dict(links, key, session=None, max_workers=10):
     '''
     the key 
     '''
     if not session:
-        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=4))
+        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
     raw = [session.get(link).result().json() for link in links]
     jsons = {game.get(key) : game for game in raw}
     return jsons

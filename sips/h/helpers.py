@@ -23,6 +23,7 @@ def remove_string_cols(df):
     df = df[[col for col in df.columns if col not in cols_to_remove]]
     return df
 
+
 def full_fn(fn):
     str_path = './sips/gym_sip/data/static/' + fn + '.csv'
     # path = Path(str_path)
