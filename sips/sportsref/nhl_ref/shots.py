@@ -14,6 +14,9 @@ root = 'https://www.hockey-reference.com'
 
 
 def grab(link, fn=None):
+    '''
+
+    '''
     game_id = sfx_to_gameid(link)
     charts = grab_charts(link=link)
     divs = get_divs(charts)
@@ -37,8 +40,6 @@ def get_divs(charts):
     for chart in charts:
         divs = chart.find_all('div')
         all_divs += divs
-    # print(f'len chart_list: {len(chart_list)}')
-    # divs = list_flatten(chart_list)
     return all_divs
 
 
@@ -68,7 +69,10 @@ def cat_id(rows, id):
 
 
 def grab_charts(link):
-    # given a link to a hockey-refference boxscore, returns div, class: shotchart
+    '''
+    given a link to a hockey-refference boxscore, 
+    returns div, class: shotchart
+    '''
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, 'html.parser')
     cs = parse.comments(p)
@@ -95,7 +99,6 @@ def shot_type(t):
 
 def div_dict_row(div, dict):
     x, y = div_coords(div)
-    # print(x, y)
     type = shot_type(div['class'])
     title, player = shot_title(div['title'])
 
@@ -118,12 +121,12 @@ def div_coords(div):
 
 def parse_chart(divs, game_id):
     # game_id, x, y, shot_type, title, player
-    coords = []
     print(divs)
     print(len(divs))
     ids = [game_id for _ in range(len(divs['x']))]
     dict = {'game_id': ids, 'x': [], 'y': [],
             'shot_type': [], 'title': [], 'player': []}
+    cs = None
     for div in divs:
         try:
             cs = div_coords(div)

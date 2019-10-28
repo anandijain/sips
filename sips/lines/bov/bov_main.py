@@ -5,6 +5,9 @@ from sips.lines.bov.utils import bov_utils as utils
 
 
 def main():
+    '''
+
+    '''
     all_dict = {}
     req = r.get(
         'https://www.bovada.lv/services/sports/\

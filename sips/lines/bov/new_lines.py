@@ -27,6 +27,9 @@ class Lines:
     '''
 
     def __init__(self, config_path='./config/new_lines.json'):
+        '''
+
+        '''
         self.dir = '../data/lines/'
 
         if not os.path.exists(self.dir):
@@ -55,9 +58,7 @@ class Lines:
         self.session = FuturesSession(
             executor=ProcessPoolExecutor())
 
-        # if keep_open, dict of files, else dict of file names
-        self.files = {}
-        # todo multiple ways of writing/grouping output
+        self.files = {}  # if keep_open, dict of files, else dict of file names
 
         self.step_num = 0
         self.log_path = self.dir + 'LOG.csv'
@@ -77,7 +78,8 @@ class Lines:
                 self.prevs = collate.get_and_compare(sports=self.sports)
             else:
                 self.prevs = bov.lines(
-                    self.sports, output='dict', verbose=self.verbose, session=self.session, espn=self.espn)
+                    self.sports, output='dict', verbose=self.verbose,
+                    session=self.session, espn=self.espn)
             self.current = None
 
         if start:
@@ -91,8 +93,8 @@ class Lines:
         if self.espn:
             self.current = collate.get_and_compare(sports=self.sports)
         else:
-            self.current = bov.lines(self.sports, verbose=self.verbose, 
-                            output='dict', session=self.session, espn=self.espn)
+            self.current = bov.lines(self.sports, verbose=self.verbose,
+                                     output='dict', session=self.session, espn=self.espn)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)

@@ -14,6 +14,9 @@ def main(years=(2000, 2019)):
 
 
 def get_df(year, write=True):
+    '''
+
+    '''
     url = get_url(year=year)
     table = get_table(url)
     cols = get_headers(table.thead)
@@ -28,6 +31,9 @@ def get_df(year, write=True):
 
 
 def get_table(url):
+    '''
+
+    '''
     req = r.get(url)
     p = bs4.BeautifulSoup(req.text, "html.parser")
     table = p.find("table", {"id": "combine"})
@@ -47,6 +53,9 @@ def get_url(year=2019):
 
 
 def get_ids(table):
+    '''
+
+    '''
     ids = []
     players = table.tbody.find_all('th', {'data-stat': 'player'})
     for player in players:

@@ -38,6 +38,9 @@ def gamelinks_str_fix(links):
 
 
 def season_boxlinks(season_url):
+    '''
+
+    '''
     find_tup = ('th', 'data-stat', 'date_game')
     p = o.get_page(season_url)
     tables = p.find_all('table')
@@ -48,6 +51,9 @@ def season_boxlinks(season_url):
 
 
 def parse_box(boxlink):
+    '''
+
+    '''
     p = o.get_page(boxlink)
     tables = p.find_all('table')
     dfs = []

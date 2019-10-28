@@ -156,8 +156,11 @@ class LSTM(nn.Module):
         self.linear = nn.Linear(self.hidden_dim, output_dim)
 
     def init_hidden(self):
-        return (torch.zeros(self.num_layers, self.batch_size, self.hidden_dim).to(device),
-                torch.zeros(self.num_layers, self.batch_size, self.hidden_dim).to(device))
+        zeros1 = torch.zeros(self.num_layers, self.batch_size,
+                             self.hidden_dim).to(device)
+        zeros2 = torch.zeros(self.num_layers, self.batch_size,
+                             self.hidden_dim).to(device)
+        return (zeros1, zeros2)
 
     def forward(self, input):
         # lstm_out: [input_size, batch_size, hidden_dim]

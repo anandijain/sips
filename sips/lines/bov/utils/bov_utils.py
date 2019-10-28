@@ -23,7 +23,7 @@ MKT_TYPE = {
 }
 
 TO_GRAB = {
-    'ps': ['american', 'handicap'],  # spread
+    'ps': ['american', 'handicap'],
     'ml': ['american'],
     'tot': ['american', 'handicap'],
     'competitors': ['home', 'id', 'name']
@@ -255,6 +255,9 @@ def parse_market(market):
 
 
 def clean_desc(desc):
+    '''
+
+    '''
     to_replace = [('-', ''), ('  ', ' '), (' ', '_')]
     ret = desc.lower()
     for tup in to_replace:
@@ -294,6 +297,9 @@ def moneyline(outcomes):
 
 
 def ml_no_teams(outcomes):
+    '''
+
+    '''
     mls = {}
     for oc in outcomes:
         competitor_id = oc.get('competitorId')
@@ -303,10 +309,6 @@ def ml_no_teams(outcomes):
         american = price['american']
         mls[competitor_id] = [cleaned, american]
     return mls
-
-
-def total_no_teams():
-    pass
 
 
 def total(outcomes):

@@ -25,63 +25,6 @@ def remove_string_cols(df):
     return df
 
 
-def full_fn(fn):
-    str_path = './sips/gym_sip/data/static/' + fn + '.csv'
-    # path = Path(str_path)
-    # return os.path.join(sips.__path__, path)
-    return str_path
-
-
-def df_cols():
-    df = get_df()
-    try:
-        loader = h.DfCols(df)
-    except Exception:
-        loader = None
-        pass
-    return df, loader
-
-
-def df_combine(fn='come2017season', fn2='come2015season'):
-    complete_fns = [full_fn(full_name) for full_name in [fn, fn2]]
-    df1 = pd.read_csv(complete_fns[0])
-    df2 = pd.read_csv(complete_fns[1])
-
-    df1 = df1.dropna(axis=0, how='any', thresh=None,
-                     subset=None, inplace=False)
-    df2 = df2.dropna(axis=0, how='any', thresh=None,
-                     subset=None, inplace=False)
-
-    df3 = pd.concat([df2, df1])
-    df3 = pd.get_dummies(data=df3)
-    return df3
-
-
-def get_games(fn='mlb', output='list'):
-    # takes in fn and returns python dict of pd dfs
-    # TODO allow get_games to take in either a df or a fn
-    out_type = output
-    df = get_df(fn)
-    games = chunk(df, output=out_type)
-    games = remove_missed_wins(games)
-    return games
-
-
-def get_df(fn='mlb', dummies=['league', 'a_team', 'h_team'], one_hot=False, scale_times=False):
-    # complete_fn = full_fn(fn)
-    df = csv(fn)
-
-    if one_hot:
-        df = pd.get_dummies(data=df, columns=dummies, sparse=False)
-
-    df = drop_null_times(df)
-    if scale_times:
-        df = scaled_times(df)
-
-    df = df.drop(df.select_dtypes(object), axis=1)
-    return df
-
-
 def chunk(df, cols=['game_id'], output='list'):
     # returns a python dict of dfs, splitting the df arg by unique col value
     # df type pd df, col type string
@@ -176,24 +119,6 @@ def dates(df):
     return df
 
 
-def scaled_times(df):
-    df['date'] = df['lms_date'] + ' ' + df['lms_time']
-    df['date'] = pd.to_datetime(df['date'], utc=True)
-    df['date'] = pd.to_numeric(df['date'])
-    df['date'] = (df['date'] - df['date'].mean()) / \
-        (df['date'].max() - df['date'].min())
-    df = df.drop(['lms_date', 'lms_time'], axis=1)
-
-    return df
-
-
-def split_game_in_half(game):
-    game_len = len(game)
-    first_half = game[:game_len//2, ]
-    second_half = game[game_len//2:, ]
-    return first_half, second_half
-
-
 def apply_min_game_len(games, min_lines=500):
     '''
     given dict of game dataframes 
@@ -244,13 +169,18 @@ def train_test(df, train_pct=0.5):
         raise TypeError("please provide a numpy array or a pandas dataframe")
 
 
-def sk_scale(df):
-    scaler = StandardScaler()
+def sk_scale(df, to_pd=False):
+    '''
 
+    '''
+    scaler = StandardScaler()
+    cols = df.columns
     if isinstance(df, pd.core.frame.DataFrame):  # pandas
         df = df.to_numpy()
 
     scaled = scaler.fit_transform(df)
+    if to_pd:
+        scaled = pd.DataFrame(scaled, columns=cols)
     return scaled
 
 
@@ -259,6 +189,9 @@ def select_dtypes(df, dtypes=['number']):
 
 
 def num_flat_features(x):
+    '''
+
+    '''
     size = x.size()[1:]  # all dimensions except the batch dimension
     num_features = 1
     for s in size:
