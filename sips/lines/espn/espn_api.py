@@ -3,23 +3,33 @@ import time
 import json
 
 from sips.h import macros as m
+from sips.lines import collate
 
 espn = 'http://site.api.espn.com/apis/site/v2/sports/'
 
-def req_events(sport='nfl'):
+
+def sport_to_api_url(sport='nfl'):
     try:
-        sport = m.sport_to_suffix[sport]
+        sport = m.SPORT_TO_SUFFIX[sport]
     except KeyError:
         print('forcing nfl')
-        sport = m.sport_to_suffix['nfl']
-    espn_json = r.get(espn + sport + '/scoreboard').json()
-    events = espn_json['events']
+        sport = m.SPORT_TO_SUFFIX['nfl']
+    url = espn + sport + '/scoreboard'
+    return url 
+
+
+def req_events(sports=['nfl']):
+    urls = [sport_to_api_url(sport) for sport in sports]
+    espn_jsons = [r.get(url).json() for url in urls]
+    events = []
+    for sport in espn_jsons:
+        events += sport['events']
     return events
 
 
-def events(events=None, sport='nfl'):
+def get_parsed_events(events=None, sports=['nfl']):
     if not events:
-        events = req_events()
+        events = req_events(sports=sports)
     game_data = []
     for event in events:
         print(event['id'])
@@ -35,8 +45,9 @@ def parse_event(event):
     w = weather(event)
     o = odds(event)
     t = tickets(event)
+    teams = competitors(event)
 
-    return d + c + s + w + o + t
+    return d + c + s + w + o + t + teams
 
 
 def desc(event):
@@ -116,17 +127,27 @@ def tickets(event):
 
 
 def competitors(event):
-    competitors = comps['competitors']
+    competitions = event.get('competitions')
+    if not competitions:
+        print('couldnt find competitions')
+        return
+    
+    competitors = competitions[0].get('competitors')
 
     for competitor in competitors:
         records = competitor['records']
+        all_splits = {'summary': None}
+        for record in records:
+            if record.get('name') == 'All Splits':
+                all_splits = record
+            
         if competitor['homeAway'] == 'home':
-            h_record = records[0]['summary']
-            h_score = records['score']
+            h_record = all_splits['summary']
+            h_score = competitor['score']
             h_team = competitor['team']['displayName']
         else:
-            a_record = records[0]['summary']
-            a_score = records['score']
+            a_record = all_splits['summary']
+            a_score = competitor['score']
             a_team = competitor['team']['displayName']
 
     return [a_record, h_record, a_score, h_score, a_team, h_team]
@@ -134,8 +155,15 @@ def competitors(event):
 
 def teams(event):
     # returns away, home
-    team_one = event['competitions'][0]['competitors'][0]
-    team_two = event['competitions'][0]['competitors'][1]
+    competitions = event.get('competitions')
+    if not competitions:
+        print('couldnt find competitions')
+        return
+
+    competitors = competitions[0].get('competitors')
+    team_one = competitors[0]
+    team_two = competitors[1]
+
     if team_one['homeAway']:
         h_team = team_one['team']['displayName']
         a_team = team_two['team']['displayName']
@@ -146,4 +174,4 @@ def teams(event):
 
 
 if __name__ == '__main__':
-    evs = events()
+    rows = collate.main()

@@ -4,13 +4,19 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
 from torch.utils.data import Dataset, DataLoader
+
 import pandas as pd
 from sklearn import preprocessing
 
 import matplotlib.pyplot as plt
 
-num_epochs = 1
+import sips.h as h
+import sips.h.loaders as loaders
+
+num_epochs = 100
 batch_size = 1
 hidden_shape = 10
 num_layers = 1
@@ -23,9 +29,10 @@ save_folder = './models/'
 save_fn = 'lstm.pt'
 
 save_path = save_folder + save_fn
-directory = '/home/sippycups/absa/data/stocks/Data/Stocks/'
+directory = './data/'
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = 'cpu'
 print(device)
 
 def plot_data(data, separate=True):
@@ -44,16 +51,19 @@ def plot_data(data, separate=True):
         plt.plot(data)
     plt.show()
 
+
 def dataset_shapes(dataset):
 	sample_x, sample_y = dataset[0]
 	print(f'dataset_shapes: sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
 	return sample_x, sample_y
+
 
 def dataloader_shapes(data_loader):
     for (x, y) in data_loader:
         print(f'dataloader_shapes: x shape: {x.shape}, y shape: {y.shape}')
         break
     return x, y
+
 
 def attempt_load(model, path):
 	try:
@@ -63,11 +73,13 @@ def attempt_load(model, path):
 	    pass
 	return model
 
+
 def init_model_folder(save_folder):
     if os.path.exists(save_folder):
         pass
     else:
         os.mkdir(save_folder)
+
 
 def get_loaders():
     fileset = FileLoader(directory)
@@ -77,12 +89,15 @@ def get_loaders():
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     return fileset, dataset, data_loader
 
+
 def quick_plot(sep=False):
     fs, ds, dl = get_loaders()
     plot_data(fs[0], separate=sep)
 
+
 def main():
 	pass
+
 
 class FileLoader:
     def __init__(self, directory):
@@ -104,6 +119,7 @@ class FileLoader:
     def __len__(self):
         return self.length
 
+
 class LSTMLoader(Dataset):
     def __init__(self, data, window_len=1, predict_window=1):
         self.samples = []
@@ -122,8 +138,10 @@ class LSTMLoader(Dataset):
 
     def __len__(self):
         return self.length - self.predict_window  # (self.window_len + 1)
+
     def __getitem__(self, index):
         return self.samples[index]
+
 
 class LSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, batch_size, output_dim=1, num_layers=1):
@@ -147,15 +165,64 @@ class LSTM(nn.Module):
         return y_pred.view(-1)
 
 
+def log_dims(input_dim=784, output_dim=10, factor=2):
+    '''
+    mnist mlp w factor 2:
+    [784, 397, 203, 106, 58, 34, 22, 16, 13, 11, 10]
+    '''
+    dims = []
+    dim = input_dim
+    delta = input_dim - output_dim
+
+    while dim > output_dim:
+        dims.append(dim)
+        dim = (delta // factor) + output_dim
+        delta = dim - output_dim
+
+    dims.append(output_dim)
+    print(dims)
+    return dims
+
+
+def get_layers(layer_dims, layer_type):
+    layers = []
+    num_layers = len(layer_dims)
+    for i in range(num_layers):
+        if i == num_layers - 1:
+            break
+        layers.append(layer_type(layer_dims[i], layer_dims[i + 1]))
+    return layers
+
+
+def mlp_layers(layer_dims, verbose=False):
+    layer_type = nn.Linear
+    layers = get_layers(layer_dims, layer_type)
+    if verbose:
+        print(layers)
+    return layers
+
+
+class MLP(nn.Module):
+    def __init__(self, input_dim, output_dim, factor=2):
+        super(MLP, self).__init__()
+        self.layers = mlp_layers(
+            log_dims(input_dim, output_dim, factor=factor))
+        self.num_layers = len(self.layers)
+        print(f'num_layers: {self.num_layers}')
+        self.model = nn.ModuleList(self.layers)
+
+    def forward(self, x):
+        for i, layer in enumerate(self.model):
+            if i == self.num_layers - 1:
+                # print(f'sm on layer {i}')
+                x = F.softmax(layer(x), dim=1)
+                break
+            x = torch.tanh(layer(x))
+        return x
+
 if __name__ == "__main__":
 
-    # cols = ['a_gen_a_avg_rush_yards', 'a_gen_a_avg_rush_yards_per_attempt', 'a_gen_a_avg_pass_completion_pct', 'a_gen_a_avg_pass_yards', 'a_gen_a_avg_pass_yards_per_attempt',	'h_gen_h_avg_pass_completion_pct',	'h_gen_h_avg_pass_yards', 'h_gen_h_avg_pass_yards_per_attempt', 'h_gen_h_avg_rush_yards', 'h_gen_h_avg_rush_yards_per_attempt', 'gen_avg_score', 'gen_avg_pass_yards',	'gen_avg_total_yards', 'gen_avg_pass_comp_pct', 'gen_avg_rush_yards_per_attempt',	'gen_avg_pass_yards_per_attempt', 'gen_avg_rush_yards', 'gen_pass_comp_pct_2', 'gen_pass_yards_per_attempt_2', 'gen_rush_yards_2',	'gen_rush_yards_per_attempt_2', 'gen_avg_score_2', 'gen_avg_pass_yards_2', 'gen_avg_total_yards_2', 'gen_avg_pass_comp_pct_2', 'gen_avg_rush_yards_per_attempt_2', 'gen_avg_pass_yards_per_attempt_2',	'gen_avg_rush_yards_2']
-    init_model_folder(save_folder)
-    fileset = FileLoader(directory)
-    # file_loader = DataLoader(FileLoader)
-    data = fileset[1]
-
-    dataset = LSTMLoader(data, window_len=window)
+    dataset = loaders.LinesLoader()
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     x, y = dataloader_shapes(data_loader)
 
@@ -164,53 +231,48 @@ if __name__ == "__main__":
     output_shape = len(sample_y.flatten())
     print(f'in shape: {input_shape}, out shape: {output_shape}')
 
+    model = MLP(input_shape, output_shape)
 
-    model = LSTM(input_shape, hidden_dim=hidden_shape, batch_size=batch_size,
-                output_dim=output_shape, num_layers=num_layers)
+    # model = LSTM(input_shape, hidden_dim=hidden_shape, batch_size=batch_size,
+                # output_dim=output_shape, num_layers=num_layers)
 
     # model = attempt_load(model, save_path)
     model.to(device)
 
-    loss_fn = torch.nn.MSELoss()
-    learning_rate = 1e-2
+    loss_fn = torch.nn.CrossEntropyLoss()
+    learning_rate = 1e-3
     optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     hist = np.zeros(num_epochs * len(dataset))
 
     for epoch in range(num_epochs):
-        # Clear stored gradient
-        for data_idx, np_data in enumerate(fileset):
 
-            if data_idx == break_idx:
-                break
+        torch.save(model.state_dict(), save_path) 
 
-            dataset = LSTMLoader(np_data, window_len=window)
-            data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-            torch.save(model.state_dict(), save_path)
-            model.hidden = model.init_hidden()
-            print(f'new stock: {fileset.file}, num: {data_idx}')
-            for i, (x, y) in enumerate(data_loader):
-                optimiser.zero_grad()
-                # print(x)
-                # print(x.shape)
-                x = x.view(1, batch_size, -1)
-                y = y.view(1, batch_size, -1)
+        for i, (x, y) in enumerate(data_loader):
+            optimiser.zero_grad()
+            # print(x)
+            # print(x.shape)
+            # x = x.view(1, batch_size, -1)
+            # y = y.view(1, batch_size, -1)
 
-                x, y = x.to(device), y.to(device)
+            x, y = x.to(device), y.to(device)
 
-                y_pred = model(x)
-                y_pred = y_pred.view(1, batch_size, -1)
+            y_pred = model(x)
+            # print(f'y_pred: {y_pred}')
+            # y_pred = y_pred.view(1, batch_size, -1)
 
-                loss = loss_fn(y_pred, y)
+            # loss = loss_fn(y_pred, y)
+            loss = loss_fn(y_pred, torch.max(y, 1)[1])
 
-                if i % log_interval == 0:
-                    print("Epoch ", epoch, "MSE: ", loss.item())
-                    print(f'y_pred: {y_pred[0, 0]}, y: {y[0, 0]}')
-                    print(f'i: {i} / len: {len(data_loader)}')
+            if i % log_interval == 0:
+                print("Epoch ", epoch, "CE loss: ", loss.item())
+                print(f'y_pred: {y_pred[0, 0]}, y: {y[0, 0]}')
+                print(f'i: {i} / len: {len(data_loader)}')
 
-                hist[epoch] = loss.item()
-                loss.backward(retain_graph=True)
-                optimiser.step()
+            hist[epoch] = loss.item()
+            loss.backward(retain_graph=True)
+            optimiser.step()
 
 
 

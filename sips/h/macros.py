@@ -31,7 +31,8 @@ bov_lines_headers = ['last_mod_to_start', 'last_mod_lines','num_markets','a_ml',
 bovada_headers = bov_game_info + bov_score_headers + bov_lines_headers
 
 
-lines_url = "https://www.bovada.lv/services/sports/event/v2/events/A/description/"
+BOV_URL = "https://www.bovada.lv/services/sports/event/v2/events/A/description/"
+BOV_SCORES_URL = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
 
 
 suffixes = ['?marketFilterId=def&liveOnly=true&lang=en',
@@ -42,7 +43,7 @@ sports = ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
         'volleyball', 'hockey', 'badminton', 'table-tennis']
 
 
-sport_to_suffix = {
+SPORT_TO_SUFFIX = {
     'nfl': 'football/nfl',
     'college-football': 'football/college-football',
     'nba': 'basketball/nba',
@@ -57,7 +58,7 @@ def build_urls(sports=sports):
     urls = []
     for sport in sports:
         for suffix in suffixes:
-            urls.append(lines_url + sport + suffix)
+            urls.append(BOV_URL + sport + suffix)
     return urls
 
 
@@ -69,5 +70,5 @@ def build_url_dict(sports=sports):
     '''
     urls = {}
     for sport in sports:
-        urls[sport] = [lines_url + sport + suffix for suffix in suffixes]
+        urls[sport] = [BOV_URL + sport + suffix for suffix in suffixes]
     return urls

@@ -6,17 +6,16 @@ import time
 import json
 
 import requests as r
-from requests_futures.sessions import FuturesSession
 
 # from pydash import at
 
 import sips.h.macros as m
+import sips.h.openers as o
+
 from sips.lines.bov import bov_main
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
-BOV_URL = 'https://www.bovada.lv/services/sports/event/v2/events/A/description/'
-BOV_SCORES_URL = 'https://services.bovada.lv/services/sports/results/api/v1/scores/'
 
 MKT_TYPE = {
     'Point Spread': 'ps',
@@ -43,7 +42,6 @@ def reduce_mkt_type(market_desc):
     try:
         reduced = MKT_TYPE[market_desc]
     except KeyError:
-        # print(f'{market_desc} not supported')
         return 'ml'
     return reduced
 
@@ -95,7 +93,35 @@ def parse_display_group(display_group):
     return data
 
 
-def parse_event(event, verbose=False):
+def merge_lines_scores(lines, scores):
+    '''
+    both type dict
+    '''
+    ret = {}
+    for k, v in lines.items():
+        score_data = scores.get(k)
+        if not score_data:
+            score_data = [None for _ in range(5)]
+        row = v[0] + score_data + v[1]
+        ret[k] = row
+
+    return ret
+
+
+def dict_from_events(events, key='id', rows=True, grab_score=False):
+    '''
+    returns a dictionary of (key, event) or (key, list)
+
+    key must be in the event json data
+    rows: (bool)
+        - if true, set key-vals to rows
+    '''
+    event_dict = {e[key]: parse_event(
+        e, grab_score=grab_score) if rows else e for e in events}
+    return event_dict
+
+
+def parse_event(event, verbose=False, grab_score=True):
     '''
     [sport, game_id, a_team, h_team, last_mod, num_markets, live],
     [quarter, secs, a_pts, h_pts, status], [
@@ -107,22 +133,37 @@ def parse_event(event, verbose=False):
 
     a_team, h_team = teams(event)
 
-    quarter, secs, a_pts, h_pts, status = score(game_id)
-
     display_groups = event['displayGroups'][0]
     markets = display_groups['markets']
     a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, \
-        h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = grab_row_from_markets(markets)
+        h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = grab_row_from_markets(
+            markets)
 
     game_start_time = event['startTime']
-    # todo reformat schema [sport, game_id, a_team, h_team, a_ml, h_ml, a_pts, h_pts, quarter, secs, ...]
-    ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
-           quarter, secs, a_pts, h_pts, status,
-           a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
-           a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
+
+    if not grab_score:
+        section_1 = [sport, game_id, a_team,
+                     h_team, last_mod, num_markets, live]
+        section_2 = [a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
+                     a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
+        ret = [section_1, section_2]
+    else:
+        score_url = m.BOV_SCORES_URL + game_id
+        score_data = req_json(score_url)
+
+        quarter, secs, a_pts, h_pts, status = score(score_data)
+        ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
+               quarter, secs, a_pts, h_pts, status, a_ps, h_ps, a_hcap,
+               h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot,
+               a_ou, h_ou, game_start_time]
+
+    # ret = [sport, game_id, a_team, h_team, a_pts, h_pts, a_ml, h_ml,
+    #         quarter, secs, status, num_markets, live, a_ps, h_ps, a_hcap,
+    #         h_hcap, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou,
+    #         game_start_time, last_mod]
 
     if verbose:
-        print(f'event: {ret}')
+        print(f'event: {section_1} {section_2}')
 
     return ret
 
@@ -166,12 +207,12 @@ def parse_markets(markets, output='list'):
 
     for market in markets:
         mkt_type = reduce_mkt_type(market.get('description'))
-        # print(f'mkt_type: {mkt_type}')
         if not mkt_type:
             continue
 
         period = market.get('period')
-        period_info = at(period, 'description', 'abbreviation', 'live')
+        to_grab = ['description', 'abbreviation', 'live']
+        period_info = parse_json(period, to_grab, 'list')
 
         cleaned = clean_desc(period_info[0])
         mkt_key = mkt_type + '_' + cleaned
@@ -191,7 +232,6 @@ def parse_market(market):
     '''
     period = market.get('period')
     is_live = int(period['live'])
-    # print(f'is_live: {is_live}')
     mkt_type = reduce_mkt_type(market.get('description'))
 
     outcomes = market.get('outcomes')
@@ -202,7 +242,7 @@ def parse_market(market):
         data = total(outcomes)
     else:
         data = ml_no_teams(outcomes)
-            
+
     ret = data
 
     if isinstance(data, dict):
@@ -210,9 +250,8 @@ def parse_market(market):
         for v in data.values():
             ret += v
         print(f'this RET: {ret}')
-    
+
     ret.append(is_live)
-    print(f'ret: {ret}')
     return ret
 
 
@@ -236,7 +275,6 @@ def spread(outcomes):
         else:
             h_ps, h_hcap = parse_json(price, TO_GRAB['ps'], 'list')
 
-    # print(f'a_ps, h_ps, a_hcap, h_hcap: {a_ps, h_ps, a_hcap, h_hcap}')
     return [a_ps, h_ps, a_hcap, h_hcap]
 
 
@@ -268,7 +306,7 @@ def ml_no_teams(outcomes):
     return mls
 
 
-def total_no_teams():    
+def total_no_teams():
     pass
 
 
@@ -301,7 +339,7 @@ def competitors(competitors, verbose=False):
     '''
     data = [parse_json(t, TO_GRAB['competitors']) for t in competitors]
     if verbose:
-        print(f'competitors: {data}') 
+        print(f'competitors: {data}')
     return data  # list of two dictionaries
 
 
@@ -329,14 +367,24 @@ def bov_comp_ids(event):
     return a_id, h_id
 
 
-def score(game_id):
+def get_scores(events, session=None):
+    '''
+    quarter, secs, a_pts, h_pts, status
+    '''
+    ids = get_ids(events)
+    # links = {game_id : m.BOV_SCORES_URL + game_id for game_id in ids}
+
+    links = [m.BOV_SCORES_URL + game_id for game_id in ids]
+    raw = o.async_req_dict(links, 'eventId', session=session)
+    scores_dict = {g_id: score(j) for g_id, j in raw.items()}
+    return scores_dict
+
+
+def score(json_data):
     '''
     given a game_id, returns the score data of the game
     '''
     [quarter, secs, a_pts, h_pts, game_status] = ['NaN' for _ in range(5)]
-
-    game_url = BOV_SCORES_URL + game_id
-    json_data = req_json(url=game_url)
 
     if not json_data:
         return [quarter, secs, a_pts, h_pts, game_status]
@@ -362,25 +410,15 @@ def score(game_id):
     return [quarter, secs, a_pts, h_pts, game_status]
 
 
-def async_req(links):
+def req_json(url, sleep=0.5, verbose=False):
     '''
-    asyncronous request of list of links
+    requests the link, returns json
     '''
-    session = FuturesSession()
-    jsons = [session.get(link).result().json() for link in links]
-    return jsons
-
-
-def req_json(sport='football/nfl', url=None, sleep=0.5, verbose=False):
-    '''
-    requests the bovada link, and specific sport as arg
-    '''
-    if not url:
-        url = BOV_URL + sport
     try:
         req = r.get(url)
     except:
         return None
+
     time.sleep(sleep)
 
     try:
@@ -400,21 +438,10 @@ def get_ids(events):
     '''
     ids = []
     for event in events:
-        game_id = event['id']
-        ids.append(game_id)
+        game_id = event.get('id')
+        if game_id:
+            ids.append(game_id)
     return ids
-
-
-def dict_from_events(events, key='id', rows=True):
-    '''
-    returns a dictionary of (key, event) or (key, list)
-
-    key must be in the event json data
-    rows: (bool)
-        - if true, set key-vals to rows
-    '''
-    event_dict = {e[key]: parse_event(e) if rows else e for e in events}
-    return event_dict
 
 
 def list_from_jsons(jsons, rows=False):
@@ -422,8 +449,8 @@ def list_from_jsons(jsons, rows=False):
     jsons is a list of dictionaries for each sport 
     returns a list of events
     '''
-    events = [parse_event(e) 
-            if rows else e for j in jsons for e in json_events(j)]
+    events = [parse_event(e)
+              if rows else e for j in jsons for e in json_events(j)]
     return events
 
 
@@ -442,10 +469,10 @@ def match_sport_str(sport='mlb'):
     maps string to the url suffix to bovada api
     '''
     try:
-        sport = m.sport_to_suffix[sport]
+        sport = m.SPORT_TO_SUFFIX[sport]
     except KeyError:
         print('forcing nfl')
-        sport = m.sport_to_suffix['nfl']
+        sport = m.SPORT_TO_SUFFIX['nfl']
     return sport
 
 
@@ -457,6 +484,7 @@ def header():
             'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps', 'h_ps', 'a_hcap',
             'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', 'a_hcap_tot', 'h_hcap_tot', 'a_ou',
             'h_ou', 'game_start_time']
+
 
 if __name__ == "__main__":
     bov_main.main()

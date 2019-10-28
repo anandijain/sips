@@ -3,6 +3,8 @@ import time
 
 import bs4
 import requests as r
+from requests_futures.sessions import FuturesSession
+from concurrent.futures import ThreadPoolExecutor
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -27,7 +29,7 @@ def get_page(link, verbose=False):
 
     req = r.get(link, headers=HEADERS).text
     p = bs4.BeautifulSoup(req, 'html.parser')
-    time.sleep(DELAY)
+    # time.sleep(DELAY)
     return p
 
 
@@ -51,3 +53,26 @@ def req(url):
     except ValueError:
         time.sleep(2)
         return
+
+
+def async_req(links, session=None, max_workers=10):
+    '''
+    asyncronous request of list of links
+    '''
+    if not session:
+        session = FuturesSession(
+            executor=ThreadPoolExecutor(max_workers=max_workers))
+    
+    jsons = [session.get(link).result().json() for link in links]
+    return jsons
+
+
+def async_req_dict(links, key, session=None, max_workers=10):
+    '''
+    the key 
+    '''
+    if not session:
+        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
+    raw = [session.get(link).result().json() for link in links]
+    jsons = {game.get(key) : game for game in raw}
+    return jsons
