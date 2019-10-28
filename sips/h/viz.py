@@ -14,8 +14,10 @@ class Viz:
         print(data.head())
 
         plt.plot('cur_time', 'a_ml', data=game, marker='o',
-                 markerfacecolor='blue', markersize=.5, color='skyblue', linewidth=.5)
+                 markerfacecolor='blue', markersize=.5,
+                 color='skyblue', linewidth=.5)
         plt.plot('cur_time', 'h_ml', data=game, marker='x',
-                 markerfacecolor='red', markersize=.5, color='red', linewidth=.5)
+                 markerfacecolor='red', markersize=.5,
+                 color='red', linewidth=.5)
         plt.legend()
         plt.show()

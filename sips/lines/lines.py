@@ -3,12 +3,8 @@ import os.path
 import time
 
 import requests
-import requests_futures
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import ThreadPoolExecutor
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 import sips.h as h
 
@@ -27,7 +23,8 @@ class Sippy:
         self.games = []
         self.events = []
 
-        self.session = FuturesSession(executor=ThreadPoolExecutor(max_workers=2))
+        self.session = FuturesSession(
+            executor=ThreadPoolExecutor(max_workers=2))
 
         self.links = []
         self.all_urls = h.macros.build_urls()
@@ -48,7 +45,6 @@ class Sippy:
         else:
             self.file = None
 
-
         access_time = time.time()
         self.init_games(access_time)
 
@@ -67,7 +63,7 @@ class Sippy:
 
         for game in self.games:
             if game.score.ended == 0:  # if game is not over
-                if game.lines.updated == 1 or game.score.new == 1:  # if lines updated or score updated
+                if game.lines.updated == 1 or game.score.new == 1:
 
                     if self.file is not None:
                         game.write_game(self.file)  # write to csv
@@ -168,8 +164,9 @@ class Sippy:
 
     def set_league_dict(self, league):
         '''
-        sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
-          'esports', 'football/nfl', 'football/college-football', 'tennis', 'volleyball', 'hockey']
+        sports = ['basketball/nba', 'basketball/college-basketball', 
+                 'baseball/mlb', 'esports', 'football/nfl', 
+                 'football/college-football', 'tennis', 'volleyball', 'hockey']
         '''
         try:
             if isinstance(league, list):
@@ -203,8 +200,9 @@ class Sippy:
 
             print("num games: " + str(len(self.games)))
             print('num events: ' + str(len(self.events)))
-            print('new lines in past 20 steps: {} / {} seconds'.format(self.num_updates, elapsed))
-            print('rough efficiency (newlines/elapsed): {}\n'.format(efficiency))
+            print(f'new lines in past 20 steps: {self.num_updates} \
+             / elapsed seconds')
+            print(f'rough efficiency (newlines/elapsed): {efficiency}\n')
 
             self.twenty_steps_ago = access_time
             self.num_updates = 0
@@ -219,6 +217,7 @@ class Sippy:
             except TypeError:
                 return '.'
         return '.'
+
 
 class Game:
     def __init__(self, event, access_time, gtype):
@@ -265,7 +264,8 @@ class Game:
 
     def return_row(self):
         self.time_diff()
-        row = [self.sport, self.league, self.game_id, self.a_team, self.h_team, str(time.time())]
+        row = [self.sport, self.league, self.game_id,
+               self.a_team, self.h_team, str(time.time())]
         row += self.score.jps
         row.append(self.delta)
         row += self.lines.jps
@@ -305,8 +305,9 @@ class Game:
         else:
             delta_str = 'time delta: None'
         start_time_str = str(self.start_time) + "\n"
-        print_list = [desc_str, self.sport, self.game_id, self.a_team, self.h_team,
-                    self.score, self.lines, delta_str, start_time_str]
+        print_list = [desc_str, self.sport, self.game_id,
+                      self.a_team, self.h_team, self.score, self.lines,
+                      delta_str, start_time_str]
         for elt in print_list:
             try:
                 if elt is None:
@@ -327,15 +328,20 @@ class Lines:
         self.json = json
         self.jps = []
         self.mkts = []
-        [self.query_times, self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
-         self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps, self.a_hcap_ps,
-         self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot, self.h_deci_tot, self.a_hcap_tot,
-         self.h_hcap_tot, self.a_ou, self.h_ou] = ([] for i in range(21))
+        [self.query_times, self.last_mod_lines, self.num_markets, self.a_ml,
+         self.h_ml, self.a_deci_ml, self.h_deci_ml, self.a_odds_ps,
+         self.h_odds_ps, self.a_deci_ps, self.h_deci_ps, self.a_hcap_ps,
+         self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
+         self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot,
+         self.a_ou, self.h_ou] = ([] for i in range(21))
 
-        self.params = [self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
-                        self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
-                        self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
-                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot, self.a_ou, self.h_ou]
+        self.params = [self.last_mod_lines, self.num_markets, self.a_ml,
+                       self.h_ml, self.a_deci_ml, self.h_deci_ml,
+                       self.a_odds_ps, self.h_odds_ps, self.a_deci_ps,
+                       self.h_deci_ps, self.a_hcap_ps, self.h_hcap_ps,
+                       self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
+                       self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot,
+                       self.a_ou, self.h_ou]
 
     def update(self, json):
         self.updated = 0
@@ -389,7 +395,8 @@ class Lines:
 
             if desc is None:
                 continue
-            elif desc == 'Point Spread' or desc == 'Runline' or desc == 'Puck Line':
+            elif desc == 'Point Spread' \
+                    or desc == 'Runline' or desc == 'Puck Line':
                 ps.update(away_price, home_price)
             elif desc == 'Moneyline':
                 ml.update(away_price, home_price)
@@ -406,13 +413,16 @@ class Lines:
 
         last_mod = self.json['lastModified'] / 1000.  # conversion from ns
 
-        # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
-
-        self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
-                    self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
-                    self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
-                    self.mkts[2].a['american'], self.mkts[2].h['american'], self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
-                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap'], a_ou, h_ou]
+        self.jps = [last_mod, self.json['numMarkets'],
+                    self.mkts[1].a['american'], self.mkts[1].h['american'],
+                    self.mkts[1].a['decimal'], self.mkts[1].h['decimal'],
+                    self.mkts[0].a['american'], self.mkts[0].h['american'],
+                    self.mkts[0].a['decimal'], self.mkts[0].h['decimal'],
+                    self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
+                    self.mkts[2].a['american'], self.mkts[2].h['american'],
+                    self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
+                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap'],
+                    a_ou, h_ou]
 
     def even_handler(self):
         for mkt in self.mkts:
@@ -471,11 +481,13 @@ class Score:
         self.jparams()
         self.ended = 0
 
-        [self.lms_date, self.lms_time, self.quarter, self.secs, self.a_pts, self.h_pts,
-            self.status, self.a_win, self.h_win] = ([] for i in range(9))
+        [self.lms_date, self.lms_time, self.quarter,
+         self.secs, self.a_pts, self.h_pts, self.status,
+         self.a_win, self.h_win] = ([] for i in range(9))
 
-        self.params = [self.lms_date, self.lms_time, self.quarter, self.secs, self.a_pts,
-                       self.h_pts, self.status, self.a_win, self.h_win]
+        self.params = [self.lms_date, self.lms_time, self.quarter,
+                       self.secs, self.a_pts, self.h_pts, self.status,
+                       self.a_win, self.h_win]
 
     def update(self):
         self.new = 0
@@ -516,7 +528,8 @@ class Score:
         dt = self.date_split()
 
         self.jps = [dt[0], dt[1], self.clock.get('periodNumber'),
-                    self.clock.get('relativeGameTimeInSecs'), score.get('visitor'), score.get('home'), status]
+                    self.clock.get('relativeGameTimeInSecs'),
+                    score.get('visitor'), score.get('home'), status]
 
         self.num_quarters = self.clock.get('numberOfPeriods')
         self.dir_isdown = self.clock.get('direction')
@@ -549,7 +562,7 @@ class Score:
 
     def csv(self, file):
         for value in self.values():
-                file.write(value + ',')
+            file.write(value + ',')
 
     def values(self):
         data = []
@@ -570,7 +583,8 @@ class Score:
         for i, param in enumerate(self.params):
             try:
                 if len(param) > 0:
-                    print('{}: {}'.format(h.macros.bov_score_headers[i], param[-1]), end='|')
+                    print('{}: {}'.format(
+                        h.macros.bov_score_headers[i], param[-1]), end='|')
             except TypeError:
                 print('.', end='|')
                 pass
@@ -625,9 +639,11 @@ def open_file(file_name):
     exists = os.path.isfile(complete_name)
 
     if exists:  # don't write header
-        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
+        # line below probably better called in caller or add another arg
+        file = open(complete_name, "a", encoding="utf-8")
     else:  # write header
-        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
+        # line below probably better called in caller or add another arg
+        file = open(complete_name, "a", encoding="utf-8")
         write_header(file)
 
     return file

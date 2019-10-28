@@ -40,11 +40,12 @@ class Df(Dataset):
 
             self.future = self.tdf[index: index + self.next_n]
             # self.future_n = torch.from_numpy(self.future_n)
-
-            self.past = torch.cat([self.past, self.past.new(
-                self.prev_n - self.past.size(0), * self.past.size()[1:]).zero_()])
-            self.future = torch.cat([self.future, self.future.new(
-                self.next_n - self.future.size(0), * self.future.size()[1:]).zero_()])
+            past_new = self.past.new(self.prev_n - self.past.size(0),
+                                     * self.past.size()[1:]).zero_()
+            self.past = torch.cat([self.past, past_new])
+            future_new = self.future.new(self.next_n - self.future.size(0),
+                                         * self.future.size()[1:]).zero_()
+            self.future = torch.cat([self.future, future_new])
             return (self.past, self.future)
 
         else:
@@ -106,8 +107,13 @@ class DfPastGames(Dataset):
 
 
 class DfCols(Dataset):
-    # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
-    def __init__(self, df, train_cols=['quarter', 'secs'], label_cols=['a_pts', 'h_pts']):
+    '''
+    each line of csv is a game,
+    takes in pandas and a list of strings of which columns are labels
+    '''
+
+    def __init__(self, df, train_cols=['quarter', 'secs'],
+                 label_cols=['a_pts', 'h_pts']):
         # self.df = df.sort_values(by='cur_time')
         self.df = df
         self.data_len = len(self.df)
@@ -176,13 +182,15 @@ class LineGen(Dataset):
 
 
 class PlayerDataset(Dataset):
-    def __init__(self, window=1, fn='./data/static/lets_try5.csv', 
-                predict_columns=['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'], 
-                team_columns=None):
+    def __init__(self, window=1, fn='./data/static/lets_try5.csv',
+                 predict_columns=['pass_rating',
+                                  'pass_yds', 'rush_yds', 'rec_yds'],
+                 team_columns=None):
         self.projections_frame = pd.read_csv(fn)
         self.transform(self.projections_frame)
         self.team_columns = team_columns
         self.predict_columns = predict_columns
+        self.all_cols = self.predict_columns + self.team_columns
         self.window = window
 
     def transform(self, df):
@@ -201,11 +209,12 @@ class PlayerDataset(Dataset):
         return len(self.projections_frame)
 
     def __getitem__(self, index):
-        past = torch.tensor(np.array(
-            self.projections_frame[index:index+self.window][self.predict_columns + self.team_columns]))
+        upper = index+self.window
+        past = torch.tensor(
+            self.projections_frame[index:upper][self.all_cols].values)
         past = torch.tensor(past.reshape(-1, 1))
         team_data = torch.tensor(
-            self.projections_frame.iloc[index+self.window][self.team_columns])
+            self.projections_frame.iloc[upper][self.team_columns])
         # past = past.t()
         y = torch.tensor(
             self.projections_frame.iloc[index+self.window][self.predict_columns])

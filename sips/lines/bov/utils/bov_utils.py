@@ -3,8 +3,6 @@ utils functions for bov.py
 '''
 
 import time
-import json
-
 import requests as r
 
 # from pydash import at
@@ -129,7 +127,8 @@ def parse_event(event, verbose=False, grab_score=True):
     a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
     '''
     game_id, sport, live, num_markets, last_mod = parse_json(
-        event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'], output='list')
+        event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'],
+        output='list')
 
     a_team, h_team = teams(event)
 
@@ -327,9 +326,6 @@ def total(outcomes):
     h_price = h_outcome.get('price')
     h_tot, h_hcap_tot = parse_json(h_price, TO_GRAB['tot'], 'list')
 
-    # print(
-    #     f'[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]: {[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]}')
-
     return [a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]
 
 
@@ -480,10 +476,10 @@ def header():
     '''
     column names for dataframe
     '''
-    return ['sport', 'game_id', 'a_team', 'h_team', 'last_mod', 'num_markets', 'live',
-            'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps', 'h_ps', 'a_hcap',
-            'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', 'a_hcap_tot', 'h_hcap_tot', 'a_ou',
-            'h_ou', 'game_start_time']
+    return ['sport', 'game_id', 'a_team', 'h_team', 'last_mod', 'num_markets',
+            'live', 'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps',
+            'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot',
+            'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
 
 
 if __name__ == "__main__":

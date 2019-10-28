@@ -3,10 +3,12 @@ import requests as r
 import sips.h.new_macros
 from sips.lines.bov.utils import bov_utils as utils
 
+
 def main():
     all_dict = {}
     req = r.get(
-        'https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba').json()
+        'https://www.bovada.lv/services/sports/\
+        event/v2/events/A/description/basketball/nba').json()
     es = req[0].get('events')
     for event in es:
         desc = event.get('description')

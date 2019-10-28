@@ -1,4 +1,3 @@
-import os.path
 import time
 
 import bs4
@@ -23,13 +22,11 @@ def get_page(link, verbose=False):
     '''
 
     '''
-    DELAY = 0.05
     if verbose:
         print(f'link: {link}')
 
     req = r.get(link, headers=HEADERS).text
     p = bs4.BeautifulSoup(req, 'html.parser')
-    # time.sleep(DELAY)
     return p
 
 

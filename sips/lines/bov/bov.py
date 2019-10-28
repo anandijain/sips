@@ -1,14 +1,7 @@
 '''
 uses the bovada api to get json data for odds and scores
 '''
-import os
-
-import time
-import json
-
 import requests as r
-from requests_futures.sessions import FuturesSession
-
 import sips.h.macros as m
 import sips.h.openers as o
 from sips.lines.bov.utils import bov_utils as u
@@ -31,12 +24,14 @@ def get_events(sports=['nfl'], output='list', session=None):
 
 
 def fix_links(sports):
+    # append market filter to each url
     sfx = '?marketFilterId=def&lang=en'
     links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
     return links
 
 
-def lines(sports, output='list', verbose=False, fixlines=True, session=None, espn=False):
+def lines(sports, output='list', verbose=False, fixlines=True,
+          session=None, espn=False):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
@@ -44,17 +39,18 @@ def lines(sports, output='list', verbose=False, fixlines=True, session=None, esp
     if not sports:
         print(f'sports is None')
         return
-        
+
     if fixlines:
         links = fix_links(sports)
-    else:        
-        links = [m.BOV_URL + u.match_sport_str(s) for s in sports]  
+    else:
+        links = [m.BOV_URL + u.match_sport_str(s) for s in sports]
 
     jsons = o.async_req(links, session=session)
     events = u.list_from_jsons(jsons)
 
     if output == 'dict':
-        lines = u.dict_from_events(events, key='id', rows=True, grab_score=False)
+        lines = u.dict_from_events(events, key='id', rows=True,
+                                   grab_score=False)
         scores = u.get_scores(events, session=session)
         data = u.merge_lines_scores(lines, scores)
     else:
@@ -62,7 +58,7 @@ def lines(sports, output='list', verbose=False, fixlines=True, session=None, esp
 
     if verbose:
         print(f'lines: {data}')
-        
+
     return data
 
 

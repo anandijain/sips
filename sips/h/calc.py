@@ -42,12 +42,12 @@ class Hedge:
             print('$$$$$$$$$$$$$$$$$ made money]')
         print('\n')
 
-    # TODO 
+    # TODO
     # add function that writes bets to CSV for later analysis
 
 
 def _eq(odd):
-    # to find the adjusted odds multiplier 
+    # to find the adjusted odds multiplier
     # returns float
     if odd == 0:
         return 0
@@ -77,7 +77,7 @@ def act(a):
         return 'BOUGHT HOME'
     elif a == 2:
         return 'SKIP'
-    else: 
+    else:
         return 'action outside of defined actions'
 
 
@@ -108,9 +108,9 @@ def bet_amt(money):
 
 
 def hedge_amt(bet, cur_odds):
-    # takes in Bet 1 and calculates the 
+    # takes in Bet 1 and calculates the
     if bet.team == 0:
-        return (bet.amt * (_eq(bet.a_odds) + 1))/ (_eq(cur_odds[1]) + 1)
+        return (bet.amt * (_eq(bet.a_odds) + 1)) / (_eq(cur_odds[1]) + 1)
     else:
         return (bet.amt * (_eq(bet.h_odds) + 1)) / (_eq(cur_odds[0]) + 1)
 

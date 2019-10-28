@@ -1,8 +1,4 @@
-import requests as r
 import pandas as pd
-
-import bs4
-
 from sips.h import openers as o
 
 url = "https://www.hockey-reference.com"

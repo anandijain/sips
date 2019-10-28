@@ -9,11 +9,10 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 import pandas as pd
-from sklearn import preprocessing
+# from sklearn import preprocessing
 
 import matplotlib.pyplot as plt
 
-import sips.h as h
 import sips.h.loaders as loaders
 
 num_epochs = 100
@@ -55,8 +54,8 @@ def plot_data(data, separate=True):
 
 def dataset_shapes(dataset):
     sample_x, sample_y = dataset[0]
-    print(
-        f'dataset_shapes: sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
+    print(f'dataset_shapes: sample_x shape: {sample_x.shape}, \
+        sample_y shape: {sample_y.shape}')
     return sample_x, sample_y
 
 

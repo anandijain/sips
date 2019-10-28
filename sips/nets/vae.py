@@ -7,26 +7,19 @@ todo scheme:
 
 - get padded quarters
 '''
-import math
-
 import pandas as pd
-import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
-import h
-
-'''
-This network is defined recursively.
-|layers| ~ log_2(input_dim)
-'''
-
 
 class Net(nn.Module):
+    '''
+    This network is defined recursively.
+    |layers| ~ log_2(input_dim)
+    '''
     def __init__(self, input_dim):
         super(Net, self).__init__()
         self.input_dim = input_dim

@@ -1,16 +1,12 @@
-import requests as r
-import bs4
-
 import time
-
 from sips.h import openers as o
 
-ESPN_ROOT='https://www.espn.com/'
+ESPN_ROOT = 'https://www.espn.com/'
 
 
-TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:time')
-TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:score')
-TIME_GAME_TUP=('a' , 'name', '&lpos=nfl:schedule:live')
+TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:time')
+TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:score')
+TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:live')
 
 
 def get_sports():
@@ -21,21 +17,24 @@ def get_sports():
 def time_ids(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:time'})
+    unparsed_ids = page.find_all(
+        'a', {'name': '&lpos=' + sport + ':schedule:time'})
     return unparsed_ids
 
 
 def score_ids(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:score'})
+    unparsed_ids = page.find_all(
+        'a', {'name': '&lpos=' + sport + ':schedule:score'})
     return unparsed_ids
 
 
 def live_ids(page=None, sport='nfl'):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all('a', {'name' : '&lpos=' + sport + ':schedule:live'})
+    unparsed_ids = page.find_all(
+        'a', {'name': '&lpos=' + sport + ':schedule:live'})
     live_ids = parse_live_ids(unparsed_ids)
     return live_ids
 
@@ -61,9 +60,9 @@ def schedules(sports=['nfl']):
 
     pages = []
     for sport in sports:
-            espn_id_link = '/' + sport + '/schedule'
-            p = o.get_page(espn_id_link)
-            pages.append(p)
+        espn_id_link = '/' + sport + '/schedule'
+        p = o.get_page(espn_id_link)
+        pages.append(p)
     return pages
 
 
@@ -84,7 +83,7 @@ def get_ids(sport='nfl', live_only=True):
     ids_score = score_ids(p, sport)
     ids_time = time_ids(p, sport)
     ids_parsed = parse_ids(ids_score + ids_time)
-    ids =  ids_live + ids_parsed
+    ids = ids_live + ids_parsed
     return ids
 
 
@@ -181,7 +180,7 @@ def teamstats(page):
     a_newstats = []
     h_newstats = []
     # if table_index % 2 == 1, then home_team
-    tables = page.find_all('div', {'class' : 'content desktop'})
+    tables = page.find_all('div', {'class': 'content desktop'})
     for i, table in enumerate(tables):
         header = table.find('thead')
         len_header = len(header.find_all('th')) - 1  # - 1 for 'TEAM'
@@ -224,13 +223,13 @@ def box_teamnames(page):
     '''
     A @ H always
     '''
-    teams = page.find_all('span', {'class' : 'short-name'})
-    destinations = page.find_all('span', {'class' : 'long-name'})
+    teams = page.find_all('span', {'class': 'short-name'})
+    destinations = page.find_all('span', {'class': 'long-name'})
     names = [team.text for team in teams]
     cities = [destination.text for destination in destinations]
     if not names or not cities:
         return None
-    a_team, h_team = [dest + ' ' + name  for (dest, name) in zip(cities, names)]
+    a_team, h_team = [dest + ' ' + name for (dest, name) in zip(cities, names)]
     return a_team, h_team
 
 
@@ -254,7 +253,7 @@ def boxscores(sports=['nfl'], output='dict'):
     '''
     links = boxlinks(sports=sports)
     # print(f'links: {links}')
-    boxes = [boxscore(link) for link in links]        
+    boxes = [boxscore(link) for link in links]
     return boxes
 
 
