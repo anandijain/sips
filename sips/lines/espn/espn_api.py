@@ -136,12 +136,10 @@ def competitors(event):
 
     for competitor in competitors:
         records = competitor['records']
+        all_splits = {'summary': None}
         for record in records:
             if record.get('name') == 'All Splits':
                 all_splits = record
-                
-        if not all_splits:
-            all_splits['summary'] = None
             
         if competitor['homeAway'] == 'home':
             h_record = all_splits['summary']

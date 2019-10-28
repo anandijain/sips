@@ -1,5 +1,5 @@
 {
-    "sports": ["nba", "nfl", "college-football"],
+    "sports": ["nba"],
     "wait": 0.5,
     "verbose": false,
     "grab_espn": true,

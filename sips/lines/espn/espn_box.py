@@ -73,12 +73,14 @@ def schedule(sport='nfl'):
     return p
 
 
-def get_ids(sport='nfl'):
+def get_ids(sport='nfl', live_only=True):
     '''
 
     '''
     p = schedule(sport)
     ids_live = live_ids(p, sport)
+    if live_only:
+        return ids_live
     ids_score = score_ids(p, sport)
     ids_time = time_ids(p, sport)
     ids_parsed = parse_ids(ids_score + ids_time)
@@ -232,14 +234,14 @@ def box_teamnames(page):
     return a_team, h_team
 
 
-def boxlinks(ids=None, sports=['nfl']):
+def boxlinks(ids=None, sports=['nfl'], live_only=True):
     '''
 
     '''
     links = []
     for sport in sports:
         if not ids:
-            ids = get_ids(sport=sport)
+            ids = get_ids(sport=sport, live_only=live_only)
         url = ESPN_ROOT + sport + '/boxscore?gameId='
         sport_links = [url + id for id in ids]
         links += sport_links

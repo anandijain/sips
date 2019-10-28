@@ -5,6 +5,7 @@ import json
 import sips.h.openers as io
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
+from sips.lines import collate
 
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -35,6 +36,7 @@ class Lines:
             self.config = json.load(config)
 
         self.sports = self.config.get('sports')
+        print(f'sports: {self.sports}')
         self.wait = self.config.get('wait')
         self.verbose = self.config.get('verbose')
         start = self.config['start']
@@ -71,8 +73,11 @@ class Lines:
         self.prev_time = time.time()
 
         if self.write_new:
-            self.prevs = bov.lines(
-                self.sports, output='dict', verbose=self.verbose, session=self.session, espn=self.espn)
+            if self.espn:
+                self.prevs = collate.get_and_compare(sports=self.sports)
+            else:
+                self.prevs = bov.lines(
+                    self.sports, output='dict', verbose=self.verbose, session=self.session, espn=self.espn)
             self.current = None
 
         if start:
@@ -83,8 +88,11 @@ class Lines:
 
         '''
         self.new_time = time.time()
-        self.current = bov.lines(self.sports, verbose=self.verbose, 
-                        output='dict', session=self.session, espn=self.espn)
+        if self.espn:
+            self.current = collate.get_and_compare(sports=self.sports)
+        else:
+            self.current = bov.lines(self.sports, verbose=self.verbose, 
+                            output='dict', session=self.session, espn=self.espn)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
@@ -177,21 +185,21 @@ def write_opened(file_dict, data_dict, verbose=True):
     return file_dict
 
 
-def async_write_opened(file_dict, data_dict, verbose=True):
-    '''
-    read in dictionary with open files as values
-    and write data to files
-    '''
+# def async_write_opened(file_dict, data_dict, verbose=True):
+#     '''
+#     read in dictionary with open files as values
+#     and write data to files
+#     '''
 
-    args = ((check_if_exists(file_dict, game_id), game_id, val)
-            for game_id, val in data_dict.items())
+#     args = ((check_if_exists(file_dict, game_id), game_id, val)
+#             for game_id, val in data_dict.items())
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.map(write_for_map, args)]
-        as_completed = concurrent.futures.as_completed(results)
-        file_dict = as_completed[-1]
+#     with concurrent.futures.ProcessPoolExecutor() as executor:
+#         results = [executor.map(write_for_map, args)]
+#         as_completed = concurrent.futures.as_completed(results)
+#         file_dict = as_completed[-1]
 
-    return file_dict
+#     return file_dict
 
 
 def write_for_map(file_dict, game_id, vals):

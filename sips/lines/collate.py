@@ -38,7 +38,6 @@ def match_api_lines(bov_events, espn_events, output='list'):
     num_matched = 0
     rows = []
     eteams = None
-    print(f'espn_events: {espn_events}')
     for event in bov_events:
         bteams = bov_utils.teams(event)
         for espn_event in espn_events:
@@ -50,7 +49,7 @@ def match_api_lines(bov_events, espn_events, output='list'):
                 row = line + espn_data
                 rows.append(row)
                 num_matched += 1
-    # print(f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
+    print(f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
     print(f'num_matched: {num_matched}')
     ret = []
     for row in rows:
@@ -78,12 +77,12 @@ def match_lines_boxes(lines, boxes, output='dict', verbose=True):
     for line in lines:
         bteams = bov_utils.teams_from_line(line)
         if not bteams:
-            print(f'skip: {line}')
+            print(f'bskip: {line}')
             continue
         for boxscore in boxes:
             eteams = boxscore[-2:]
             if not eteams:
-                print(f'skip: {boxscore}')
+                print(f'eskip: {boxscore}')
                 continue
             try:
                 teams_same = sorted(list(bteams)) == sorted(list(eteams))
@@ -107,9 +106,7 @@ def match_lines_boxes(lines, boxes, output='dict', verbose=True):
 
 def box_lines_comp(sports=['nfl'], output='dict'):
     lines = bov.lines(sports, output='list')
-    sport = sports[0]
-    print(f'sports[0]: {sports[0]}')
-    boxes = eb.boxscores(sport)
+    boxes = eb.boxscores(sports=sports)
     rows = match_lines_boxes(lines, boxes, output=output)
     return rows
 

@@ -42,7 +42,6 @@ def reduce_mkt_type(market_desc):
     try:
         reduced = MKT_TYPE[market_desc]
     except KeyError:
-        # print(f'{market_desc} not supported')
         return 'ml'
     return reduced
 
@@ -208,7 +207,6 @@ def parse_markets(markets, output='list'):
 
     for market in markets:
         mkt_type = reduce_mkt_type(market.get('description'))
-        # print(f'mkt_type: {mkt_type}')
         if not mkt_type:
             continue
 
@@ -234,7 +232,6 @@ def parse_market(market):
     '''
     period = market.get('period')
     is_live = int(period['live'])
-    # print(f'is_live: {is_live}')
     mkt_type = reduce_mkt_type(market.get('description'))
 
     outcomes = market.get('outcomes')
@@ -255,7 +252,6 @@ def parse_market(market):
         print(f'this RET: {ret}')
 
     ret.append(is_live)
-    print(f'ret: {ret}')
     return ret
 
 
@@ -279,7 +275,6 @@ def spread(outcomes):
         else:
             h_ps, h_hcap = parse_json(price, TO_GRAB['ps'], 'list')
 
-    # print(f'a_ps, h_ps, a_hcap, h_hcap: {a_ps, h_ps, a_hcap, h_hcap}')
     return [a_ps, h_ps, a_hcap, h_hcap]
 
 

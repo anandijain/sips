@@ -61,7 +61,7 @@ def lines(sports, output='list', verbose=False, fixlines=True, session=None, esp
         data = [u.parse_event(e, grab_score=True) for e in events]
 
     if verbose:
-        print(f'rows: {data}')
+        print(f'lines: {data}')
         
     return data
 
