@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
     batch_size = 128
 
-
     df = h.get_df()
 
     train = h.Df(df)
@@ -50,7 +49,8 @@ if __name__ == "__main__":
     loss_function = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=0.1)
 
-    train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(
+        dataset=train, batch_size=batch_size, shuffle=True)
 
     for epoch in range(2):
         for num, data in enumerate(train_loader):
@@ -63,9 +63,7 @@ if __name__ == "__main__":
             train = data[0].float()
             targets = data[1].float()
 
-
             out = model(train)
-
 
             print(train[0])
             print(targets[0])

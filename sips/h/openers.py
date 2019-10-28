@@ -18,7 +18,7 @@ def write_list(file, list):
         else:
             file.write(',')
 
-    
+
 def get_page(link, verbose=False):
     '''
 
@@ -62,7 +62,7 @@ def async_req(links, session=None, max_workers=10):
     if not session:
         session = FuturesSession(
             executor=ThreadPoolExecutor(max_workers=max_workers))
-    
+
     jsons = [session.get(link).result().json() for link in links]
     return jsons
 
@@ -72,7 +72,8 @@ def async_req_dict(links, key, session=None, max_workers=10):
     the key 
     '''
     if not session:
-        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
+        session = FuturesSession(
+            executor=ThreadPoolExecutor(max_workers=max_workers))
     raw = [session.get(link).result().json() for link in links]
-    jsons = {game.get(key) : game for game in raw}
+    jsons = {game.get(key): game for game in raw}
     return jsons

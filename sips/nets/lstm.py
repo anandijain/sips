@@ -35,6 +35,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = 'cpu'
 print(device)
 
+
 def plot_data(data, separate=True):
     # numpy input
     col_names = ['open', 'high', 'low', 'close']
@@ -53,9 +54,10 @@ def plot_data(data, separate=True):
 
 
 def dataset_shapes(dataset):
-	sample_x, sample_y = dataset[0]
-	print(f'dataset_shapes: sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
-	return sample_x, sample_y
+    sample_x, sample_y = dataset[0]
+    print(
+        f'dataset_shapes: sample_x shape: {sample_x.shape}, sample_y shape: {sample_y.shape}')
+    return sample_x, sample_y
 
 
 def dataloader_shapes(data_loader):
@@ -66,12 +68,12 @@ def dataloader_shapes(data_loader):
 
 
 def attempt_load(model, path):
-	try:
-	    model.load_state_dict(torch.load(path))
-	    print(f'model state dict loaded from: {path}')
-	except Exception:
-	    pass
-	return model
+    try:
+        model.load_state_dict(torch.load(path))
+        print(f'model state dict loaded from: {path}')
+    except Exception:
+        pass
+    return model
 
 
 def init_model_folder(save_folder):
@@ -96,7 +98,7 @@ def quick_plot(sep=False):
 
 
 def main():
-	pass
+    pass
 
 
 class FileLoader:
@@ -111,10 +113,10 @@ class FileLoader:
         df = pd.read_csv(self.dir + self.files[index])
         return df.iloc[:, 1:5].values
 
-		# x = df.values #returns a numpy array
-		# min_max_scaler = preprocessing.MinMaxScaler()
-		# x_scaled = min_max_scaler.fit_transform(x)
-		# data = x_scaled
+        # x = df.values #returns a numpy array
+        # min_max_scaler = preprocessing.MinMaxScaler()
+        # x_scaled = min_max_scaler.fit_transform(x)
+        # data = x_scaled
 
     def __len__(self):
         return self.length
@@ -133,7 +135,8 @@ class LSTMLoader(Dataset):
         for i in range(0, self.length - self.predict_window):
             upper_idx = i + self.window_len
             x = torch.tensor(self.data[i:upper_idx, :]).view(1, 1, -1).float()
-            y = torch.tensor(self.data[upper_idx:upper_idx + self.predict_window, :]).view(1, 1, -1).float()
+            y = torch.tensor(
+                self.data[upper_idx:upper_idx + self.predict_window, :]).view(1, 1, -1).float()
             self.samples.append((x, y))
 
     def __len__(self):
@@ -155,12 +158,13 @@ class LSTM(nn.Module):
 
     def init_hidden(self):
         return (torch.zeros(self.num_layers, self.batch_size, self.hidden_dim).to(device),
-               torch.zeros(self.num_layers, self.batch_size, self.hidden_dim).to(device))
+                torch.zeros(self.num_layers, self.batch_size, self.hidden_dim).to(device))
 
     def forward(self, input):
         # lstm_out: [input_size, batch_size, hidden_dim]
         # self.hidden: (a, b), where a and b both (num_layers, batch_size, hidden_dim).
-        lstm_out, self.hidden = self.lstm(input.view(len(input), self.batch_size, -1), self.hidden)
+        lstm_out, self.hidden = self.lstm(input.view(
+            len(input), self.batch_size, -1), self.hidden)
         y_pred = self.linear(lstm_out[-1].view(self.batch_size, -1))
         return y_pred.view(-1)
 
@@ -220,6 +224,7 @@ class MLP(nn.Module):
             x = torch.tanh(layer(x))
         return x
 
+
 if __name__ == "__main__":
 
     dataset = loaders.LinesLoader()
@@ -234,7 +239,7 @@ if __name__ == "__main__":
     model = MLP(input_shape, output_shape)
 
     # model = LSTM(input_shape, hidden_dim=hidden_shape, batch_size=batch_size,
-                # output_dim=output_shape, num_layers=num_layers)
+    # output_dim=output_shape, num_layers=num_layers)
 
     # model = attempt_load(model, save_path)
     model.to(device)
@@ -247,7 +252,7 @@ if __name__ == "__main__":
 
     for epoch in range(num_epochs):
 
-        torch.save(model.state_dict(), save_path) 
+        torch.save(model.state_dict(), save_path)
 
         for i, (x, y) in enumerate(data_loader):
             optimiser.zero_grad()
@@ -273,8 +278,6 @@ if __name__ == "__main__":
             hist[epoch] = loss.item()
             loss.backward(retain_graph=True)
             optimiser.step()
-
-
 
     torch.save(model.state_dict(), save_path)
 

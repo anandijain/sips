@@ -3,8 +3,10 @@ import bs4
 import pandas as pd
 import requests as r
 
+
 def main(years=(2000, 2019)):
-    year_list = range(years[0], years[1] + 1)  # + 1 because range is not inclusve
+    # + 1 because range is not inclusve
+    year_list = range(years[0], years[1] + 1)
     dfs = []
     for year in year_list:
         dfs.append(get_df(year))
@@ -28,7 +30,7 @@ def get_df(year, write=True):
 def get_table(url):
     req = r.get(url)
     p = bs4.BeautifulSoup(req.text, "html.parser")
-    table = p.find("table", {"id" : "combine"})
+    table = p.find("table", {"id": "combine"})
     return table
 
 
@@ -46,7 +48,7 @@ def get_url(year=2019):
 
 def get_ids(table):
     ids = []
-    players = table.tbody.find_all('th', {'data-stat' : 'player'})
+    players = table.tbody.find_all('th', {'data-stat': 'player'})
     for player in players:
         try:
             player_url = player.a['href']

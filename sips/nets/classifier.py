@@ -14,14 +14,17 @@ import matplotlib.pyplot as plt
 
 
 class WinSet(Dataset):
-    def __init__(self, predict_column = ['h_win'], train_columns = ['gen_avg_allowed', 'gen_avg_pass_comp_pct', 'gen_avg_pass_yards', 'gen_avg_rush_yards', 'gen_avg_rush_yards_per_attempt', 'gen_avg_score', 'gen_avg_total_yards']):
+    def __init__(self, predict_column=['h_win'], train_columns=['gen_avg_allowed', 
+                'gen_avg_pass_comp_pct', 'gen_avg_pass_yards', 
+                'gen_avg_rush_yards', 'gen_avg_rush_yards_per_attempt', 
+                'gen_avg_score', 'gen_avg_total_yards']):
         self.predict_col = predict_column
         self.train_cols = train_columns
 
         df = pd.read_csv('./data/static/big_daddy2.csv')
         labels = df['h_win'].copy()
         df = df[df.Gen_Games > 4]
-        x = df[self.train_cols].values #returns a numpy array
+        x = df[self.train_cols].values  # returns a numpy array
         min_max_scaler = preprocessing.MinMaxScaler()
         x_scaled = min_max_scaler.fit_transform(x)
         df = pd.DataFrame(x_scaled, columns=self.train_cols)
@@ -31,7 +34,8 @@ class WinSet(Dataset):
         return len(self.projections_frame)
 
     def __getitem__(self, index):
-        x = torch.tensor(self.projections_frame.iloc[index][self.train_cols], dtype=torch.float)
+        x = torch.tensor(
+            self.projections_frame.iloc[index][self.train_cols], dtype=torch.float)
         y = self.projections_frame.iloc[index][self.predict_col].values
         if y == 1:
             y = torch.tensor([0., 1.], dtype=torch.float)
@@ -62,6 +66,7 @@ def log_dims(input_dim=784, output_dim=10, factor=2):
     print(dims)
     return dims
 
+
 def get_layers(layer_dims, layer_type):
     layers = []
     num_layers = len(layer_dims)
@@ -79,10 +84,12 @@ def mlp_layers(layer_dims, verbose=False):
         print(layers)
     return layers
 
+
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, factor=2):
         super(MLP, self).__init__()
-        self.layers = mlp_layers(log_dims(input_dim, output_dim, factor=factor))
+        self.layers = mlp_layers(
+            log_dims(input_dim, output_dim, factor=factor))
         self.num_layers = len(self.layers)
         print(f'num_layers: {self.num_layers}')
         self.model = nn.ModuleList(self.layers)
@@ -96,8 +103,10 @@ class MLP(nn.Module):
             x = torch.tanh(layer(x))
         return x
 
+
 if __name__ == "__main__":
-    train_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs', 'a_gen_a_avg_fourth_down_conv_pct', 'a_gen_a_avg_fumbles', 'a_gen_a_avg_fumbles_lost', 'a_gen_a_avg_interceptions', 'a_gen_a_avg_ints_per_attempt', 'a_gen_a_avg_pass_completion_pct', 'a_gen_a_avg_pass_tds', 'a_gen_a_avg_pass_yards', 'a_gen_a_avg_pass_yards_per_attempt', 'a_gen_a_avg_penalties', 'a_gen_a_avg_penalty_yards', 'a_gen_a_avg_rush_tds', 'a_gen_a_avg_rush_tds_per_attempt', 'a_gen_a_avg_rush_yards', 'a_gen_a_avg_rush_yards_per_attempt', 'a_gen_a_avg_sack_yards','a_gen_a_avg_sacks', 'a_gen_a_avg_score', 'a_gen_a_avg_third_down_conv_pct', 'a_gen_a_avg_top', 'a_gen_a_avg_total_yards', 'a_gen_a_avg_turnovers', 'a_gen_a_rec', 'gen_avg_allowed', 'gen_avg_first_downs', 'gen_avg_fourth_down_conv_pct', 'gen_avg_fumbles','gen_avg_fumbles_lost', 'gen_avg_interceptions', 'gen_avg_ints_per_attempt', 'gen_avg_pass_comp_pct', 'gen_avg_pass_tds', 'gen_avg_pass_yards', 'gen_avg_pass_yards_per_attempt', 'gen_avg_penalties', 'gen_avg_penalty_yards', 'gen_avg_rush_tds_per_attempt', 'gen_avg_rush_yards', 'gen_avg_rush_yards_per_attempt', 'gen_avg_sack_yards', 'gen_avg_sacks', 'gen_avg_score', 'gen_avg_third_down_conv_pct', 'gen_avg_top', 'gen_avg_total_yards', 'gen_avg_turnovers', 'h_gen_h_avg_allowed', 'h_gen_h_avg_first_downs', 'h_gen_h_avg_fourth_down_conv_pct', 'h_gen_h_avg_fumbles', 'h_gen_h_avg_fumbles_lost', 'h_gen_h_avg_interceptions', 'h_gen_h_avg_ints_per_attempt', 'h_gen_h_avg_pass_completion_pct', 'h_gen_h_avg_pass_tds', 'h_gen_h_avg_pass_yards', 'h_gen_h_avg_pass_yards_per_attempt', 'h_gen_h_avg_penalties', 'h_gen_h_avg_penalty_yards', 'h_gen_h_avg_rush_tds', 'h_gen_h_avg_rush_tds_per_attempt', 'h_gen_h_avg_rush_yards', 'h_gen_h_avg_rush_yards_per_attempt', 'h_gen_h_avg_sack_yards', 'h_gen_h_avg_sacks', 'h_gen_h_avg_score', 'h_gen_h_avg_top', 'h_gen_h_avg_total_yards', 'h_gen_h_avg_turnovers', 'h_gen_h_rec']
+    train_columns = ['a_gen_a_avg_allowed', 'a_gen_a_avg_first_downs', 'a_gen_a_avg_fourth_down_conv_pct', 'a_gen_a_avg_fumbles', 'a_gen_a_avg_fumbles_lost', 'a_gen_a_avg_interceptions', 'a_gen_a_avg_ints_per_attempt', 'a_gen_a_avg_pass_completion_pct', 'a_gen_a_avg_pass_tds', 'a_gen_a_avg_pass_yards', 'a_gen_a_avg_pass_yards_per_attempt', 'a_gen_a_avg_penalties', 'a_gen_a_avg_penalty_yards', 'a_gen_a_avg_rush_tds', 'a_gen_a_avg_rush_tds_per_attempt', 'a_gen_a_avg_rush_yards', 'a_gen_a_avg_rush_yards_per_attempt', 'a_gen_a_avg_sack_yards', 'a_gen_a_avg_sacks', 'a_gen_a_avg_score', 'a_gen_a_avg_third_down_conv_pct', 'a_gen_a_avg_top', 'a_gen_a_avg_total_yards', 'a_gen_a_avg_turnovers', 'a_gen_a_rec', 'gen_avg_allowed', 'gen_avg_first_downs', 'gen_avg_fourth_down_conv_pct', 'gen_avg_fumbles', 'gen_avg_fumbles_lost', 'gen_avg_interceptions', 'gen_avg_ints_per_attempt', 'gen_avg_pass_comp_pct', 'gen_avg_pass_tds', 'gen_avg_pass_yards',
+                     'gen_avg_pass_yards_per_attempt', 'gen_avg_penalties', 'gen_avg_penalty_yards', 'gen_avg_rush_tds_per_attempt', 'gen_avg_rush_yards', 'gen_avg_rush_yards_per_attempt', 'gen_avg_sack_yards', 'gen_avg_sacks', 'gen_avg_score', 'gen_avg_third_down_conv_pct', 'gen_avg_top', 'gen_avg_total_yards', 'gen_avg_turnovers', 'h_gen_h_avg_allowed', 'h_gen_h_avg_first_downs', 'h_gen_h_avg_fourth_down_conv_pct', 'h_gen_h_avg_fumbles', 'h_gen_h_avg_fumbles_lost', 'h_gen_h_avg_interceptions', 'h_gen_h_avg_ints_per_attempt', 'h_gen_h_avg_pass_completion_pct', 'h_gen_h_avg_pass_tds', 'h_gen_h_avg_pass_yards', 'h_gen_h_avg_pass_yards_per_attempt', 'h_gen_h_avg_penalties', 'h_gen_h_avg_penalty_yards', 'h_gen_h_avg_rush_tds', 'h_gen_h_avg_rush_tds_per_attempt', 'h_gen_h_avg_rush_yards', 'h_gen_h_avg_rush_yards_per_attempt', 'h_gen_h_avg_sack_yards', 'h_gen_h_avg_sacks', 'h_gen_h_avg_score', 'h_gen_h_avg_top', 'h_gen_h_avg_total_yards', 'h_gen_h_avg_turnovers', 'h_gen_h_rec']
 
     save_path = './models/w_l_classify.pt'
 
@@ -109,7 +118,6 @@ if __name__ == "__main__":
     print(f'x: {x}, y shape: {y}')
     in_dim = x.shape[0]
     out_dim = y.shape[0]
-
 
     lr = 1e-3
     num_epochs = 1
@@ -126,7 +134,6 @@ if __name__ == "__main__":
         print(f'model state dict loaded from: {save_path}')
     except Exception:
         pass
-
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -145,7 +152,7 @@ if __name__ == "__main__":
                 _, predicted = torch.max(y_pred.data, 1)
                 total += y.size(0)
 
-                correct += (predicted == torch.argmax(y, dim= 1)).sum().item()
+                correct += (predicted == torch.argmax(y, dim=1)).sum().item()
                 acc = correct / total
                 # print('Accuracy of the network on the test images: %d %%' % (100 * ))
                 # if i != 0:

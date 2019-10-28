@@ -12,6 +12,7 @@ import h
 
 # credit https://github.com/utkuozbulak/pytorch-custom-dataset-examples
 
+
 class Net(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(Net, self).__init__()
@@ -70,7 +71,8 @@ if __name__ == "__main__":
 
     hidden_size = (input_size + output_size) // 2
 
-    train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(
+        dataset=train, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=True)
 
     net = Net(input_size, hidden_size, output_size)
@@ -102,7 +104,6 @@ if __name__ == "__main__":
             plt_y.append(loss.detach())
             plt_x.append(step_num * (epoch_num + 1))
 
-
             with torch.no_grad():
                 if step_num % 100 == 1:
                     print('step: {}'.format(step_num))
@@ -115,25 +116,24 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
-
     # TESTING
     for test_step, test_item in enumerate(test_loader):
 
-            test_data = test_item[0]
-            target = test_item[1].double()
-            with torch.no_grad():
+        test_data = test_item[0]
+        target = test_item[1].double()
+        with torch.no_grad():
 
-                pred = net(test_data)
-                test_loss = calc_loss(pred, target)
+            pred = net(test_data)
+            test_loss = calc_loss(pred, target)
 
-                if test_step % 10 == 1:
-                    print('step: {}'.format(step_num))
-                    # print('input: {}'.format(test_data))
-                    print('pred: {}'.format(pred[0]))
-                    print('target: {}'.format(target[0]))
+            if test_step % 10 == 1:
+                print('step: {}'.format(step_num))
+                # print('input: {}'.format(test_data))
+                print('pred: {}'.format(pred[0]))
+                print('target: {}'.format(target[0]))
 
-                if abs(test_loss) < p_val:
-                    correct += 1
+            if abs(test_loss) < p_val:
+                correct += 1
 
     print('correct guesses: {} / total guesses: {}'.format(correct, test_step))
     print('plot is loss/time')

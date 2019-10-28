@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 
 from sips.h import helpers as h
 
+
 class Df(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):
         df = df.astype(float)
@@ -34,14 +35,16 @@ class Df(Dataset):
         # if len(self.past) < prev_n:
 
         if index < self.total_len - self.next_n - 1:
-            self.past = self.tdf[index - self.prev_n : index]
+            self.past = self.tdf[index - self.prev_n: index]
             # self.past = torch.from_numpy(self.past)
 
             self.future = self.tdf[index: index + self.next_n]
             # self.future_n = torch.from_numpy(self.future_n)
 
-            self.past = torch.cat([self.past, self.past.new(self.prev_n - self.past.size(0), * self.past.size()[1:]).zero_()])
-            self.future = torch.cat([self.future, self.future.new(self.next_n - self.future.size(0), * self.future.size()[1:]).zero_()])
+            self.past = torch.cat([self.past, self.past.new(
+                self.prev_n - self.past.size(0), * self.past.size()[1:]).zero_()])
+            self.future = torch.cat([self.future, self.future.new(
+                self.next_n - self.future.size(0), * self.future.size()[1:]).zero_()])
             return (self.past, self.future)
 
         else:
@@ -59,8 +62,10 @@ class DfGame(Dataset):
         self.ids = list(self.games_dict.keys())
         self.game_id = self.ids[0]
         self.game = self.games[0]
-        self.data_len = len(self.games)  # not padding aware because shape is constant
-        self.game_len = len(self.games_dict[self.game_id])  # assuming all games same length
+        # not padding aware because shape is constant
+        self.data_len = len(self.games)
+        # assuming all games same length
+        self.game_len = len(self.games_dict[self.game_id])
 
     def __getitem__(self, index):
         self.game = self.games[index]
@@ -72,7 +77,11 @@ class DfGame(Dataset):
 
 
 class DfPastGames(Dataset):
-    # each line of csv is a game, takes in pandas and a list of strings of which columns are labels
+    '''
+    each line of csv is a game,
+    takes in pandas and a list of strings of which columns are labels
+    '''
+
     def __init__(self, df, train_columns=['a_pts', 'h_pts']):
         self.df = df
         self.train_columns = train_columns
@@ -134,13 +143,15 @@ class DfCols(Dataset):
 class LineGen(Dataset):
     def __init__(self, game_df):
         self.df = game_df
-        self.df = self.df[(self.df.a_odds_ml != np.int64(0)) & (self.df.h_odds_ml != np.int64(0))]
+        self.df = self.df[(self.df.a_odds_ml != np.int64(0))
+                          & (self.df.h_odds_ml != np.int64(0))]
         self.data_len = len(self.df)
 
         min_max_scaler = preprocessing.MinMaxScaler()
 
         self.pregame = self.df[['a_odds_ps', 'h_odds_ps']].iloc[0].values
-        self.train_cols = ['last_mod_to_start', 'a_pts', 'h_pts', 'quarter', 'status', 'secs', 'num_markets']
+        self.train_cols = ['last_mod_to_start', 'a_pts',
+                           'h_pts', 'quarter', 'status', 'secs', 'num_markets']
         self.label_cols = ['a_odds_ml', 'h_odds_ml']
         self.X = self.df[self.train_cols].values
         self.Y = self.df[self.label_cols].values
@@ -165,12 +176,15 @@ class LineGen(Dataset):
 
 
 class PlayerDataset(Dataset):
-    def __init__(self, window=1, fn='./data/static/lets_try5.csv', predict_columns =['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'], team_columns=None):
+    def __init__(self, window=1, fn='./data/static/lets_try5.csv', 
+                predict_columns=['pass_rating', 'pass_yds', 'rush_yds', 'rec_yds'], 
+                team_columns=None):
         self.projections_frame = pd.read_csv(fn)
         self.transform(self.projections_frame)
         self.team_columns = team_columns
         self.predict_columns = predict_columns
         self.window = window
+
     def transform(self, df):
         self.projections_frame = self.projections_frame.drop_duplicates()
         dfs = self.projections_frame.groupby('playerid')
@@ -180,18 +194,21 @@ class PlayerDataset(Dataset):
             length = len(df)
             df = df.sort_values(by=['age'])
             if df.pass_yds.astype(bool).sum(axis=0) > .4*length:
-                    bigcsv.append(df)
+                bigcsv.append(df)
         self.projections_frame = pd.concat(bigcsv)
 
     def __len__(self):
         return len(self.projections_frame)
 
     def __getitem__(self, index):
-        past = torch.tensor(np.array(self.projections_frame[index:index+self.window][self.predict_columns + self.team_columns]))
+        past = torch.tensor(np.array(
+            self.projections_frame[index:index+self.window][self.predict_columns + self.team_columns]))
         past = torch.tensor(past.reshape(-1, 1))
-        team_data = torch.tensor(self.projections_frame.iloc[index+self.window][self.team_columns])
+        team_data = torch.tensor(
+            self.projections_frame.iloc[index+self.window][self.team_columns])
         # past = past.t()
-        y = torch.tensor(self.projections_frame.iloc[index+self.window][self.predict_columns])
+        y = torch.tensor(
+            self.projections_frame.iloc[index+self.window][self.predict_columns])
         past = past.float()
         team_data = team_data.float()
         x = torch.cat((past.flatten(), team_data.flatten())).view(1, 1, -1)
@@ -208,10 +225,9 @@ class LinesLoader(Dataset):
         # print(df)
         # for i, column in enumerate(df.columns):
         #     print(f'{i}: {column}')
-            
+
         # for i, dtype in enumerate(df.dtypes):
         #     print(f'{i}: {dtype}')
-
 
         self.df = pd.get_dummies(df, columns=['a_team', 'h_team', 'Venue'])
         self.df = h.remove_string_cols(self.df)
@@ -230,4 +246,3 @@ class LinesLoader(Dataset):
 
     def __len__(self):
         return self.length
-        

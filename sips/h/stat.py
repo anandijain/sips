@@ -3,6 +3,7 @@ import math
 import pandas as pd
 import numpy as np
 
+
 def series_mean(series):
     items = series.tolist()
     tot = 0
