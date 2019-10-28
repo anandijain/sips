@@ -188,7 +188,7 @@ def main():
     '''
 
     write_path = "./data/shots.csv"
-    init_file(fn=write_path)
+    init_csv(fn=write_path)
 
     # sfxs = boxlinks()
     # for testing
@@ -212,7 +212,7 @@ def main():
     meta_df.to_csv('./data/meta_shots.csv')
 
 
-def init_file(fn='shots.csv'):
+def init_csv(fn='shots.csv'):
     columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
     f = open(fn, 'w+')
     io.write_list(f, columns)

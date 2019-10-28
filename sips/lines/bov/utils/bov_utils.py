@@ -9,7 +9,7 @@ import requests as r
 
 import sips.h.macros as m
 import sips.h.openers as o
-
+from sips.lines.bov import new_lines as nl
 from sips.lines.bov.utils import bov_utils as u
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
@@ -492,3 +492,4 @@ def bov_all_dict():
 
 if __name__ == "__main__":
     
+    nl.main()

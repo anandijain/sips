@@ -38,25 +38,14 @@ class Lines:
         with open(config_path) as config:
             self.config = json.load(config)
 
-        self.sports = self.config.get('sports')
+        self.conf()
+
         print(f'sports: {self.sports}')
-        self.wait = self.config.get('wait')
-        self.verbose = self.config.get('verbose')
-        start = self.config['start']
-
-        '''
-        if espn is true, we want to add 
-        '''
-        self.espn = self.config['grab_espn']
-
-        file_conf = self.config.get('file')
-        self.write_new = file_conf.get('new_only')
-        # self.file_per_game = file_conf.get('file_per_game')
-        self.flush_rate = file_conf.get('flush_rate')
-        self.keep_open = file_conf.get('keep_open')
-
-        self.session = FuturesSession(
-            executor=ProcessPoolExecutor())
+        if self.req_async:
+            self.session = FuturesSession(
+                executor=ProcessPoolExecutor())
+        else:
+            self.session = None
 
         self.files = {}  # if keep_open, dict of files, else dict of file names
 
@@ -65,8 +54,8 @@ class Lines:
         if os.path.isfile(self.log_path):
             self.log_file = open(self.log_path, 'a')
         else:
-            log_header = ['index', 'time', 'time_diff',
-                          'num_events', 'num_changes']
+            log_header = ['index', 'time', 'time_diff', 'num_events',
+                          'num_changes']
             self.log_file = open(self.log_path, 'a')
             io.write_list(self.log_file, log_header)
         self.files['LOG'] = self.log_file
@@ -78,12 +67,26 @@ class Lines:
                 self.prevs = collate.get_and_compare(sports=self.sports)
             else:
                 self.prevs = bov.lines(
-                    self.sports, output='dict', verbose=self.verbose, \
+                    self.sports, output='dict', verbose=self.verbose,
                     session=self.session, espn=self.espn)
             self.current = None
 
-        if start:
+        if self.start:
             self.run()
+
+    def conf(self):
+
+        file_conf = self.config.get('file')
+        self.sports = self.config.get('sports')
+        self.wait = self.config.get('wait')
+        self.verbose = self.config.get('verbose')
+        self.req_async = self.config['async_req']
+        self.start = self.config['start']
+        self.espn = self.config['grab_espn']
+        self.write_new = file_conf.get('new_only')
+        self.flush_rate = file_conf.get('flush_rate')
+        self.keep_open = file_conf.get('keep_open')
+        # self.file_per_game = file_conf.get('file_per_game')  todo
 
     def step(self):
         '''
@@ -93,8 +96,8 @@ class Lines:
         if self.espn:
             self.current = collate.get_and_compare(sports=self.sports)
         else:
-            self.current = bov.lines(self.sports, verbose=self.verbose, \
-                                     output='dict', session=self.session, \
+            self.current = bov.lines(self.sports, verbose=self.verbose,
+                                     output='dict', session=self.session,
                                      espn=self.espn)
 
         if self.write_new:
@@ -159,15 +162,6 @@ def compare_and_filter(prevs, news):
     return to_write
 
 
-def init_file(fn, keep_open=False):
-    f = open(fn, 'a')
-    io.write_list(f, utils.header())
-    if not keep_open:
-        f.close()
-    else:
-        return f
-
-
 def write_opened(file_dict, data_dict, verbose=True):
     '''
     read in dictionary with open files as values
@@ -178,7 +172,7 @@ def write_opened(file_dict, data_dict, verbose=True):
 
         if not f:
             fn = '../data/lines/' + str(game_id) + '.csv'
-            f = init_file(fn, keep_open=True)
+            f = init_csv(fn, header=utils.header(), close=False)
             file_dict[game_id] = f
 
         io.write_list(f, vals)
@@ -221,7 +215,7 @@ def check_if_exists(file_dict, key):
 
     if not f:
         fn = '../data/lines/' + str(key) + '.csv'
-        f = init_file(fn, keep_open=True)
+        f = init_csv(fn, header=utils.header(), close=False)
         file_dict[key] = f
     return file_dict
 
@@ -236,7 +230,7 @@ def open_and_write(file_dict, data_dict, verbose=True):
         if not f:
             file_dict[game_id] = fn
             if not os.path.isfile(fn):
-                init_file(fn)
+                init_csv(fn, header=utils.header())
 
         f = open(fn, 'a')
 
@@ -248,19 +242,11 @@ def open_and_write(file_dict, data_dict, verbose=True):
     return file_dict
 
 
-def update_check(prev, new):
-    '''
-    prev - list of old data
-    new - list of new data
-    returns - bool
-    '''
-    is_updated = True if prev == new else False
-    return is_updated
-
-
 def main():
-    bov_lines = Lines('/home/sippycups/absa/sips/sips/lines/bov/config/new_lines.json')
+    bov_lines = Lines('/home/sippycups/absa/sips/sips/'
+                      'lines/bov/config/new_lines.json')
     return bov_lines
+
 
 if __name__ == '__main__':
     main()

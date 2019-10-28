@@ -8,6 +8,18 @@ from concurrent.futures import ThreadPoolExecutor
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
 
+def init_csv(fn, header, close=True):
+    '''
+
+    '''
+    f = open(fn, 'a')
+    write_list(f, header)
+    if close:
+        f.close()
+    else:
+        return f
+
+
 def write_list(file, list):
     length = len(list)
     for i, elt in enumerate(list):
