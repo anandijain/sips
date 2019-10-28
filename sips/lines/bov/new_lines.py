@@ -78,7 +78,7 @@ class Lines:
                 self.prevs = collate.get_and_compare(sports=self.sports)
             else:
                 self.prevs = bov.lines(
-                    self.sports, output='dict', verbose=self.verbose,
+                    self.sports, output='dict', verbose=self.verbose, \
                     session=self.session, espn=self.espn)
             self.current = None
 
@@ -93,8 +93,9 @@ class Lines:
         if self.espn:
             self.current = collate.get_and_compare(sports=self.sports)
         else:
-            self.current = bov.lines(self.sports, verbose=self.verbose,
-                                     output='dict', session=self.session, espn=self.espn)
+            self.current = bov.lines(self.sports, verbose=self.verbose, \
+                                     output='dict', session=self.session, \
+                                     espn=self.espn)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
@@ -257,6 +258,9 @@ def update_check(prev, new):
     return is_updated
 
 
+def main():
+    bov_lines = Lines('/home/sippycups/absa/sips/sips/lines/bov/config/new_lines.json')
+    return bov_lines
+
 if __name__ == '__main__':
-    line = Lines(
-        '/home/sippycups/absa/sips/sips/lines/bov/config/new_lines.json')
+    main()

@@ -23,10 +23,12 @@ def get_events(sports=['nfl'], output='list', session=None):
     return events
 
 
-def fix_links(sports):
+def fix_links(sports, verbose=True):
     # append market filter to each url
     sfx = '?marketFilterId=def&lang=en'
     links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
+    if verbose:
+        print(f'bov_links: {links}')
     return links
 
 

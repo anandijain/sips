@@ -1,8 +1,8 @@
 {
-    "sports": ["nba"],
+    "sports": ["nba", "nfl"],
     "wait": 0.5,
     "verbose": false,
-    "grab_espn": true,
+    "grab_espn": false,
     "start": true,
     "file": {
         "new_only": true,

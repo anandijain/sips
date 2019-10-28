@@ -484,5 +484,25 @@ def header():
             'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
 
 
+def bov_all_dict():
+    '''
+
+    '''
+    all_dict = {}
+    req = r.get('https: // www.bovada.lv/services/sports /\'
+                'event/v2/events/A/description/basketball/nba').json()
+    es = req[0].get('events')
+    for event in es:
+        desc = event.get('description')
+        # print(f'desc: {desc}')
+        if not desc:
+            continue
+        event_dict = utils.parse_display_groups(event)
+        cleaned = utils.clean_desc(desc)
+        all_dict[cleaned] = event_dict
+    # print(f'all_dict: {all_dict}')
+    return all_dict
+    
+
 if __name__ == "__main__":
     bov_main.main()
