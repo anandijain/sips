@@ -76,7 +76,7 @@ def match_lines_boxes(lines, boxes, output='dict', verbose=True):
     rows = []
     eteams = None
     for line in lines:
-        bteams = bov_utils.teams_from_line(line)
+        bteams = line[2:4]
         if not bteams:
             print(f'bskip: {line}')
             continue

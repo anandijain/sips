@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     df = h.get_df()
 
-    train = h.Df(df)
+    train = h.DfWindow(df)
 
     item = train.__getitem__(500)
 

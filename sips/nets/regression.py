@@ -57,8 +57,8 @@ if __name__ == "__main__":
     train = h.DfCols(train_df, train_cols=None, label_cols=['flux'])
     test = h.DfCols(test_df, train_cols=None, label_cols=['flux'])
 
-    # train = h.Df(train_df)
-    # test = h.Df(test_df)
+    # train = h.DfWindowWindow(train_df)
+    # test = h.DfWindow(test_df)
 
     item = train.__getitem__(500)
     print(item)

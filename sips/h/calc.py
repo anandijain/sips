@@ -42,14 +42,14 @@ class Hedge:
         self.bet2 = bet2
 
     def __repr__(self):
-        print("[BET 1 of 2")
+        print("BET 1 of 2")
         self.bet.__repr__()
         print("BET 2 of 2")
         self.bet2.__repr__()
         print('hedged profit: ' + str(self.net))
         print('steps waited: ' + str(self.bet.wait_amt))
         if self.made_profit:
-            print('$$$$$$$$$$$$$$$$$ made money]')
+            print('$$$$$$$$$$$$$$$$$ made money')
         print('\n')
 
     # TODO

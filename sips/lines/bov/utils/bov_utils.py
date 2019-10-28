@@ -10,7 +10,7 @@ import requests as r
 import sips.h.macros as m
 import sips.h.openers as o
 
-from sips.lines.bov import bov_main
+from sips.lines.bov.utils import bov_utils as u
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -121,10 +121,8 @@ def dict_from_events(events, key='id', rows=True, grab_score=False):
 
 def parse_event(event, verbose=False, grab_score=True):
     '''
-    [sport, game_id, a_team, h_team, last_mod, num_markets, live],
-    [quarter, secs, a_pts, h_pts, status], [
-    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
-    a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
+    parses an event with three markets (spread, ml, total)
+    returns list of data following the order in header()
     '''
     game_id, sport, live, num_markets, last_mod = parse_json(
         event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'],
@@ -156,22 +154,10 @@ def parse_event(event, verbose=False, grab_score=True):
                h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot,
                a_ou, h_ou, game_start_time]
 
-    # ret = [sport, game_id, a_team, h_team, a_pts, h_pts, a_ml, h_ml,
-    #         quarter, secs, status, num_markets, live, a_ps, h_ps, a_hcap,
-    #         h_hcap, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou,
-    #         game_start_time, last_mod]
-
     if verbose:
         print(f'event: {section_1} {section_2}')
 
     return ret
-
-
-def teams_from_line(line):
-    '''
-    return the a_team and h_team indices in row list
-    '''
-    return line[2:4]
 
 
 def grab_row_from_markets(markets):
@@ -489,7 +475,7 @@ def bov_all_dict():
 
     '''
     all_dict = {}
-    req = r.get('https: // www.bovada.lv/services/sports /\'
+    req = r.get('https: // www.bovada.lv/services/sports /'\
                 'event/v2/events/A/description/basketball/nba').json()
     es = req[0].get('events')
     for event in es:
@@ -497,12 +483,12 @@ def bov_all_dict():
         # print(f'desc: {desc}')
         if not desc:
             continue
-        event_dict = utils.parse_display_groups(event)
-        cleaned = utils.clean_desc(desc)
+        event_dict = u.parse_display_groups(event)
+        cleaned = u.clean_desc(desc)
         all_dict[cleaned] = event_dict
     # print(f'all_dict: {all_dict}')
     return all_dict
-    
+
 
 if __name__ == "__main__":
-    bov_main.main()
+    

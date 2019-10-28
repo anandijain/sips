@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 from sips.h import helpers as h
 
 
-class Df(Dataset):
+class DfWindow(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):
         df = df.astype(float)
         self.df = df.values()
@@ -55,57 +55,6 @@ class Df(Dataset):
         return self.total_len
 
 
-class DfGame(Dataset):
-    # given dictionary of padded games
-    def __init__(self, games):
-        self.games_dict = games
-        self.games = list(self.games_dict.values())
-        self.ids = list(self.games_dict.keys())
-        self.game_id = self.ids[0]
-        self.game = self.games[0]
-        # not padding aware because shape is constant
-        self.data_len = len(self.games)
-        # assuming all games same length
-        self.game_len = len(self.games_dict[self.game_id])
-
-    def __getitem__(self, index):
-        self.game = self.games[index]
-        first_half, second_half = h.split_game_in_half(self.game)
-        return self.game
-
-    def __len__(self):
-        return self.data_len
-
-
-class DfPastGames(Dataset):
-    '''
-    each line of csv is a game,
-    takes in pandas and a list of strings of which columns are labels
-    '''
-
-    def __init__(self, df, train_columns=['a_pts', 'h_pts']):
-        self.df = df
-        self.train_columns = train_columns
-        self.data_len = len(self.df)
-
-        self.labels = self.df[self.train_columns].values
-        # self.labels= sk_scale(self.labels)
-        self.labels = torch.tensor(self.labels)
-        self.labels_shape = len(self.labels)
-
-        self.data = self.df.drop(self.train_columns, axis=1).values
-        # self.data = sk_scale(self.data)
-        print(self.data)
-        self.data = torch.tensor(self.data)
-        self.data_shape = len(self.data[0])
-
-    def __getitem__(self, index):
-        return self.data[index], self.labels[index]
-
-    def __len__(self):
-        return self.data_len
-
-
 class DfCols(Dataset):
     '''
     each line of csv is a game,
@@ -113,7 +62,7 @@ class DfCols(Dataset):
     '''
 
     def __init__(self, df, train_cols=['quarter', 'secs'],
-                 label_cols=['a_pts', 'h_pts']):
+                 label_cols=['a_pts', 'h_pts'], scale=True):
         # self.df = df.sort_values(by='cur_time')
         self.df = df
         self.data_len = len(self.df)
@@ -123,7 +72,10 @@ class DfCols(Dataset):
 
         self.labels = self.df[self.label_cols]
         # self.labels = self.labels.to_numpy(dtype=float)
-        self.labels = h.sk_scale(self.labels)
+        if scale:
+            self.labels = h.sk_scale(self.labels)
+        else:
+            self.labels = self.labels.values
         self.labels = torch.tensor(self.labels)
 
         self.labels_shape = len(self.labels)
