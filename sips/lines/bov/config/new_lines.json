@@ -3,7 +3,7 @@
     "wait": 0.5,
     "verbose": false,
     "grab_espn": false,
-    "async_req": false,
+    "async_req": true,
     "start": true,
     "file": {
         "new_only": true,

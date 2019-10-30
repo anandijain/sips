@@ -353,12 +353,11 @@ def bov_comp_ids(event):
 
 def get_scores(events, session=None):
     '''
-    quarter, secs, a_pts, h_pts, status
+    {game_id : quarter, secs, a_pts, h_pts, status}
     '''
     ids = get_ids(events)
-    # links = {game_id : m.BOV_SCORES_URL + game_id for game_id in ids}
-
     links = [m.BOV_SCORES_URL + game_id for game_id in ids]
+
     raw = o.async_req_dict(links, 'eventId', session=session)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
@@ -366,7 +365,7 @@ def get_scores(events, session=None):
 
 def score(json_data):
     '''
-    given a game_id, returns the score data of the game
+    given json data for a game_id, returns the score data of the game
     '''
     [quarter, secs, a_pts, h_pts, game_status] = ['NaN' for _ in range(5)]
 

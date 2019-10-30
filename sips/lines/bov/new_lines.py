@@ -75,7 +75,9 @@ class Lines:
             self.run()
 
     def conf(self):
+        '''
 
+        '''
         file_conf = self.config.get('file')
         self.sports = self.config.get('sports')
         self.wait = self.config.get('wait')
@@ -172,7 +174,7 @@ def write_opened(file_dict, data_dict, verbose=True):
 
         if not f:
             fn = '../data/lines/' + str(game_id) + '.csv'
-            f = init_csv(fn, header=utils.header(), close=False)
+            f = io.init_csv(fn, header=utils.header(), close=False)
             file_dict[game_id] = f
 
         io.write_list(f, vals)
@@ -215,7 +217,7 @@ def check_if_exists(file_dict, key):
 
     if not f:
         fn = '../data/lines/' + str(key) + '.csv'
-        f = init_csv(fn, header=utils.header(), close=False)
+        f = io.init_csv(fn, header=utils.header(), close=False)
         file_dict[key] = f
     return file_dict
 
@@ -230,7 +232,7 @@ def open_and_write(file_dict, data_dict, verbose=True):
         if not f:
             file_dict[game_id] = fn
             if not os.path.isfile(fn):
-                init_csv(fn, header=utils.header())
+                io.init_csv(fn, header=utils.header())
 
         f = open(fn, 'a')
 
