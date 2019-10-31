@@ -3,6 +3,9 @@ import bs4
 import pandas as pd
 import requests as r
 
+import sips.h.parse as p
+import sips.h.openers as io
+
 
 def main(years=(2000, 2019)):
     # + 1 because range is not inclusve
@@ -18,8 +21,9 @@ def get_df(year, write=True):
 
     '''
     url = get_url(year=year)
-    table = get_table(url)
-    cols = get_headers(table.thead)
+    page = io.get_page(url)
+    table = p.get_table(page, 'combine')
+    cols = p.columns_from_table(table)
     player_ids = get_ids(table)
     raw_df = pd.read_html(table.prettify())[0]
     df = cat_ids(raw_df, player_ids)
@@ -28,22 +32,6 @@ def get_df(year, write=True):
         fn = get_fn(year)
         df.to_csv(fn)
     return df
-
-
-def get_table(url):
-    '''
-
-    '''
-    req = r.get(url)
-    p = bs4.BeautifulSoup(req.text, "html.parser")
-    table = p.find("table", {"id": "combine"})
-    return table
-
-
-def get_headers(thead):
-    header_cells = thead.find_all("th")
-    cols = [header.text for header in header_cells]
-    return cols
 
 
 def get_url(year=2019):

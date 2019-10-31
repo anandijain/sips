@@ -393,27 +393,14 @@ def score(json_data):
     return [quarter, secs, a_pts, h_pts, game_status]
 
 
-def req_json(url, sleep=0.5, verbose=False):
-    '''
-    requests the link, returns json
-    '''
-    try:
-        req = r.get(url)
-    except:
-        return None
-
-    time.sleep(sleep)
-
-    try:
-        bov_json = req.json()
-    except:
-        print(f'{url} had no json')
-        return None
-
+def filtered_links(sports, verbose=False):
+    # append market filter to each url
+    sfx = '?marketFilterId=def&lang=en'
+    links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
     if verbose:
-        print(f"req'd url: {url}")
-    return bov_json
-
+        print(f'bov_links: {links}')
+    return links
+    
 
 def get_ids(events):
     '''
@@ -430,7 +417,7 @@ def get_ids(events):
 def list_from_jsons(jsons, rows=False):
     '''
     jsons is a list of dictionaries for each sport 
-    returns a list of events
+    if rows, return parsed row data instead of list of events
     '''
     events = [parse_event(e)
               if rows else e for j in jsons for e in json_events(j)]

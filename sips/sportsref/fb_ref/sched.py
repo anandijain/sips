@@ -1,7 +1,7 @@
 import sips.h as h
 
 
-def get_sched():
+def season_boxlinks():
     root = h.new_macros.sports_ref.fb_url
     ext = "/years/2019/games.htm"
 

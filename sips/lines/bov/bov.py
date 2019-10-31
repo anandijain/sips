@@ -12,8 +12,8 @@ def get_events(sports=['nfl'], output='list', session=None):
     gets all events for all the sports specified in macros.py
     output: either 'list' or 'dict', where each key is the game_id
     '''
-    links = fix_links(sports)
-    jsons = [u.req_json(l) for l in links]
+    links = u.filtered_links(sports)
+    jsons = [o.req_json(l) for l in links]
     # jsons = o.async_req(links, session=session)
     events = u.list_from_jsons(jsons)
 
@@ -21,15 +21,6 @@ def get_events(sports=['nfl'], output='list', session=None):
         events = u.dict_from_events(events)
 
     return events
-
-
-def fix_links(sports, verbose=False):
-    # append market filter to each url
-    sfx = '?marketFilterId=def&lang=en'
-    links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
-    if verbose:
-        print(f'bov_links: {links}')
-    return links
 
 
 def lines(sports, output='list', verbose=False, fixlines=True,
@@ -43,12 +34,12 @@ def lines(sports, output='list', verbose=False, fixlines=True,
         return
 
     if fixlines:
-        links = fix_links(sports)
+        links = u.filtered_links(sports)
     else:
         links = [m.BOV_URL + u.match_sport_str(s) for s in sports]
 
-    jsons = o.async_req(links, session=session)
-    events = u.list_from_jsons(jsons)
+    if not session:
+        events = get_events(sports=sports, output='dict')
 
     if output == 'dict':
         lines = u.dict_from_events(events, key='id', rows=True,
