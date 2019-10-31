@@ -2,6 +2,7 @@ import os
 import time
 import json
 
+import sips
 import sips.h.openers as io
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
@@ -35,17 +36,15 @@ class Lines:
             self.config = json.load(config)
 
         self.conf()
-
         print(f'sports: {self.sports}')
+
         if self.req_async:
             self.session = FuturesSession(
                 executor=ProcessPoolExecutor())
         else:
             self.session = None
 
-        self.files = {}  # if keep_open, dict of files, else dict of file names
-
-        self.step_num = 0
+        self.files = {}  
         self.log_path = self.dir + 'LOG.csv'
         if os.path.isfile(self.log_path):
             self.log_file = open(self.log_path, 'a')
@@ -54,10 +53,11 @@ class Lines:
                           'num_changes']
             self.log_file = open(self.log_path, 'a')
             io.write_list(self.log_file, log_header)
+
         self.files['LOG'] = self.log_file
         self.log_data = None
-        self.prev_time = time.time()
 
+        self.prev_time = time.time()
         if self.write_new:
             if self.espn:
                 self.prevs = collate.get_and_compare(sports=self.sports)
@@ -67,6 +67,7 @@ class Lines:
                     session=self.session, espn=self.espn)
             self.current = None
 
+        self.step_num = 0
         if self.start:
             self.run()
 
@@ -86,7 +87,8 @@ class Lines:
         self.keep_open = file_conf.get('keep_open')
         # self.file_per_game = file_conf.get('file_per_game')  todo
         self.folder_name = file_conf.get('folder_name')
-        self.dir = '../data/lines/' + self.folder_name
+        sips_path = sips.__path__[0] + '/'
+        self.dir = sips_path + 'lines/data/lines/' + self.folder_name + '/'
 
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
@@ -247,8 +249,8 @@ def open_and_write(file_dict, data_dict, verbose=True):
 
 
 def main():
-    bov_lines = Lines('/home/sippycups/absa/sips/sips/'
-                      'lines/bov/config/new_lines.json')
+    sips_path = sips.__path__[0] + '/'
+    bov_lines = Lines(sips_path + 'lines/bov/config/new_lines.json')
     return bov_lines
 
 
