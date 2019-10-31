@@ -103,7 +103,7 @@ def req_json(url, sleep=0.5, verbose=False):
     return json_data
 
 
-def async_req(links, session=None, max_workers=10):
+def async_req(links, output='list', session=None, max_workers=10, key=None):
     '''
     asyncronous request of list of links
     '''
@@ -112,16 +112,11 @@ def async_req(links, session=None, max_workers=10):
             executor=ThreadPoolExecutor(max_workers=max_workers))
 
     jsons = [session.get(link).result().json() for link in links]
-    return jsons
-
-
-def async_req_dict(links, key, session=None, max_workers=10):
-    '''
-    the key 
-    '''
-    if not session:
-        session = FuturesSession(
-            executor=ThreadPoolExecutor(max_workers=max_workers))
-    raw = [session.get(link).result().json() for link in links]
-    jsons = {game.get(key): game for game in raw}
+    if output == 'dict':
+        if not key:
+            print('no key provided, enumerating')
+            jsons = {i : game for i, game in enumerate(jsons)}
+        else:
+            jsons = {game.get(key): game for game in jsons}
+            
     return jsons

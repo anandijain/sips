@@ -5,14 +5,11 @@ utils functions for bov.py
 import time
 import requests as r
 
-# from pydash import at
-
-
-import sips.h.openers as o
-
+import sips.h.openers as io
 from sips.macros import macros as m
 from sips.lines import lines as ll
 from sips.lines.bov.utils import bov_utils as u
+
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -148,7 +145,7 @@ def parse_event(event, verbose=False, grab_score=True):
         ret = [section_1, section_2]
     else:
         score_url = m.BOV_SCORES_URL + game_id
-        score_data = req_json(score_url)
+        score_data = io.req_json(score_url)
 
         quarter, secs, a_pts, h_pts, status = score(score_data)
         ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
@@ -360,7 +357,8 @@ def get_scores(events, session=None):
     ids = get_ids(events)
     links = [m.BOV_SCORES_URL + game_id for game_id in ids]
 
-    raw = o.async_req_dict(links, 'eventId', session=session)
+    raw = io.async_req(links, output='dict',
+                       key='eventId', session=session)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 
@@ -402,7 +400,7 @@ def filtered_links(sports, verbose=False):
     if verbose:
         print(f'bov_links: {links}')
     return links
-    
+
 
 def get_ids(events):
     '''
@@ -463,7 +461,7 @@ def bov_all_dict():
 
     '''
     all_dict = {}
-    req = r.get('https: // www.bovada.lv/services/sports /'\
+    req = r.get('https: // www.bovada.lv/services/sports /'
                 'event/v2/events/A/description/basketball/nba').json()
     es = req[0].get('events')
     for event in es:
@@ -479,5 +477,5 @@ def bov_all_dict():
 
 
 if __name__ == "__main__":
-    
+
     ll.main()
