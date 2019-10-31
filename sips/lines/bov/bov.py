@@ -2,8 +2,8 @@
 uses the bovada api to get json data for odds and scores
 '''
 import requests as r
-import sips.h.macros as m
 import sips.h.openers as o
+from sips.macros import macros as m
 from sips.lines.bov.utils import bov_utils as u
 
 
