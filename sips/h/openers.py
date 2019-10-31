@@ -56,37 +56,18 @@ def get_pages(links, output='list', verbose=False):
     return pages
 
 
-def req(url):
-    '''
-    to be depr, same as req_json, but with a lot of try/excepts
-    '''
-    try:
-        req = r.get(url, headers=HEADERS, timeout=10)
-    except ConnectionResetError:
-        print('connection reset error')
-        time.sleep(2)
-        return
-    except r.exceptions.Timeout:
-        print('requests.exceptions timeout error')
-        time.sleep(2)
-        return
-    except r.exceptions.ConnectionError:
-        print('connectionerror')
-        time.sleep(2)
-        return
-    try:
-        return req.json()
-    except ValueError:
-        time.sleep(2)
-        return
+def reqs_json(urls, sleep=0.5, verbose=False):
+    # simple list concat on req_json
+    jsons = [req_json(url) for url in urls]
+    return jsons
 
 
 def req_json(url, sleep=0.5, verbose=False):
     '''
-    requests the link, returns json
+    given url, returns json of the requested url
     '''
     try:
-        req = r.get(url, headers=HEADERS)
+        req = r.get(url, headers=HEADERS, timeout=10)
     except:
         return None
 
@@ -118,5 +99,5 @@ def async_req(links, output='list', session=None, max_workers=10, key=None):
             jsons = {i : game for i, game in enumerate(jsons)}
         else:
             jsons = {game.get(key): game for game in jsons}
-            
+
     return jsons

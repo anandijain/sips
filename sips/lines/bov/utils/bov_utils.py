@@ -51,6 +51,7 @@ def parse_json(json, keys, output='dict'):
     if the key does not exist in the json
     the key is still created with None as the value
     '''
+    print(f'json: {json}')
     data = {}
     json_keys = json.keys()
     for j_key in json_keys:
@@ -105,7 +106,26 @@ def merge_lines_scores(lines, scores):
     return ret
 
 
-def dict_from_events(events, key='id', rows=True, grab_score=False):
+def events_from_jsons(jsons):
+    '''
+    jsons is a list of dictionaries for each sport 
+    if rows, return parsed row data instead of list of events
+    '''
+    events = [e for j in jsons for e in events_from_json(j)]
+    return events
+
+
+def rows_from_jsons(jsons):
+    '''
+    jsons is a list of dictionaries for each sport 
+    if rows, return parsed row data instead of list of events
+    '''
+    events = [u.parse_event(e) for j in jsons
+              for e in events_from_json(j)]
+    return events
+
+
+def dict_from_events(events, key='id', rows=True, grab_score=True):
     '''
     returns a dictionary of (key, event) or (key, list)
 
@@ -356,9 +376,11 @@ def get_scores(events, session=None):
     '''
     ids = get_ids(events)
     links = [m.BOV_SCORES_URL + game_id for game_id in ids]
-
-    raw = io.async_req(links, output='dict',
-                       key='eventId', session=session)
+    if session:
+        raw = io.async_req(links, output='dict',
+                           key='eventId', session=session)
+    else:
+        raw = io.req_json(links)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 
@@ -414,19 +436,9 @@ def get_ids(events):
     return ids
 
 
-def list_from_jsons(jsons, rows=False):
+def events_from_json(json_dict):
     '''
-    jsons is a list of dictionaries for each sport 
-    if rows, return parsed row data instead of list of events
-    '''
-    events = [parse_event(e)
-              if rows else e for j in jsons for e in json_events(j)]
-    return events
-
-
-def json_events(json_dict):
-    '''
-    simply accesses the events in the json
+    simply accesses the events in a single json
     '''
     if not json_dict:
         return []
