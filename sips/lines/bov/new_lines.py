@@ -30,10 +30,6 @@ class Lines:
         '''
 
         '''
-        self.dir = '../data/lines/'
-
-        if not os.path.exists(self.dir):
-            os.mkdir(self.dir)
 
         with open(config_path) as config:
             self.config = json.load(config)
@@ -82,13 +78,19 @@ class Lines:
         self.sports = self.config.get('sports')
         self.wait = self.config.get('wait')
         self.verbose = self.config.get('verbose')
-        self.req_async = self.config['async_req']
-        self.start = self.config['start']
-        self.espn = self.config['grab_espn']
+        self.req_async = self.config.get('async_req')
+        self.start = self.config.get('start')
+        self.espn = self.config.get('grab_espn')
         self.write_new = file_conf.get('new_only')
         self.flush_rate = file_conf.get('flush_rate')
         self.keep_open = file_conf.get('keep_open')
         # self.file_per_game = file_conf.get('file_per_game')  todo
+        self.folder_name = file_conf.get('folder_name')
+        self.dir = '../data/lines/' + self.folder_name
+
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
+
 
     def step(self):
         '''
