@@ -4,6 +4,5 @@ numpy
 pandas
 torch
 gym
-seaborn
 scikit-learn
 matplotlib
