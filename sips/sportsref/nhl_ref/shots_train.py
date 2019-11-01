@@ -35,8 +35,8 @@ def get_compiled_model():
     ])
 
     model.compile(optimizer='adam',
-                loss='binary_crossentropy',
-                metrics=['accuracy'])
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
     return model
 
 
@@ -50,8 +50,10 @@ def datasets():
     train_labels = train.pop('target')
     test_labels = test.pop('target')
 
-    train_ds = tf.data.Dataset.from_tensor_slices((train.values, train_labels.values))
-    test_ds = tf.data.Dataset.from_tensor_slices((test.values, test_labels.values))
+    train_ds = tf.data.Dataset.from_tensor_slices(
+        (train.values, train_labels.values))
+    test_ds = tf.data.Dataset.from_tensor_slices(
+        (test.values, test_labels.values))
 
     train_dataset = train_ds.shuffle(len(train)).batch(128)
     test_dataset = test_ds.shuffle(len(test)).batch(128)
@@ -61,11 +63,11 @@ def datasets():
 
 
 def main():
-    fn='./data/model1/test'
+    fn = './data/model1/test'
     train, test = datasets()
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=fn,
-                                                 save_weights_only=True,
-                                                 verbose=1)
+                                                     save_weights_only=True,
+                                                     verbose=1)
     # return train, test
     try:
         model = tf.load(fn)

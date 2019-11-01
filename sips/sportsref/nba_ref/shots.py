@@ -9,12 +9,13 @@ import sips.h.parse as parse
 import sips.h.openers as io
 
 
-link = 'https://www.hockey-reference.com/boxscores/201904100NYI.html'
-root = 'https://www.hockey-reference.com'
+root = 'https://www.basketball-reference.com'
+link = root + '/boxscores/shot-chart/201910220TOR.html'
 
 
 def grab(link, fn=None):
     '''
+    df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
 
     '''
     game_id = sfx_to_gameid(link)
@@ -27,7 +28,6 @@ def grab(link, fn=None):
     rows = divs_to_arr(divs)
 
     df = cat_id(rows, game_id)
-    # df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
 
     if fn:
         append_csv(fn, df)
@@ -75,10 +75,7 @@ def grab_charts(link):
     '''
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, 'html.parser')
-    cs = parse.comments(p)
-    shotchart_comment = cs[22]
-    chart_html = bs4.BeautifulSoup(shotchart_comment, 'html.parser')
-    charts = chart_html.find_all('div', {'class': 'shotchart'})
+    charts = p.find_all('div', {'class': 'shot-area'})
     return charts
 
 
@@ -113,9 +110,11 @@ def div_dict_row(div, dict):
 
 def div_coords(div):
     # positions = top == y, left == x
-    positions = div['style'].split(' ')
-    x, y = positions[3], positions[1]
-    x, y = [int(c.split('p')[0]) for c in (x, y)]
+    print(f'div: {div}')
+    positions = div['style'].split(';')
+    pos = positions
+    x, y = pos[1], pos[0]
+    x, y = [int(c.split(':')[1].split('p')[0]) for c in (x, y)]
     return x, y
 
 
@@ -176,7 +175,7 @@ def serialize():
 
 
 def boxlinks():
-    df = pd.read_csv('nhl_boxlinks.csv')
+    df = pd.read_csv('nba_boxlinks.csv')
     sfxs = df.iloc[:, 1].values
     return sfxs
 
@@ -189,12 +188,12 @@ def main():
 
     write_path = "./data/shots.csv"
     columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
-
-    f = io.init_csv(fn=write_path, header=columns)
+    io.init_csv(fn=write_path, header=columns)
 
     # sfxs = boxlinks()
     # for testing
-    sfxs = np.random.permutation(boxlinks())
+    boxl
+    # sfxs = np.random.permutation(boxlinks())
     meta_df = pd.DataFrame(columns=['game_id', 'num_rows'])
     for i, sfx in enumerate(sfxs):
         link = root + sfx
@@ -214,11 +213,8 @@ def main():
     meta_df.to_csv('./data/meta_shots.csv')
 
 
-
-
 if __name__ == '__main__':
-    main()
-    # dl = grab(link=link)
-    # dl
-    # dl[0]
-    # pass
+    # main()
+    dl = grab(link=link)
+    dl
+    dl[0]

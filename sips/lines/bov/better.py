@@ -7,6 +7,7 @@ import time
 
 from sips.lines.bov.utils import bet as u
 
+
 def login(driver=None, captcha_wait=60):
     '''
     goes to bovadas login and gets you to captcha, then waits for a time
@@ -90,6 +91,7 @@ class Better:
     log_in - bool. determines whether the login() function is called on init
     verbose - bool. extra print statements
     '''
+
     def __init__(self, driver=None, log_in=False, verbose=True):
         '''
         the log_in is sick but the captcha sucks, we are literally just fuelling waymo

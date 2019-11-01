@@ -1,8 +1,4 @@
-import requests as r
 import pandas as pd
-
-import bs4
-
 from sips.h import openers as o
 
 url = "https://www.hockey-reference.com"
@@ -11,13 +7,13 @@ url = "https://www.hockey-reference.com"
 def league_index():
     suffix = "/leagues/"
     p = o.get_page(url + suffix)
-    t = p.find('table', {'id' : 'league_index'})
+    t = p.find('table', {'id': 'league_index'})
     return t
 
 
 def find_in_table(t, tup):
     # tup is 3tuple with ('th', 'data-stat', 'season') for example
-    selected = t.find_all(tup[0], {tup[1] : tup[2]})
+    selected = t.find_all(tup[0], {tup[1]: tup[2]})
     links = []
     for sel in selected:
         try:
@@ -29,7 +25,7 @@ def find_in_table(t, tup):
 
 def link_fix(link):
     split = link.split('.')
-    split[0] += "_games." 
+    split[0] += "_games."
     ret = split[0] + split[1]
     return ret
 
@@ -42,16 +38,22 @@ def gamelinks_str_fix(links):
 
 
 def season_boxlinks(season_url):
+    '''
+
+    '''
     find_tup = ('th', 'data-stat', 'date_game')
     p = o.get_page(season_url)
     tables = p.find_all('table')
     ret = []
-    for table in tables:    
+    for table in tables:
         ret += find_in_table(table, find_tup)
     return ret
 
 
 def parse_box(boxlink):
+    '''
+
+    '''
     p = o.get_page(boxlink)
     tables = p.find_all('table')
     dfs = []

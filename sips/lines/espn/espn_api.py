@@ -1,8 +1,7 @@
 import requests as r
-import time
-import json
 
-from sips.h import macros as m
+from sips.macros import macros as m
+
 from sips.lines import collate
 
 espn = 'http://site.api.espn.com/apis/site/v2/sports/'

@@ -1,652 +1,257 @@
 import os
-import os.path
 import time
+import json
 
-import requests
-import requests_futures
+import sips
+import sips.h.openers as io
+from sips.lines.bov import bov
+from sips.lines.bov.utils import bov_utils as utils
+from sips.lines import collate
+
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+
 from requests_futures.sessions import FuturesSession
-from concurrent.futures import ThreadPoolExecutor
 
-import matplotlib.pyplot as plt
-import numpy as np
-
-import sips.h as h
-
-
-save_path = 'data'
-root_url = 'https://www.bovada.lv'
-scores_url = "https://services.bovada.lv/services/sports/results/api/v1/scores/"
-headers = {'User-Agent': 'Mozilla/5.0'}
-
-# TODO verbosity fix
-
-
-class Sippy:
-    def __init__(self, fn=None, header=0, league=0, verbosity=True):
-        print("~~~~sippywoke~~~~")
-        self.games = []
-        self.events = []
-
-        self.session = FuturesSession(executor=ThreadPoolExecutor(max_workers=2))
-
-        self.links = []
-        self.all_urls = h.macros.build_urls()
-        self.all_urls_dict = h.macros.build_url_dict()
-
-        self.verbosity = verbosity
-        self.league = league
-        self.set_league_dict(self.league)
-        self.json_events()
-
-        self.counter = 0
-        self.num_updates = 0
-        self.twenty_steps_ago = 0
-
-        if fn is not None:
-            self.file = open_file(fn)
-            self.file.flush()
-        else:
-            self.file = None
-
-
-        access_time = time.time()
-        self.init_games(access_time)
-
-    def step(self):
-        access_time = time.time()
-
-        self.json_events()
-        self.cur_games(access_time)
-
-        print('step: {}'.format(self.counter))
-        print('time: {}\n'.format(time.asctime()))
-
-        self.counter += 1
-
-        self.counter_stats(access_time)
-
-        for game in self.games:
-            if game.score.ended == 0:  # if game is not over
-                if game.lines.updated == 1 or game.score.new == 1:  # if lines updated or score updated
-
-                    if self.file is not None:
-                        game.write_game(self.file)  # write to csv
-
-                    if self.verbosity:
-                        try:
-                            print(game)
-                        except TypeError:
-                            pass
-
-                    self.num_updates += 1
-                    game.lines.updated = 0  # reset lines to not be updated
-                    game.score.new == 0
-                if game.score.a_win == 1 or game.score.h_win == 1:
-                    game.score.ended = 1
-
-    def cur_games(self, access_time):
-        for event in self.events:
-            exists = 0
-            for game in self.games:
-                if event['id'] == game.game_id:
-                    if game.score.ended == 1:
-                        continue
-                    game.lines.update(event)
-                    game.score.update()
-                    exists = 1
-                    break
-            if exists == 0:
-                self.new_game(event, access_time)
-
-    def json_events(self):
-        # pages = []
-        pages = [self.session.get(l).result().json() for l in self.links]
-        events = []
-        # for link in self.links:
-        #     pages.append(req(link))
-        #     if self.verbosity is True:
-        #         print('.', end='')
-
-        for page in pages:
-            try:
-                for section in page:
-                    league = section['path'][0]['description']
-                    tmp = section.get('events')
-                    for event in tmp:
-                        link = event.get('link')
-                        if link is not None:
-                            event.update({'league': league})
-                            events.append(event)
-            except TypeError:
-                pass
-        self.events = events
-
-    def update_games_list(self):
-        for game in self.games:
-            in_json = 0
-            for event in self.events:
-                if game.game_id == event['id']:
-                    in_json = 1
-                    break
-            if in_json == 0:
-                self.games.remove(game)
-
-    def info(self, verbose):  # 1 for verbose, else for abridged
-        print(str(len(self.games)))
-        for game in self.games:
-            if verbose == 1:
-                try:
-                    print(game)
-                except TypeError:
-                    continue
-            else:
-                game.quick()
-
-    def new_game(self, event, access_time):
-        x = Game(event, access_time, self.league)
-        # x.quick()
-        self.games.insert(0, x)
-
-    def init_games(self, access_time):
-        for event in self.events:
-            self.new_game(event, access_time)
-
-    def id_given_teams(self, a_team, h_team):  # input is two strings
-        for game in self.games:
-            if game.a_team == a_team and game.h_team == h_team:
-                return game.game_id
-            else:
-                return None
-
-    def run(self):
-        while True:
-            try:
-                self.step()
-            except KeyboardInterrupt:
-                print('interrupted')
-                break
-
-    def set_league_dict(self, league):
-        '''
-        sports = ['basketball/nba', 'basketball/college-basketball', 'baseball/mlb',
-          'esports', 'football/nfl', 'football/college-football', 'tennis', 'volleyball', 'hockey']
-        '''
-        try:
-            if isinstance(league, list):
-                for sport in league:
-                    self.links += self.all_urls_dict[sport]
-            else:
-                self.links = self.all_urls_dict[league]
-        except KeyError:
-            # all links
-            print('using all links')
-            for key in self.all_urls_dict.keys():
-                self.links += self.all_urls_dict[key]
-
-    def write_header(self):
-        num_headers = len(h.macros.bovada_headers)
-        for i, column_header in enumerate(h.macros.bovada_headers):
-            if i < num_headers - 1:
-                self.file.write(column_header + ',')
-            else:
-                self.file.write(column_header)
-        self.file.write('\n')
-
-    def counter_stats(self, access_time):
-        if self.counter % 20 == 1:
-            elapsed = round(abs(access_time - self.twenty_steps_ago))
-
-            if elapsed == 0:
-                efficiency = 0
-            else:
-                efficiency = self.num_updates/elapsed
-
-            print("num games: " + str(len(self.games)))
-            print('num events: ' + str(len(self.events)))
-            print('new lines in past 20 steps: {} / {} seconds'.format(self.num_updates, elapsed))
-            print('rough efficiency (newlines/elapsed): {}\n'.format(efficiency))
-
-            self.twenty_steps_ago = access_time
-            self.num_updates = 0
-            self.update_games_list()
-            if self.file is not None:
-                self.file.flush()
-
-    def __repr__(self):
-        for game in self.games:
-            try:
-                print(game)
-            except TypeError:
-                return '.'
-        return '.'
-
-class Game:
-    def __init__(self, event, access_time, gtype):
-        self.init_time = access_time
-        self.sport = event['sport']
-        self.gtype = gtype
-        self.league = event.get('league')
-        self.league_fix()
-        self.game_id = event['id']
-        self.desc = event['description']
-
-        self.a_team, self.h_team = self.get_teams(event)
-        self.teams = [self.a_team, self.h_team]
-
-        self.start_time = event['startTime'] / 1000.
-        self.score = Score(self.game_id)
-        self.lines = Lines(event)
-        self.link = event['link']
-        self.delta = 'NaN'
-
-    def get_teams(self, event):
-        team_one = event['competitors'][0]
-        team_two = event['competitors'][1]
-        if team_one['home']:
-            h_team = team_one['name']
-            a_team = team_two['name']
-        else:
-            a_team = team_one['name']
-            h_team = team_two['name']
-        return a_team, h_team
-
-    def write_game(self, file):
-        self.time_diff()
-        file.write(self.sport + ',')
-        file.write(self.league + ',')
-        file.write(self.game_id + ',')
-        file.write(self.a_team + ',')
-        file.write(self.h_team + ',')
-        file.write(str(time.time()) + ',')
-        self.score.csv(file)
-        file.write(str(self.delta) + ',')
-        self.lines.csv(file)
-        file.write(str(self.start_time) + "\n")
-
-    def return_row(self):
-        self.time_diff()
-        row = [self.sport, self.league, self.game_id, self.a_team, self.h_team, str(time.time())]
-        row += self.score.jps
-        row.append(self.delta)
-        row += self.lines.jps
-        row.append(self.start_time)
-        return row
-
-    def quick(self):
-        print(str(self.lines.last_mod_lines))
-        print(self.a_team, end=': ')
-        print(str(self.score.a_pts) + ' ' + str(self.lines.a_ml))
-        print(self.h_team, end=': ')
-        print(str(self.score.h_pts) + ' ' + str(self.lines.h_ml))
-
-    def score(self):
-        print(self.a_team + " " + str(self.score.a_pts))
-        print(self.h_team + " " + str(self.score.h_pts))
-
-    def odds(self):
-        print(self.a_team + " " + str(self.lines.odds()))
-        print(self.h_team + " " + str(self.lines.odds()))
-
-    def time_diff(self):
-        if len(self.lines.last_mod_lines) > 0:
-            self.delta = (self.lines.last_mod_lines[-1] - self.start_time)
-        else:
-            self.delta = '0'
-
-    def league_fix(self):
-        if self.league is not None:
-            self.league = self.league.replace(',', '')
-
-    def __repr__(self):
-        ret = ''
-        desc_str = '\n' + self.desc + '\n'
-        if self.delta is not 'NaN':
-            delta_str = 'time delta: ' + str(self.delta)
-        else:
-            delta_str = 'time delta: None'
-        start_time_str = str(self.start_time) + "\n"
-        print_list = [desc_str, self.sport, self.game_id, self.a_team, self.h_team,
-                    self.score, self.lines, delta_str, start_time_str]
-        for elt in print_list:
-            try:
-                if elt is None:
-                    print('.', end='|')
-                    # ret += '.|'
-                    continue
-                print(elt, end='|')
-
-            except TypeError:
-                print('.', end='|')
-                continue
-        return ' '
+CONFIG_PATH = sips.__path__[0] + '/' + 'lines/config/lines.json'
 
 
 class Lines:
-    def __init__(self, json):
-        self.updated = 0
-        self.json = json
-        self.jps = []
-        self.mkts = []
-        [self.query_times, self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
-         self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps, self.a_hcap_ps,
-         self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot, self.h_deci_tot, self.a_hcap_tot,
-         self.h_hcap_tot, self.a_ou, self.h_ou] = ([] for i in range(21))
+    '''
+    sport (str):
+        - used to construct the api urls
 
-        self.params = [self.last_mod_lines, self.num_markets, self.a_ml, self.h_ml, self.a_deci_ml,
-                        self.h_deci_ml, self.a_odds_ps, self.h_odds_ps, self.a_deci_ps, self.h_deci_ps,
-                        self.a_hcap_ps, self.h_hcap_ps, self.a_odds_tot, self.h_odds_tot, self.a_deci_tot,
-                        self.h_deci_tot, self.a_hcap_tot, self.h_hcap_tot, self.a_ou, self.h_ou]
+    wait: (positive number)
+        - number of seconds to sleep between each request
 
-    def update(self, json):
-        self.updated = 0
-        self.json = json
-        self.jparams()
+    write_config: 
+        - if true, data is only written if it is different than previous
+        , sport='nfl', wait=5, start=True, write_new=False, verbose=False
+    '''
 
-        if len(self.params[0]) > 0:
-            if self.jps[0] == self.params[0][-1]:
-                self.updated = 0
-                return
+    def __init__(self, config_path=CONFIG_PATH):
+        '''
 
-        i = 0
-        for param in self.params:
-            if self.jps[i] is None:
-                self.jps[i] = 0
-            if len(param) > 0:
-                if param[-1] == self.jps[i]:
-                    i += 1
-                    continue
-            self.params[i].append(self.jps[i])
-            self.updated = 1
-            i += 1
+        '''
 
-    def jparams(self):
-        j_markets = self.json['displayGroups'][0]['markets']
-        data = {"american": 0, "decimal": 0, "handicap": 0}
+        with open(config_path) as config:
+            self.config = json.load(config)
 
-        a_ou = None
-        h_ou = None
+        self.conf()
+        print(f'sports: {self.sports}')
 
-        self.mkts = []
-
-        ps = Market(data, data)
-        ml = Market(data, data)
-        tot = Market(data, data)
-
-        self.mkts += [ps, ml, tot]
-
-        for market in j_markets:
-            outcomes = market['outcomes']
-            desc = market.get('description')
-
-            try:
-                away_price = outcomes[0].get('price')
-            except IndexError:
-                away_price = data
-            try:
-                home_price = outcomes[1].get('price')
-            except IndexError:
-                home_price = data
-
-            if desc is None:
-                continue
-            elif desc == 'Point Spread' or desc == 'Runline' or desc == 'Puck Line':
-                ps.update(away_price, home_price)
-            elif desc == 'Moneyline':
-                ml.update(away_price, home_price)
-            elif desc == 'Total':
-                try:
-                    a_ou = outcomes[0].get('type')
-                    h_ou = outcomes[1].get('type')
-                except IndexError:
-                    a_ou = '0'
-                    h_ou = '0'
-                tot.update(away_price, home_price)
-
-        self.even_handler()
-
-        last_mod = self.json['lastModified'] / 1000.  # conversion from ns
-
-        # shape jps to always be 18 elements long for now via adding extra elements to a list that is to short
-
-        self.jps = [last_mod, self.json['numMarkets'], self.mkts[1].a['american'], self.mkts[1].h['american'],
-                    self.mkts[1].a['decimal'], self.mkts[1].h['decimal'], self.mkts[0].a['american'], self.mkts[0].h['american'],
-                    self.mkts[0].a['decimal'], self.mkts[0].h['decimal'], self.mkts[0].a['handicap'], self.mkts[0].h['handicap'],
-                    self.mkts[2].a['american'], self.mkts[2].h['american'], self.mkts[2].a['decimal'], self.mkts[2].h['decimal'],
-                    self.mkts[2].a['handicap'], self.mkts[2].h['handicap'], a_ou, h_ou]
-
-    def even_handler(self):
-        for mkt in self.mkts:
-            if mkt.a['american'] == 'EVEN' and mkt.h['american'] == 'EVEN':
-                mkt.a['american'] = 100
-                mkt.h['american'] = 100
-            elif mkt.a['american'] == 'EVEN':
-                if int(mkt.h['american']) > 0:
-                    mkt.a['american'] = -100
-                elif int(mkt.h['american']) < 0:
-                    mkt.a['american'] = 100
-                else:
-                    mkt.a['american'] = 0
-            elif mkt.h['american'] == 'EVEN':
-                if int(mkt.a['american']) > 0:
-                    mkt.h['american'] = -100
-                elif int(mkt.a['american']) < 0:
-                    mkt.h['american'] = 100
-                else:
-                    mkt.h['american'] = 0
-
-    def csv(self, file):
-        for param in self.params:
-            if len(param) > 0:
-                file.write(str(param[-1]))
-                file.write(",")
-            else:
-                file.write(str(0))
-                file.write(',')
-
-    def odds(self):
-        for elt in [self.last_mod_lines, self.a_ml, self.h_ml]:
-            print(str(elt[-1]), end='|')
-
-    def __repr__(self):
-        print('Game line info: ')
-        for param in self.params:
-            try:
-                print(str(param[-1]), end='|')
-            except IndexError:
-                print('.', end='|')
-                pass
-        print('\n')
-
-
-class Score:
-    def __init__(self, game_id):
-        self.new = 1
-        self.game_id = game_id
-        self.num_quarters = 0
-        self.dir_isdown = 0
-        self.jps = []
-        self.data = None
-        self.clock = None
-        self.json()
-        self.jparams()
-        self.ended = 0
-
-        [self.lms_date, self.lms_time, self.quarter, self.secs, self.a_pts, self.h_pts,
-            self.status, self.a_win, self.h_win] = ([] for i in range(9))
-
-        self.params = [self.lms_date, self.lms_time, self.quarter, self.secs, self.a_pts,
-                       self.h_pts, self.status, self.a_win, self.h_win]
-
-    def update(self):
-        self.new = 0
-        self.json()
-        if self.data is None:
-            return
-        self.clock = self.data.get('clock')
-        if self.clock is None:
-            return
-        self.jparams()
-        self.metadata()
-        self.win_check()
-
-    def metadata(self):
-        if self.same() == 1:
-            return
-        i = 0
-        for jp in self.jps:
-            if len(self.params[i]) > 0:
-                if self.params[i][-1] == self.jps[i]:
-                    i += 1
-                    continue
-            self.params[i].append(jp)
-            self.new = 1
-            i += 1
-
-    def jparams(self):
-        if self.data is None:
-            return
-        self.clock = self.data.get('clock')
-        if self.clock is None:
-            return
-        status = 0
-        if self.data['gameStatus'] == "IN_PROGRESS":
-            status = 1
-
-        score = self.data.get('latestScore')
-        dt = self.date_split()
-
-        self.jps = [dt[0], dt[1], self.clock.get('periodNumber'),
-                    self.clock.get('relativeGameTimeInSecs'), score.get('visitor'), score.get('home'), status]
-
-        self.num_quarters = self.clock.get('numberOfPeriods')
-        self.dir_isdown = self.clock.get('direction')
-
-    def win_check(self):
-        if self.ended == 0:
-            if self.quarter[-1] == -1 and self.status[-1] == 0:
-                if self.a_pts[-1] > self.h_pts[-1]:
-                    self.a_win.append(1)
-                    self.h_win.append(0)
-                    self.ended = 1
-                    print('a_team win')
-
-                elif self.h_pts[-1] > self.a_pts[-1]:
-                    self.a_win.append(0)
-                    self.h_win.append(1)
-                    self.ended = 1
-                    print('h_team win')
-
-    def date_split(self):
-        dt = self.data['lastUpdated'].split('T')
-        return dt
-
-    def same(self):
-        dt = self.date_split()
-        if len(self.lms_date) > 0 and len(self.lms_time) > 0:
-            if self.lms_date[-1] == dt[0] and self.lms_time[-1] == dt[1]:
-                self.new = 0
-                return 1
-
-    def csv(self, file):
-        for value in self.values():
-                file.write(value + ',')
-
-    def values(self):
-        data = []
-        for param in self.params:
-            if len(param) > 0:
-                if param is None:
-                    param = ''
-                data.append(str(param[-1]))
-            else:
-                data.append('0')
-        return data
-
-    def json(self):
-        self.data = req(scores_url + self.game_id)
-
-    def __repr__(self):
-        print('\nScores info: ')
-        for i, param in enumerate(self.params):
-            try:
-                if len(param) > 0:
-                    print('{}: {}'.format(h.macros.bov_score_headers[i], param[-1]), end='|')
-            except TypeError:
-                print('.', end='|')
-                pass
-        print('\n')
-
-
-class Market:
-    def __init__(self, away, home):
-        self.frame = {"american": 0, "decimal": 0, "handicap": 0}
-        self.a = away
-        self.h = home
-
-    def update(self, away, home):
-        teams = [self.a, self.h]
-        for i, team in enumerate([away, home]):
-            for key in team:
-                val = team[key]
-                teams[i][key] = val
-
-        self.a = away
-        self.h = home
-
-    def __repr__(self):
-        print('away: {}'.format(self.a))
-        print('home: {}'.format(self.h))
-
-
-def req(url):
-    try:
-        r = requests.get(url, headers=headers, timeout=10)
-    except ConnectionResetError:
-        print('connection reset error')
-        time.sleep(2)
-        return
-    except requests.exceptions.Timeout:
-        print('requests.exceptions timeout error')
-        time.sleep(2)
-        return
-    except requests.exceptions.ConnectionError:
-        print('connectionerror')
-        time.sleep(2)
-        return
-    try:
-        return r.json()
-    except ValueError:
-        time.sleep(2)
-        return
-
-
-def open_file(file_name):
-    complete_name = os.path.join(save_path, file_name + ".csv")
-    exists = os.path.isfile(complete_name)
-
-    if exists:  # don't write header
-        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
-    else:  # write header
-        file = open(complete_name, "a", encoding="utf-8")  # line below probably better called in caller or add another arg
-        write_header(file)
-
-    return file
-
-
-def write_json(file_name, json):
-    file = open_file(file_name)
-    file.write(json)
-    file.write('\n')
-    file.close()
-
-
-def write_header(file, headers=None):
-    if not headers:
-        headers = h.macros.bovada_headers
-    num_headers = len(headers)
-    for i, column_name in enumerate(headers):
-        if i < num_headers - 1:
-            file.write(column_name + ',')
+        if self.req_async:
+            self.session = FuturesSession(
+                executor=ProcessPoolExecutor())
         else:
-            file.write(column_name)
-    file.write('\n')
+            self.session = None
+
+        self.files = {}
+        self.log_path = self.dir + 'LOG.csv'
+        if os.path.isfile(self.log_path):
+            self.log_file = open(self.log_path, 'a')
+        else:
+            log_header = ['index', 'time', 'time_diff', 'num_events',
+                          'num_changes']
+            self.log_file = open(self.log_path, 'a')
+            io.write_list(self.log_file, log_header)
+
+        self.files['LOG'] = self.log_file
+        self.log_data = None
+
+        self.prev_time = time.time()
+        if self.write_new:
+            if self.espn:
+                self.prevs = collate.get_and_compare(sports=self.sports)
+            else:
+                self.prevs = bov.lines(self.sports, output='dict',
+                                       verbose=self.verbose, espn=self.espn)
+            self.current = None
+
+        self.step_num = 0
+        if self.start:
+            self.run()
+
+    def conf(self):
+        '''
+
+        '''
+        file_conf = self.config.get('file')
+        self.sports = self.config.get('sports')
+        self.wait = self.config.get('wait')
+        self.verbose = self.config.get('verbose')
+        self.req_async = self.config.get('async_req')
+        self.start = self.config.get('start')
+        self.espn = self.config.get('grab_espn')
+        self.write_new = file_conf.get('new_only')
+        self.flush_rate = file_conf.get('flush_rate')
+        self.keep_open = file_conf.get('keep_open')
+        # self.file_per_game = file_conf.get('file_per_game')  todo
+        self.folder_name = file_conf.get('folder_name')
+        sips_path = sips.__path__[0] + '/'
+        self.dir = sips_path + 'lines/data/lines/' + self.folder_name + '/'
+
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
+
+    def step(self):
+        '''
+
+        '''
+        self.new_time = time.time()
+        if self.espn:
+            self.current = collate.get_and_compare(sports=self.sports)
+        else:
+            self.current = bov.lines(self.sports, verbose=self.verbose,
+                                     output='dict', espn=self.espn)
+
+        if self.write_new:
+            to_write = compare_and_filter(self.prevs, self.current)
+            self.prevs = self.current
+            time.sleep(self.wait)
+            changes = len(to_write)
+        else:
+            to_write = self.current
+            changes = "NaN"
+
+        time_delta = self.new_time - self.prev_time
+        self.prev_time = self.new_time
+
+        if self.keep_open:
+            self.files = write_opened(
+                self.files, to_write, verbose=self.verbose)
+        else:
+            self.files = open_and_write(
+                self.files, to_write, verbose=self.verbose)
+
+        self.step_num += 1
+
+        self.log_data = [self.step_num, self.new_time,
+                         time_delta, len(self.current), changes]
+        io.write_list(self.log_file, self.log_data)
+        self.flush_log_file()
+
+    def run(self):
+        '''
+
+        '''
+        try:
+            while True:
+                self.step()
+        except KeyboardInterrupt:
+            print('interrupted')
+
+    def flush_log_file(self):
+        if self.step_num % self.flush_rate == 1:
+            print(f'{self.log_data}')
+            self.log_file.flush()
+            if self.keep_open:
+                for game_file in self.files.values():
+                    game_file.flush()
+
+
+def compare_and_filter(prevs, news):
+    '''
+    input: both are dictionaries of (game_id, event) 
+
+    returns: dictionary of (game_id, row_data) of new data
+    '''
+
+    to_write = {}
+
+    for k, v in news.items():
+        if not prevs.get(k) or prevs.get(k) != v:
+            to_write[k] = v
+        else:
+            continue
+    return to_write
+
+
+def write_opened(file_dict, data_dict, verbose=True):
+    '''
+    read in dictionary with open files as values
+    and write data to files
+    '''
+    for game_id, vals in data_dict.items():
+        f = file_dict.get(game_id)
+
+        if not f:
+            fn = '../data/lines/' + str(game_id) + '.csv'
+            f = io.init_csv(fn, header=utils.header(), close=False)
+            file_dict[game_id] = f
+
+        io.write_list(f, vals)
+        if verbose:
+            print(f'writing {vals} to game [{game_id}]')
+
+    return file_dict
+
+
+# def async_write_opened(file_dict, data_dict, verbose=True):
+#     '''
+#     read in dictionary with open files as values
+#     and write data to files
+#     '''
+
+#     args = ((check_if_exists(file_dict, game_id), game_id, val)
+#             for game_id, val in data_dict.items())
+
+#     with concurrent.futures.ProcessPoolExecutor() as executor:
+#         results = [executor.map(write_for_map, args)]
+#         as_completed = concurrent.futures.as_completed(results)
+#         file_dict = as_completed[-1]
+
+#     return file_dict
+
+
+def write_for_map(file_dict, game_id, vals):
+    file_dict = check_if_exists(file_dict, game_id)
+    f = file_dict[game_id]
+    io.write_list(f, vals)
+    return file_dict
+
+
+def check_if_exists(file_dict, key):
+    '''
+    given a dictionary and a key
+    if key not in dict, init file, add to dict, return updated dict
+    '''
+    f = file_dict.get(key)
+
+    if not f:
+        fn = '../data/lines/' + str(key) + '.csv'
+        f = io.init_csv(fn, header=utils.header(), close=False)
+        file_dict[key] = f
+    return file_dict
+
+
+def open_and_write(file_dict, data_dict, verbose=True):
+    '''
+    read in dictionary of file names and compare to new data
+    '''
+    for game_id, vals in data_dict.items():
+        f = file_dict.get(game_id)
+        fn = '../data/lines/' + str(game_id) + '.csv'
+        if not f:
+            file_dict[game_id] = fn
+            if not os.path.isfile(fn):
+                io.init_csv(fn, header=utils.header())
+
+        f = open(fn, 'a')
+
+        io.write_list(f, vals)
+        if verbose:
+            print(f'writing {vals} to game [{game_id}]')
+
+        f.close()
+    return file_dict
+
+
+def main():
+    sips_path = sips.__path__[0] + '/'
+    bov_lines = Lines(sips_path + 'lines/config/lines.json')
+    return bov_lines
+
+
+if __name__ == '__main__':
+    main()

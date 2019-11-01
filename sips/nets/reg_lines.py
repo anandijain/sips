@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import pandas as pd
-import numpy as np
 
 import sips.h.loaders as l
+
 
 class Net(nn.Module):
     def __init__(self, in_dim, out_dim):
@@ -23,6 +23,7 @@ class Net(nn.Module):
         out = self.l4(out)
         return out
 
+
 if __name__ == "__main__":
     load = True  # saved in ./models
     path = './models/predict_odds.pt'
@@ -38,7 +39,8 @@ if __name__ == "__main__":
     games = [game[1] for game in df.groupby('game_id')]
 
     dataset_obj = l.LineGen(df)
-    data_loader = torch.utils.data.DataLoader(dataset_obj, batch_size=batch_size)
+    data_loader = torch.utils.data.DataLoader(
+        dataset_obj, batch_size=batch_size)
 
     example_x, example_y = dataset_obj[1]
     in_dim = len(example_x)
@@ -53,7 +55,8 @@ if __name__ == "__main__":
         for game in games:
             try:
                 dataset_obj = l.LineGen(game)
-                data_loader = torch.utils.data.DataLoader(dataset_obj, batch_size=batch_size)
+                data_loader = torch.utils.data.DataLoader(
+                    dataset_obj, batch_size=batch_size)
                 for i, (x, y) in enumerate(data_loader):
                     optim.zero_grad()
                     output = net(x)
@@ -68,4 +71,4 @@ if __name__ == "__main__":
             except IndexError:
                 continue
     if save:
-        torch.save(net.state_dict(),path)
+        torch.save(net.state_dict(), path)

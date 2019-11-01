@@ -4,7 +4,7 @@ import json
 import requests as r
 
 from sips.lines.bov import bov
-from sips.lines.espn import espn_box as eb 
+from sips.lines.espn import espn_box as eb
 from sips.lines.espn import espn_api as api
 
 from sips.lines.bov import bov
@@ -49,7 +49,8 @@ def match_api_lines(bov_events, espn_events, output='list'):
                 row = line + espn_data
                 rows.append(row)
                 num_matched += 1
-    print(f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
+    print(
+        f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
     print(f'num_matched: {num_matched}')
     ret = []
     for row in rows:
@@ -75,7 +76,7 @@ def match_lines_boxes(lines, boxes, output='dict', verbose=True):
     rows = []
     eteams = None
     for line in lines:
-        bteams = bov_utils.teams_from_line(line)
+        bteams = line[2:4]
         if not bteams:
             print(f'bskip: {line}')
             continue
@@ -96,7 +97,7 @@ def match_lines_boxes(lines, boxes, output='dict', verbose=True):
                 num_matched += 1
 
     if output == 'dict':
-        rows = {row[1] : row for row in rows}
+        rows = {row[1]: row for row in rows}
 
     if verbose:
         print(f'len(bov_events): {len(lines)}\nlen(espn_events): {len(boxes)}')
@@ -119,6 +120,7 @@ def main():
     print(f'delta: {delta}')
     print(f'all rows: {rows}')
     return rows
+
 
 if __name__ == "__main__":
     rows = main()

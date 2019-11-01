@@ -44,11 +44,13 @@ class Net(nn.Module):
 
         return x.double()
 
+
 def clean(fn):
     df = pd.read_csv(fn)
     df = df.dropna()
     df = df.drop_duplicates()
-    return df   
+    return df
+
 
 def dfs(fns):
     dfs = []
@@ -66,12 +68,13 @@ if __name__ == "__main__":
 
     train_df = dfs(train_fns)
     test_df = dfs(test_fns)
-    
+
     num_cols = train_df.shape[1]
 
     print('training on : {} lines and {} columns'.format(len(train_df), num_cols))
 
-    feature_cols = ['Past_10_v', 'Past_10_h', 'rating1_pre', 'rating2_pre', 'v_win', 'h_ML']
+    feature_cols = ['Past_10_v', 'Past_10_h',
+                    'rating1_pre', 'rating2_pre', 'v_win', 'h_ML']
 
     train = h.DfCols(train_df, train_cols=feature_cols, label_cols=['h_win'])
     test = h.DfCols(test_df, train_cols=feature_cols, label_cols=['h_win'])
@@ -79,9 +82,10 @@ if __name__ == "__main__":
     input_size = len(train.data[0])
     output_size = len(train.labels[0])
 
-    hidden_size = 16 # (input_size + output_size) // 2
+    hidden_size = 16  # (input_size + output_size) // 2
 
-    train_loader = DataLoader(dataset=train, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(
+        dataset=train, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test, batch_size=batch_size, shuffle=True)
 
     net = Net(input_size, hidden_size, output_size)
@@ -128,56 +132,56 @@ if __name__ == "__main__":
             #         print('pred: {}'.format(pred[0]))
             #         print('target: {}'.format(target[0]))
             #         print('loss: {}'.format(loss), end='\n\n')
-            
+
             # running_loss += abs(loss)
             loss.backward()
             optimizer.step()
-
 
     # TESTING
     allbets = []
     for test_step, test_item in enumerate(test_loader):
 
-            print(test_step)
-            print(test_item)
-            print('ethan just has a horrible sense of what is "chill" to wear')
-            test_data = test_item[0]
-            target = test_item[1].double()
-            with torch.no_grad():
+        print(test_step)
+        print(test_item)
+        print('ethan just has a horrible sense of what is "chill" to wear')
+        test_data = test_item[0]
+        target = test_item[1].double()
+        with torch.no_grad():
 
-                pred = net(test_data)
-                probs.append(pred)
-                test_loss = calc_loss(pred, target)
+            pred = net(test_data)
+            probs.append(pred)
+            test_loss = calc_loss(pred, target)
 
-                if test_step % 10 == 1:
-                    print('step: {}'.format(step_num))
-                    print('input: {}'.format(test_data))
-                    print('pred: {}'.format(pred[0]))
-                    print('target: {}'.format(target[0]))
+            if test_step % 10 == 1:
+                print('step: {}'.format(step_num))
+                print('input: {}'.format(test_data))
+                print('pred: {}'.format(pred[0]))
+                print('target: {}'.format(target[0]))
 
-                if abs(test_loss) < p_val:
-                    correct += 1     
+            if abs(test_loss) < p_val:
+                correct += 1
 
-                h_line = test_item[0][5]
-                home_result = target
-                h_ev = pred * h.calc._eq(h_line) - (1 - pred)
-                if home_result == 1:
-                    roi_home =h.calc._eq(h_line)
+            h_line = test_item[0][5]
+            home_result = target
+            h_ev = pred * h.calc._eq(h_line) - (1 - pred)
+            if home_result == 1:
+                roi_home = h.calc._eq(h_line)
 
-                if home_result == 0:
-                    roi_home = -1
+            if home_result == 0:
+                roi_home = -1
 
-                if h_ev > 0:
-                    h_bets = [pred, h_line, h_ev, roi_home, home_result]
+            if h_ev > 0:
+                h_bets = [pred, h_line, h_ev, roi_home, home_result]
 
-                    allbets.append(h_bets)
+                allbets.append(h_bets)
 
-    all_df = pd.DataFrame(allbets, columns = ['winprob', 'line', 'ev', 'roi', 'winner'])
+    all_df = pd.DataFrame(
+        allbets, columns=['winprob', 'line', 'ev', 'roi', 'winner'])
     print(all_df['roi'].sum())
     print(all_df)
     print('blebber catch')
 
-    print('correct guesses: {} / total guesses: {}'.format(correct, test_step))                
+    print('correct guesses: {} / total guesses: {}'.format(correct, test_step))
 
     length = len(home_mls)
     n = 0
@@ -187,23 +191,22 @@ if __name__ == "__main__":
     a_bets = []
     allbets = []
 
-
     for i in range(length):
         h_line = home_mls[i]
         a_line = away_mls[i]
-        #print(probs[i])
+        # print(probs[i])
         h_winprob = probs[i]
         a_winprob = 1 - h_winprob
         home_result = homeresults[i]
-        
-        h_ev = h_winprob * h.calc._eq(h_line) - a_winprob 
+
+        h_ev = h_winprob * h.calc._eq(h_line) - a_winprob
         a_ev = a_winprob * h.calc._eq(a_line) - h_winprob
 
         h_ev.tolist()
         a_ev.tolist()
 
         if home_result == 1:
-            roi_home =h.calc._eq(h_line)
+            roi_home = h.calc._eq(h_line)
             roi_away = -1
 
         if home_result == 0:
@@ -221,15 +224,15 @@ if __name__ == "__main__":
             allbets.append(h_bets)
 
         if h_winprob > .5 and home_result == 1:
-            right +=1
+            right += 1
         if a_winprob > .5 and home_result == 0:
-            right +=1
+            right += 1
 
         if a_winprob < .5 and home_result == 0:
-            wrong +=1
+            wrong += 1
 
         if a_winprob > .5 and home_result == 1:
-            wrong +=1
+            wrong += 1
 
         print(h_line)
         print(h_winprob)
@@ -237,14 +240,14 @@ if __name__ == "__main__":
 
         plt.scatter(i, n, c='r', s=0.1)
 
-    all_df = pd.DataFrame(allbets, columns = ['winprob', 'line', 'ev', 'roi', 'winner'])
+    all_df = pd.DataFrame(
+        allbets, columns=['winprob', 'line', 'ev', 'roi', 'winner'])
     print('all_df'.format(all_df))
-    
-    total_roi = all_df['roi'].sum() 
-    
+
+    total_roi = all_df['roi'].sum()
+
     print(total_roi)
 
     print(right / (wrong+right))
 
 plt.show()
-

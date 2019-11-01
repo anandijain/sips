@@ -3,16 +3,13 @@ utils functions for bov.py
 '''
 
 import time
-import json
-
 import requests as r
 
-# from pydash import at
+import sips.h.openers as io
+from sips.macros import macros as m
+from sips.lines import lines as ll
+from sips.lines.bov.utils import bov_utils as u
 
-import sips.h.macros as m
-import sips.h.openers as o
-
-from sips.lines.bov import bov_main
 
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
@@ -25,7 +22,7 @@ MKT_TYPE = {
 }
 
 TO_GRAB = {
-    'ps': ['american', 'handicap'],  # spread
+    'ps': ['american', 'handicap'],
     'ml': ['american'],
     'tot': ['american', 'handicap'],
     'competitors': ['home', 'id', 'name']
@@ -54,6 +51,7 @@ def parse_json(json, keys, output='dict'):
     if the key does not exist in the json
     the key is still created with None as the value
     '''
+    print(f'json: {json}')
     data = {}
     json_keys = json.keys()
     for j_key in json_keys:
@@ -108,7 +106,26 @@ def merge_lines_scores(lines, scores):
     return ret
 
 
-def dict_from_events(events, key='id', rows=True, grab_score=False):
+def events_from_jsons(jsons):
+    '''
+    jsons is a list of dictionaries for each sport 
+    if rows, return parsed row data instead of list of events
+    '''
+    events = [e for j in jsons for e in events_from_json(j)]
+    return events
+
+
+def rows_from_jsons(jsons):
+    '''
+    jsons is a list of dictionaries for each sport 
+    if rows, return parsed row data instead of list of events
+    '''
+    events = [u.parse_event(e) for j in jsons
+              for e in events_from_json(j)]
+    return events
+
+
+def dict_from_events(events, key='id', rows=True, grab_score=True):
     '''
     returns a dictionary of (key, event) or (key, list)
 
@@ -123,13 +140,12 @@ def dict_from_events(events, key='id', rows=True, grab_score=False):
 
 def parse_event(event, verbose=False, grab_score=True):
     '''
-    [sport, game_id, a_team, h_team, last_mod, num_markets, live],
-    [quarter, secs, a_pts, h_pts, status], [
-    a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot,
-    a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
+    parses an event with three markets (spread, ml, total)
+    returns list of data following the order in header()
     '''
     game_id, sport, live, num_markets, last_mod = parse_json(
-        event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'], output='list')
+        event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'],
+        output='list')
 
     a_team, h_team = teams(event)
 
@@ -149,7 +165,7 @@ def parse_event(event, verbose=False, grab_score=True):
         ret = [section_1, section_2]
     else:
         score_url = m.BOV_SCORES_URL + game_id
-        score_data = req_json(score_url)
+        score_data = io.req_json(score_url)
 
         quarter, secs, a_pts, h_pts, status = score(score_data)
         ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
@@ -157,22 +173,10 @@ def parse_event(event, verbose=False, grab_score=True):
                h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot,
                a_ou, h_ou, game_start_time]
 
-    # ret = [sport, game_id, a_team, h_team, a_pts, h_pts, a_ml, h_ml,
-    #         quarter, secs, status, num_markets, live, a_ps, h_ps, a_hcap,
-    #         h_hcap, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou,
-    #         game_start_time, last_mod]
-
     if verbose:
         print(f'event: {section_1} {section_2}')
 
     return ret
-
-
-def teams_from_line(line):
-    '''
-    return the a_team and h_team indices in row list
-    '''
-    return line[2:4]
 
 
 def grab_row_from_markets(markets):
@@ -256,6 +260,9 @@ def parse_market(market):
 
 
 def clean_desc(desc):
+    '''
+
+    '''
     to_replace = [('-', ''), ('  ', ' '), (' ', '_')]
     ret = desc.lower()
     for tup in to_replace:
@@ -295,6 +302,9 @@ def moneyline(outcomes):
 
 
 def ml_no_teams(outcomes):
+    '''
+
+    '''
     mls = {}
     for oc in outcomes:
         competitor_id = oc.get('competitorId')
@@ -304,10 +314,6 @@ def ml_no_teams(outcomes):
         american = price['american']
         mls[competitor_id] = [cleaned, american]
     return mls
-
-
-def total_no_teams():
-    pass
 
 
 def total(outcomes):
@@ -326,9 +332,6 @@ def total(outcomes):
     h_ou = h_outcome.get('type')
     h_price = h_outcome.get('price')
     h_tot, h_hcap_tot = parse_json(h_price, TO_GRAB['tot'], 'list')
-
-    # print(
-    #     f'[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]: {[a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]}')
 
     return [a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]
 
@@ -369,20 +372,22 @@ def bov_comp_ids(event):
 
 def get_scores(events, session=None):
     '''
-    quarter, secs, a_pts, h_pts, status
+    {game_id : quarter, secs, a_pts, h_pts, status}
     '''
     ids = get_ids(events)
-    # links = {game_id : m.BOV_SCORES_URL + game_id for game_id in ids}
-
     links = [m.BOV_SCORES_URL + game_id for game_id in ids]
-    raw = o.async_req_dict(links, 'eventId', session=session)
+    if session:
+        raw = io.async_req(links, output='dict',
+                           key='eventId', session=session)
+    else:
+        raw = io.req_json(links)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 
 
 def score(json_data):
     '''
-    given a game_id, returns the score data of the game
+    given json data for a game_id, returns the score data of the game
     '''
     [quarter, secs, a_pts, h_pts, game_status] = ['NaN' for _ in range(5)]
 
@@ -410,26 +415,13 @@ def score(json_data):
     return [quarter, secs, a_pts, h_pts, game_status]
 
 
-def req_json(url, sleep=0.5, verbose=False):
-    '''
-    requests the link, returns json
-    '''
-    try:
-        req = r.get(url)
-    except:
-        return None
-
-    time.sleep(sleep)
-
-    try:
-        bov_json = req.json()
-    except:
-        print(f'{url} had no json')
-        return None
-
+def filtered_links(sports, verbose=False):
+    # append market filter to each url
+    sfx = '?marketFilterId=def&lang=en'
+    links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
     if verbose:
-        print(f"req'd url: {url}")
-    return bov_json
+        print(f'bov_links: {links}')
+    return links
 
 
 def get_ids(events):
@@ -444,19 +436,9 @@ def get_ids(events):
     return ids
 
 
-def list_from_jsons(jsons, rows=False):
+def events_from_json(json_dict):
     '''
-    jsons is a list of dictionaries for each sport 
-    returns a list of events
-    '''
-    events = [parse_event(e)
-              if rows else e for j in jsons for e in json_events(j)]
-    return events
-
-
-def json_events(json_dict):
-    '''
-    simply accesses the events in the json
+    simply accesses the events in a single json
     '''
     if not json_dict:
         return []
@@ -480,11 +462,32 @@ def header():
     '''
     column names for dataframe
     '''
-    return ['sport', 'game_id', 'a_team', 'h_team', 'last_mod', 'num_markets', 'live',
-            'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps', 'h_ps', 'a_hcap',
-            'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot', 'a_hcap_tot', 'h_hcap_tot', 'a_ou',
-            'h_ou', 'game_start_time']
+    return ['sport', 'game_id', 'a_team', 'h_team', 'last_mod', 'num_markets',
+            'live', 'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps',
+            'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot',
+            'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
+
+
+def bov_all_dict():
+    '''
+
+    '''
+    all_dict = {}
+    req = r.get('https: // www.bovada.lv/services/sports /'
+                'event/v2/events/A/description/basketball/nba').json()
+    es = req[0].get('events')
+    for event in es:
+        desc = event.get('description')
+        # print(f'desc: {desc}')
+        if not desc:
+            continue
+        event_dict = u.parse_display_groups(event)
+        cleaned = u.clean_desc(desc)
+        all_dict[cleaned] = event_dict
+    # print(f'all_dict: {all_dict}')
+    return all_dict
 
 
 if __name__ == "__main__":
-    bov_main.main()
+
+    ll.main()

@@ -10,7 +10,7 @@ import pandas as pd
 import helpers as h
 from torch.utils.data import Dataset, DataLoader
 
-EPOCH = 1 
+EPOCH = 1
 LR = 0.005
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -43,6 +43,7 @@ class VAE(nn.Module):
         mu, logvar = self.encode(x.view(-1, input_size))
         z = self.reparameterize(mu, logvar)
         return self.decode(z), mu, logvar
+
 
 batch_size = 1
 df = h.get_df(fn='./data/3_years_of_data.csv')
@@ -78,14 +79,15 @@ for i in range(EPOCHS):
         decoded = torch.squeeze(decoded)
         loss = loss_func(decoded, game)
 
-        optimizer.zero_grad()   
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
         if step % 10 == 0:
             with torch.no_grad():
                 print('Epoch: ', i, '| train loss: %.4f' % loss.data.numpy())
-                view_data = game.view(-1, input_size).type(torch.FloatTensor)/255.
+                view_data = game.view(-1,
+                                      input_size).type(torch.FloatTensor)/255.
                 _, decoded_data = autoencoder(view_data)
 
 

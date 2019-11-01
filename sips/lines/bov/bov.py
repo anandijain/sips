@@ -1,17 +1,13 @@
 '''
 uses the bovada api to get json data for odds and scores
 '''
-import os
-
-import time
-import json
-
 import requests as r
-from requests_futures.sessions import FuturesSession
-
-import sips.h.macros as m
 import sips.h.openers as o
+from sips.macros import macros as m
 from sips.lines.bov.utils import bov_utils as u
+
+
+
 
 
 def get_events(sports=['nfl'], output='list', session=None):
@@ -19,10 +15,14 @@ def get_events(sports=['nfl'], output='list', session=None):
     gets all events for all the sports specified in macros.py
     output: either 'list' or 'dict', where each key is the game_id
     '''
-    links = fix_links(sports)
-    jsons = [u.req_json(l) for l in links]
-    # jsons = o.async_req(links, session=session)
-    events = u.list_from_jsons(jsons)
+    links = u.filtered_links(sports)
+
+    if session:
+        jsons = o.async_req(links, session=session)
+    else:
+        jsons = [o.req_json(l) for l in links]
+        
+    events = u.events_from_jsons(jsons)
 
     if output == 'dict':
         events = u.dict_from_events(events)
@@ -30,39 +30,26 @@ def get_events(sports=['nfl'], output='list', session=None):
     return events
 
 
-def fix_links(sports):
-    sfx = '?marketFilterId=def&lang=en'
-    links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
-    return links
-
-
-def lines(sports, output='list', verbose=False, fixlines=True, session=None, espn=False):
+def lines(sports, output='list', verbose=False, filter_mkts=True, espn=False):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
     '''
-    if not sports:
-        print(f'sports is None')
-        return
-        
-    if fixlines:
-        links = fix_links(sports)
-    else:        
-        links = [m.BOV_URL + u.match_sport_str(s) for s in sports]  
+    if filter_mkts:
+        links = u.filtered_links(sports)
+    else:
+        links = [m.BOV_URL + u.match_sport_str(s) for s in sports]
 
-    jsons = o.async_req(links, session=session)
-    events = u.list_from_jsons(jsons)
+    events = get_events(sports=sports)
 
     if output == 'dict':
-        lines = u.dict_from_events(events, key='id', rows=True, grab_score=False)
-        scores = u.get_scores(events, session=session)
-        data = u.merge_lines_scores(lines, scores)
+        data = u.dict_from_events(events, rows=True, grab_score=True)
     else:
         data = [u.parse_event(e, grab_score=True) for e in events]
 
     if verbose:
         print(f'lines: {data}')
-        
+
     return data
 
 
