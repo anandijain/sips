@@ -40,7 +40,7 @@ def lines(sports, output='list', verbose=False, filter_mkts=True, espn=False):
     else:
         links = [m.BOV_URL + u.match_sport_str(s) for s in sports]
 
-    events = get_events(sports=sports, output='dict')
+    events = get_events(sports=sports)
 
     if output == 'dict':
         data = u.dict_from_events(events, rows=True, grab_score=True)
