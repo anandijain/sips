@@ -4,10 +4,8 @@ uses the bovada api to get json data for odds and scores
 import requests as r
 import sips.h.openers as o
 from sips.macros import macros as m
+from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
-
-
-
 
 
 def get_events(sports=['nfl'], output='list', session=None):
@@ -38,7 +36,7 @@ def lines(sports, output='list', verbose=False, filter_mkts=True, espn=False):
     if filter_mkts:
         links = u.filtered_links(sports)
     else:
-        links = [m.BOV_URL + u.match_sport_str(s) for s in sports]
+        links = [bm.BOV_URL + u.match_sport_str(s) for s in sports]
 
     events = get_events(sports=sports)
 

@@ -7,7 +7,8 @@ import torch
 from torch.utils.data import Dataset
 
 from sips.h import helpers as h
-# from sips.macros import macros as m 
+# from sips.macros import macros as m
+
 
 class DfWindow(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):
@@ -207,3 +208,124 @@ class LinesLoader(Dataset):
 
     def __len__(self):
         return self.length
+
+
+class WinSet(Dataset):
+    def __init__(self, predict_column=['h_win'], train_columns=['gen_avg_allowed',
+                                                                'gen_avg_pass_comp_pct', 'gen_avg_pass_yards',
+                                                                'gen_avg_rush_yards', 'gen_avg_rush_yards_per_attempt',
+                                                                'gen_avg_score', 'gen_avg_total_yards']):
+        self.predict_col = predict_column
+        self.train_cols = train_columns
+
+        df = pd.read_csv('./data/static/big_daddy2.csv')
+        labels = df['h_win'].copy()
+        df = df[df.Gen_Games > 4]
+        x = df[self.train_cols].values  # returns a numpy array
+        min_max_scaler = preprocessing.MinMaxScaler()
+        x_scaled = min_max_scaler.fit_transform(x)
+        df = pd.DataFrame(x_scaled, columns=self.train_cols)
+        self.projections_frame = pd.concat((df, labels), axis=1).fillna(0)
+
+    def __len__(self):
+        return len(self.projections_frame)
+
+    def __getitem__(self, index):
+        x = torch.tensor(
+            self.projections_frame.iloc[index][self.train_cols], dtype=torch.float)
+        y = self.projections_frame.iloc[index][self.predict_col].values
+        if y == 1:
+            y = torch.tensor([0., 1.], dtype=torch.float)
+        elif y == 0:
+            y = torch.tensor([1., 0.], dtype=torch.float)
+        else:
+            y = torch.tensor([0., 0.], dtype=torch.float)
+
+        tup = (x, y)
+        return tup
+
+
+class VAELoader(Dataset):
+    def __init__(self):
+        self.df = pd.read_csv('./data/nba2.csv')
+        self.cols = ['game_id', 'cur_time', 'quarter', 'secs', 'a_pts', 'h_pts',
+                     'status', 'a_win', 'h_win', 'last_mod_to_start',
+                     'last_mod_lines', 'num_markets', 'a_odds_ml', 'h_odds_ml',
+                     'a_odds_ps', 'h_odds_ps', 'a_hcap_ps', 'h_hcap_ps',
+                     'game_start_time']
+
+        self.df_parsed = self.df[self.cols]
+        group = self.df_parsed.groupby(['game_id', 'quarter'])
+
+        # might be a torch fxn to find max seq len
+        max = 0
+        grouped = []
+        for elt in group:
+            cur_len = len(elt)
+
+            if cur_len > max:
+                max = cur_len
+            grouped.append(torch.tensor(elt[1].values, dtype=torch.double))
+
+        self.grouped = grouped
+
+        pad = 0
+        if max % 2 != 0:
+            pad = 1
+
+        self.padded = nn.utils.rnn.pad_sequence(grouped, padding_value=pad)
+        print(self.padded.shape)
+        item = self.padded[0]
+
+        self.length = len(item.flatten())
+
+    def __getitem__(self, index):
+        return self.padded[index].flatten()
+
+    def __len__(self):
+        return self.length
+
+
+class FileLoader:
+    def __init__(self, directory):
+        self.files = os.listdir(directory)
+        self.length = len(self.files)
+        self.dir = directory
+        self.file = self.files[0]
+
+    def __getitem__(self, index):
+        self.file = self.files[index]
+        df = pd.read_csv(self.dir + self.files[index])
+        return df.iloc[:, 1:5].values
+
+        # x = df.values #returns a numpy array
+        # min_max_scaler = preprocessing.MinMaxScaler()
+        # x_scaled = min_max_scaler.fit_transform(x)
+        # data = x_scaled
+
+    def __len__(self):
+        return self.length
+
+
+class LSTMLoader(Dataset):
+    def __init__(self, data, window_len=1, predict_window=1):
+        self.samples = []
+        self.length = len(data)
+        self.window_len = window_len
+        self.predict_window = predict_window
+        self.data = data
+        self.get_data()
+
+    def get_data(self):
+        for i in range(0, self.length - self.predict_window):
+            upper_idx = i + self.window_len
+            x = torch.tensor(self.data[i:upper_idx, :]).view(1, 1, -1).float()
+            y = torch.tensor(
+                self.data[upper_idx:upper_idx + self.predict_window, :]).view(1, 1, -1).float()
+            self.samples.append((x, y))
+
+    def __len__(self):
+        return self.length - self.predict_window  # (self.window_len + 1)
+
+    def __getitem__(self, index):
+        return self.samples[index]

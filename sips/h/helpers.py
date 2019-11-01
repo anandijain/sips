@@ -5,7 +5,6 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-import torch
 from sklearn.preprocessing import StandardScaler
 
 import sips.h as h
