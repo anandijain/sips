@@ -121,7 +121,7 @@ class Lines:
             self.files = write_opened(
                 self.files, to_write, verbose=self.verbose)
         else:
-            self.files = open_and_write(
+            self.files = open_and_write(self.dir,
                 self.files, to_write, verbose=self.verbose)
 
         self.step_num += 1
@@ -176,7 +176,7 @@ def write_opened(file_dict, data_dict, verbose=True):
         f = file_dict.get(game_id)
 
         if not f:
-            fn = '../data/lines/' + str(game_id) + '.csv'
+            fn = sips.__path__[0] + '/' + str(game_id) + '.csv'
             f = io.init_csv(fn, header=utils.header(), close=False)
             file_dict[game_id] = f
 
@@ -225,13 +225,13 @@ def check_if_exists(file_dict, key):
     return file_dict
 
 
-def open_and_write(file_dict, data_dict, verbose=True):
+def open_and_write(dir, file_dict, data_dict, verbose=True):
     '''
     read in dictionary of file names and compare to new data
     '''
     for game_id, vals in data_dict.items():
         f = file_dict.get(game_id)
-        fn = '../data/lines/' + str(game_id) + '.csv'
+        fn = dir + str(game_id) + '.csv'
         if not f:
             file_dict[game_id] = fn
             if not os.path.isfile(fn):

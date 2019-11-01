@@ -63,7 +63,8 @@ def label_split(df, col):
 
 def sk_scale(df, to_pd=False):
     '''
-
+    scales dataframe using StandardScaler 
+    returns numpy or dataframe (to_pd=True)
     '''
     scaler = StandardScaler()
     cols = df.columns

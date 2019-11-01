@@ -51,7 +51,6 @@ def parse_json(json, keys, output='dict'):
     if the key does not exist in the json
     the key is still created with None as the value
     '''
-    print(f'json: {json}')
     data = {}
     json_keys = json.keys()
     for j_key in json_keys:
