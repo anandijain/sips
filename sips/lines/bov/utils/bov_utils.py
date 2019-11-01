@@ -5,7 +5,8 @@ utils functions for bov.py
 import time
 import requests as r
 
-import sips.h.openers as io
+import sips.h.fileio as io
+import sips.h.grab as g
 from sips.macros import bov as bm
 from sips.macros import macros as m
 from sips.lines import lines as ll
@@ -165,7 +166,7 @@ def parse_event(event, verbose=False, grab_score=True):
         ret = [section_1, section_2]
     else:
         score_url = bm.BOV_SCORES_URL + game_id
-        score_data = io.req_json(score_url)
+        score_data = g.req_json(score_url)
 
         quarter, secs, a_pts, h_pts, status = score(score_data)
         ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
@@ -377,10 +378,10 @@ def get_scores(events, session=None):
     ids = get_ids(events)
     links = [bm.BOV_SCORES_URL + game_id for game_id in ids]
     if session:
-        raw = io.async_req(links, output='dict',
+        raw = g.async_req(links, output='dict',
                            key='eventId', session=session)
     else:
-        raw = io.req_json(links)
+        raw = g.req_json(links)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 

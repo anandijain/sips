@@ -3,7 +3,7 @@ import time
 import json
 
 import sips
-import sips.h.openers as io
+import sips.h.fileio as io
 from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.lines.bov import bov

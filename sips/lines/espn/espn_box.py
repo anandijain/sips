@@ -1,5 +1,5 @@
 import time
-from sips.h import openers as o
+from sips.h import grab as g
 
 ESPN_ROOT = 'https://www.espn.com/'
 
@@ -61,14 +61,14 @@ def schedules(sports=['nfl']):
     pages = []
     for sport in sports:
         espn_id_link = '/' + sport + '/schedule'
-        p = o.get_page(espn_id_link)
+        p = g.get_page(espn_id_link)
         pages.append(p)
     return pages
 
 
 def schedule(sport='nfl'):
     espn_id_link = ESPN_ROOT + sport + '/schedule'
-    p = o.get_page(espn_id_link)
+    p = g.get_page(espn_id_link)
     return p
 
 
@@ -92,7 +92,7 @@ def get_live_pages():
     pages = []
     # add multithreading
     for id in ids:
-        pages.append(o.get_page(id_to_boxlink(id)))
+        pages.append(g.get_page(id_to_boxlink(id)))
     return pages
 
 
@@ -261,7 +261,7 @@ def boxscore(link):
     '''
 
     '''
-    page = o.get_page(link)
+    page = g.get_page(link)
     teams = box_teamnames(page)
     if teams:
         a_team, h_team = teams

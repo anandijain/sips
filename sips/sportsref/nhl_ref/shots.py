@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 import sips.h.parse as parse
-import sips.h.openers as io
+import sips.h.fileio as io
 
 
 link = 'https://www.hockey-reference.com/boxscores/201904100NYI.html'

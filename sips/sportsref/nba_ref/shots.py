@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 
 import sips.h.parse as parse
-import sips.h.openers as io
 
 
 root = 'https://www.basketball-reference.com'
@@ -190,9 +189,8 @@ def main():
     columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
     io.init_csv(fn=write_path, header=columns)
 
-    # sfxs = boxlinks()
+    sfxs = boxlinks()
     # for testing
-    boxl
     # sfxs = np.random.permutation(boxlinks())
     meta_df = pd.DataFrame(columns=['game_id', 'num_rows'])
     for i, sfx in enumerate(sfxs):

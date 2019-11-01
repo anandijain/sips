@@ -4,7 +4,8 @@ import pandas as pd
 import requests as r
 
 import sips.h.parse as p
-import sips.h.openers as io
+import sips.h.fileio as io
+import sips.h.grab as g
 
 
 def main(years=(2000, 2019)):
@@ -21,7 +22,7 @@ def get_df(year, write=True):
 
     '''
     url = get_url(year=year)
-    page = io.get_page(url)
+    page = g.get_page(url)
     table = p.get_table(page, 'combine')
     cols = p.columns_from_table(table)
     player_ids = get_ids(table)
