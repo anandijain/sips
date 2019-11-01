@@ -1,12 +1,10 @@
 import os
 import random
-from pathlib import Path
 
 import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import StandardScaler
-
 import sips.h as h
 
 
@@ -62,7 +60,7 @@ def label_split(df, col):
 
 def sk_scale(df, to_pd=False):
     '''
-    scales dataframe using StandardScaler 
+    scales pandas or np data(frame) using StandardScaler 
     returns numpy or dataframe (to_pd=True)
     '''
     scaler = StandardScaler()
