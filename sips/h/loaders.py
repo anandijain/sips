@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import Dataset
 
 from sips.h import helpers as h
-
+# from sips.macros import macros as m 
 
 class DfWindow(Dataset):
     def __init__(self, df, prev_n=5, next_n=1):

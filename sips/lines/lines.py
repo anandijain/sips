@@ -4,6 +4,8 @@ import json
 
 import sips
 import sips.h.openers as io
+from sips.macros import macros as m
+from sips.macros import bov as bm
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
 from sips.lines import collate
@@ -13,7 +15,9 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from requests_futures.sessions import FuturesSession
 
-CONFIG_PATH = sips.__path__[0] + '/' + 'lines/config/lines.json'
+
+LINES_DATA_PATH = m.PARENT_DIR + '/data/lines/'
+CONFIG_PATH = m.PROJ_DIR + 'lines/config/lines.json'
 
 
 class Lines:
@@ -78,6 +82,9 @@ class Lines:
         '''
         file_conf = self.config.get('file')
         self.sports = self.config.get('sports')
+        if self.sports == 'all':
+            self.sports = sports = list(m.SPORT_TO_SUFFIX.keys())
+
         self.wait = self.config.get('wait')
         self.verbose = self.config.get('verbose')
         self.req_async = self.config.get('async_req')
@@ -88,8 +95,8 @@ class Lines:
         self.keep_open = file_conf.get('keep_open')
         # self.file_per_game = file_conf.get('file_per_game')  todo
         self.folder_name = file_conf.get('folder_name')
-        sips_path = sips.__path__[0] + '/'
-        self.dir = sips_path + 'lines/data/lines/' + self.folder_name + '/'
+        self.dir = LINES_DATA_PATH + self.folder_name + '/'
+
 
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
@@ -118,7 +125,7 @@ class Lines:
         self.prev_time = self.new_time
 
         if self.keep_open:
-            self.files = write_opened(
+            self.files = write_opened(self.dir,
                 self.files, to_write, verbose=self.verbose)
         else:
             self.files = open_and_write(self.dir,
@@ -167,7 +174,7 @@ def compare_and_filter(prevs, news):
     return to_write
 
 
-def write_opened(file_dict, data_dict, verbose=True):
+def write_opened(dir, file_dict, data_dict, verbose=True):
     '''
     read in dictionary with open files as values
     and write data to files
@@ -176,52 +183,14 @@ def write_opened(file_dict, data_dict, verbose=True):
         f = file_dict.get(game_id)
 
         if not f:
-            fn = sips.__path__[0] + '/' + str(game_id) + '.csv'
-            f = io.init_csv(fn, header=utils.header(), close=False)
+            fn = dir + str(game_id) + '.csv'
+            f = io.init_csv(fn, header=bm.LINE_COLUMNS, close=False)
             file_dict[game_id] = f
 
         io.write_list(f, vals)
         if verbose:
             print(f'writing {vals} to game [{game_id}]')
 
-    return file_dict
-
-
-# def async_write_opened(file_dict, data_dict, verbose=True):
-#     '''
-#     read in dictionary with open files as values
-#     and write data to files
-#     '''
-
-#     args = ((check_if_exists(file_dict, game_id), game_id, val)
-#             for game_id, val in data_dict.items())
-
-#     with concurrent.futures.ProcessPoolExecutor() as executor:
-#         results = [executor.map(write_for_map, args)]
-#         as_completed = concurrent.futures.as_completed(results)
-#         file_dict = as_completed[-1]
-
-#     return file_dict
-
-
-def write_for_map(file_dict, game_id, vals):
-    file_dict = check_if_exists(file_dict, game_id)
-    f = file_dict[game_id]
-    io.write_list(f, vals)
-    return file_dict
-
-
-def check_if_exists(file_dict, key):
-    '''
-    given a dictionary and a key
-    if key not in dict, init file, add to dict, return updated dict
-    '''
-    f = file_dict.get(key)
-
-    if not f:
-        fn = '../data/lines/' + str(key) + '.csv'
-        f = io.init_csv(fn, header=utils.header(), close=False)
-        file_dict[key] = f
     return file_dict
 
 
@@ -235,7 +204,7 @@ def open_and_write(dir, file_dict, data_dict, verbose=True):
         if not f:
             file_dict[game_id] = fn
             if not os.path.isfile(fn):
-                io.init_csv(fn, header=utils.header())
+                io.init_csv(fn, header=bm.LINE_COLUMNS)
 
         f = open(fn, 'a')
 

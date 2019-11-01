@@ -6,6 +6,7 @@ import time
 import requests as r
 
 import sips.h.openers as io
+from sips.macros import bov as bm
 from sips.macros import macros as m
 from sips.lines import lines as ll
 from sips.lines.bov.utils import bov_utils as u
@@ -163,7 +164,7 @@ def parse_event(event, verbose=False, grab_score=True):
                      a_hcap_tot, h_hcap_tot, a_ou, h_ou, game_start_time]
         ret = [section_1, section_2]
     else:
-        score_url = m.BOV_SCORES_URL + game_id
+        score_url = bm.BOV_SCORES_URL + game_id
         score_data = io.req_json(score_url)
 
         quarter, secs, a_pts, h_pts, status = score(score_data)
@@ -374,7 +375,7 @@ def get_scores(events, session=None):
     {game_id : quarter, secs, a_pts, h_pts, status}
     '''
     ids = get_ids(events)
-    links = [m.BOV_SCORES_URL + game_id for game_id in ids]
+    links = [bm.BOV_SCORES_URL + game_id for game_id in ids]
     if session:
         raw = io.async_req(links, output='dict',
                            key='eventId', session=session)
@@ -417,7 +418,7 @@ def score(json_data):
 def filtered_links(sports, verbose=False):
     # append market filter to each url
     sfx = '?marketFilterId=def&lang=en'
-    links = [m.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
+    links = [bm.BOV_URL + u.match_sport_str(s) + sfx for s in sports]
     if verbose:
         print(f'bov_links: {links}')
     return links
@@ -448,6 +449,7 @@ def events_from_json(json_dict):
 def match_sport_str(sport='mlb'):
     '''
     maps string to the url suffix to bovada api
+    give sport='all' to get a list of all  
     '''
     try:
         sport = m.SPORT_TO_SUFFIX[sport]
@@ -455,16 +457,6 @@ def match_sport_str(sport='mlb'):
         print('forcing nfl')
         sport = m.SPORT_TO_SUFFIX['nfl']
     return sport
-
-
-def header():
-    '''
-    column names for dataframe
-    '''
-    return ['sport', 'game_id', 'a_team', 'h_team', 'last_mod', 'num_markets',
-            'live', 'quarter', 'secs', 'a_pts', 'h_pts', 'status', 'a_ps',
-            'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot',
-            'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
 
 
 def bov_all_dict():

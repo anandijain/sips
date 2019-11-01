@@ -1,15 +1,15 @@
 {
-    "sports": ["nba", "nfl"],
-    "wait": 0.5,
+    "sports": ["nba", "nfl", "nhl"],
+    "wait": 0.25,
     "verbose": false,
     "grab_espn": false,
-    "async_req": true,
+    "async_req": false,
     "start": true,
     "file": {
         "new_only": true,
         "file_per_game": true,
         "keep_open": false,
-        "folder_name": "november_1",
+        "folder_name": "realtest2",
         "flush_rate": 10
     }
 }

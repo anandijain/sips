@@ -1,0 +1,6 @@
+im going thru this project to fix all local path references.
+
+i want to standardize it so that the repo's parent directiory has a data/ folder
+
+this folder should be where all data is written to, and read from
+

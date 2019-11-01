@@ -21,6 +21,8 @@ def init_csv(fn, header, close=True):
 
 
 def write_list(file, list):
+    if not list:
+        return
     length = len(list)
     for i, elt in enumerate(list):
         file.write(str(elt))
