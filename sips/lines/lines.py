@@ -69,7 +69,7 @@ class Lines:
                 self.prevs = collate.get_and_compare(sports=self.sports)
             else:
                 self.prevs = bov.lines(self.sports, output='dict',
-                                       verbose=self.verbose, espn=self.espn)
+                                       verbose=self.verb, espn=self.espn)
             self.current = None
 
         self.step_num = 0
@@ -86,17 +86,17 @@ class Lines:
             self.sports = sports = list(m.SPORT_TO_SUFFIX.keys())
 
         self.wait = self.config.get('wait')
-        self.verbose = self.config.get('verbose')
+        self.verb = self.config.get('verbose')
         self.req_async = self.config.get('async_req')
         self.start = self.config.get('start')
         self.espn = self.config.get('grab_espn')
+        self.all_mkts = self.config.get('all_mkts')
         self.write_new = file_conf.get('new_only')
         self.flush_rate = file_conf.get('flush_rate')
         self.keep_open = file_conf.get('keep_open')
         # self.file_per_game = file_conf.get('file_per_game')  todo
         self.folder_name = file_conf.get('folder_name')
         self.dir = LINES_DATA_PATH + self.folder_name + '/'
-
 
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
@@ -109,8 +109,9 @@ class Lines:
         if self.espn:
             self.current = collate.get_and_compare(sports=self.sports)
         else:
-            self.current = bov.lines(self.sports, verbose=self.verbose,
-                                     output='dict', espn=self.espn)
+            self.current = bov.lines(self.sports, output='dict',
+                                     all_mkts=self.all_mkts,
+                                     verbose=self.verb, espn=self.espn)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
@@ -126,10 +127,10 @@ class Lines:
 
         if self.keep_open:
             self.files = write_opened(self.dir,
-                self.files, to_write, verbose=self.verbose)
+                                      self.files, to_write, verbose=self.verb)
         else:
             self.files = open_and_write(self.dir,
-                self.files, to_write, verbose=self.verbose)
+                                        self.files, to_write, verbose=self.verb)
 
         self.step_num += 1
 

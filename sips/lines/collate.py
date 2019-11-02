@@ -13,6 +13,14 @@ from sips.lines.bov.utils import bov_utils
 from nfl_ref import full_package as fp
 
 
+def to_dict(lists, index):
+    '''
+    convert lists to a dictionary where the index-th elt is the key
+    not needed?
+    '''
+    return {l[index]: l for l in lists}
+
+
 def get_and_compare(sports=['nfl', 'nba'], output='dict'):
     '''
     access the espn boxscores and api and merge with bovada lines 
@@ -50,7 +58,8 @@ def match_api_lines(bov_events, espn_events, output='list'):
                 rows.append(row)
                 num_matched += 1
     print(
-        f'len(bov_events): {len(bov_events)}\nlen(espn_events): {len(espn_events)}')
+        f'len(bov_events): {len(bov_events)}\n' \
+        f'len(espn_events): {len(espn_events)}')
     print(f'num_matched: {num_matched}')
     ret = []
     for row in rows:
@@ -61,14 +70,6 @@ def match_api_lines(bov_events, espn_events, output='list'):
     if output == 'dict':
         rows = to_dict(rows, 1)
     return rows
-
-
-def to_dict(lists, index):
-    '''
-    convert lists to a dictionary where the index-th elt is the key
-    not needed?
-    '''
-    return {l[index]: l for l in lists}
 
 
 def match_lines_boxes(lines, boxes, output='dict', verbose=True):

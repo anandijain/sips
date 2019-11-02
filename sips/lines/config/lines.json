@@ -3,6 +3,7 @@
     "wait": 0.25,
     "verbose": false,
     "grab_espn": false,
+    "all_mkts": true,
     "async_req": false,
     "start": true,
     "file": {
