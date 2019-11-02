@@ -1,7 +1,7 @@
 import requests as r
 
+import sips.h.grab as g
 from sips.macros import macros as m
-
 from sips.lines import collate
 
 espn = 'http://site.api.espn.com/apis/site/v2/sports/'
@@ -19,7 +19,7 @@ def sport_to_api_url(sport='nfl'):
 
 def req_events(sports=['nfl']):
     urls = [sport_to_api_url(sport) for sport in sports]
-    espn_jsons = [r.get(url).json() for url in urls]
+    espn_jsons = g.reqs_json(urls)
     events = []
     for sport in espn_jsons:
         events += sport['events']

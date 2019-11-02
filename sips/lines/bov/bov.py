@@ -8,47 +8,38 @@ from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
 
-def get_events(sports=['nfl'], output='list', all_mkts=True):
-    '''
-    gets all events for all the sports specified in macros.py
-    output: either 'list' or 'dict', where each key is the game_id
-    '''
+def get_links(sports, all_mkts=True):
     if all_mkts:
         links = [bm.BOV_URL + u.match_sport_str(s) for s in sports]
     else:
         links = u.filtered_links(sports)
-
-    jsons = [g.req_json(l) for l in links]
-        
-    events = u.events_from_jsons(jsons)
-
-    if output == 'dict':
-        events = u.dict_from_events(events, rows=False)
-
-    return events
+    return links
 
 
-def lines(sports, output='list', verbose=False, all_mkts=True, espn=False):
+def sports_to_jsons(sports, all_mkts=True):
+    links = get_links(sports, all_mkts=all_mkts)
+    jsons = g.reqs_json(links)
+    return jsons
+
+
+def lines(sports, output='list', parse=True, all_mkts=True, verbose=False):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
     '''
-
-    events = get_events(sports=sports, output=output, all_mkts=all_mkts)
+    jsons = sports_to_jsons(sports, all_mkts)
+    events = u.events_from_jsons(jsons)
 
     if output == 'dict':
-        data = u.dict_from_events(events, rows=True)
+        data = u.dict_from_events(events, key='id', rows=parse)
     else:
-        data = [u.parse_event(e, all_mkts=all_mkts) for e in events]
-
-    if verbose:
-        print(f'lines: {data}')
+        data = [u.parse_event(e) for e in events]
 
     return data
 
 
 def main():
-    data = lines(["nba"], output='list')
+    data = lines(["nba"], output='dict')
     print(data)
     return data
 

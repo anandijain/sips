@@ -82,7 +82,7 @@ def parse_display_groups(event):
         data_dict = parse_display_group(group)
         full_set[cleaned] = data_dict
 
-    print(f'full_set: {full_set}')
+    # print(f'full_set: {full_set}')
     return full_set
 
 
@@ -138,7 +138,7 @@ def dict_from_events(events, key='id', rows=True):
     return event_dict
 
 
-def parse_event(event, verbose=False, all_mkts=False):
+def parse_event(event, verbose=False):
     '''
     parses an event with three markets (spread, ml, total)
     returns list of data following the order in header()
@@ -146,35 +146,36 @@ def parse_event(event, verbose=False, all_mkts=False):
     game_id, sport, live, num_markets, last_mod = parse_json(
         event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'],
         output='list')
-
     a_team, h_team = teams(event)
-
     game_start_time = event['startTime']
-    display_groups = event['displayGroups'][0]
-    markets = display_groups.get('markets')
 
-    if all_mkts:
-        mkts_dict = parse_markets(markets)
+    events_all_mkts = parse_display_groups(event)
+    game_lines = events_all_mkts.get('game_lines')
+
+    if not game_lines:
+        print(f'events_all_mkts: {events_all_mkts}')
+        a_ps, h_ps, a_hcap, h_hcap, ps_M_live, a_team, a_ml, h_team, \
+            h_ml, ml_M_live, a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, \
+            h_ou, tot_M_live = [None for _ in range(17)]
     else:
-        a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, \
-            h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou = grab_row_from_markets(
-                markets)
+        ml_M = game_lines['moneyline_ml_M']
+        ps_M = game_lines['point_spread_ps_M']
+        tot_M = game_lines['total_tot_M']
 
-
+        a_ps, h_ps, a_hcap, h_hcap, ps_M_live = ps_M
+        a_team, a_ml, h_team, h_ml, ml_M_live = ml_M
+        a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou, tot_M_live = tot_M
 
     score_url = bm.BOV_SCORES_URL + game_id
     score_data = g.req_json(score_url)
-
     quarter, secs, a_pts, h_pts, status = score(score_data)
+
     ret = [sport, game_id, a_team, h_team, last_mod, num_markets, live,
             quarter, secs, a_pts, h_pts, status, a_ps, h_ps, a_hcap,
             h_hcap, a_ml, h_ml, a_tot, h_tot, a_hcap_tot, h_hcap_tot,
             a_ou, h_ou, game_start_time]
 
-    if verbose:
-        print(f'event: {section_1} {section_2}')
-
-    return ret, 
+    return ret
 
 
 def grab_row_from_markets(markets):
@@ -204,7 +205,12 @@ def grab_row_from_markets(markets):
 def parse_markets(markets, output='dict'):
     '''
     parse markets in bov event
-    keys of all_markets are: cleaned_mkt_desc + reduced mkt type + period abbrv 
+    keys of all_markets are: cleaned_mkt_desc + reduced mkt type + period abbrv
+
+    key examples
+    Moneyline -> moneyline_ml_M
+    Point Spread -> point_spread_ps_M
+    First Team to reach 20 points -> first_team_to_reach_20_points_ml_M
     '''
     all_markets = {}
 
@@ -236,11 +242,11 @@ def parse_market(market):
     given: market in bovada sport json
     returns: dictionary w (field , field_value)
     '''
-    period = market.get('period')
-    is_live = int(period['live'])
-    mkt_type = reduce_mkt_type(market.get('description'))
-
+    period_desc, abbrv, live = mkt_period_info(market)
     outcomes = market.get('outcomes')
+
+    market_desc = market.get('description')
+    mkt_type = reduce_mkt_type(market_desc)
 
     if mkt_type == 'ps':
         data = spread(outcomes)
@@ -255,9 +261,8 @@ def parse_market(market):
         ret = []
         for v in data.values():
             ret += v
-        print(f'this RET: {ret}')
 
-    ret.append(is_live)
+    ret.append(live)
     return ret
 
 
@@ -273,7 +278,7 @@ def mkt_period_info(market):
 
 def clean_desc(desc):
     '''
-
+    
     '''
     to_replace = [('-', ''), ('  ', ' '), (' ', '_')]
     ret = desc.lower()

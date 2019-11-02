@@ -69,7 +69,7 @@ class Lines:
                 self.prevs = collate.get_and_compare(sports=self.sports)
             else:
                 self.prevs = bov.lines(self.sports, output='dict',
-                                       verbose=self.verb, espn=self.espn)
+                                       verbose=self.verb)
             self.current = None
 
         self.step_num = 0
@@ -111,7 +111,7 @@ class Lines:
         else:
             self.current = bov.lines(self.sports, output='dict',
                                      all_mkts=self.all_mkts,
-                                     verbose=self.verb, espn=self.espn)
+                                     verbose=self.verb)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)

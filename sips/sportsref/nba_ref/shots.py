@@ -5,7 +5,9 @@ import requests as r
 import pandas as pd
 import numpy as np
 
-import sips.h.parse as parse
+import sips.h.fileio as io
+import sips.h.grab as g
+import sips.h.parse as p
 
 
 root = 'https://www.basketball-reference.com'
@@ -72,9 +74,8 @@ def grab_charts(link):
     given a link to a hockey-refference boxscore, 
     returns div, class: shotchart
     '''
-    req = r.get(link).text
-    p = bs4.BeautifulSoup(req, 'html.parser')
-    charts = p.find_all('div', {'class': 'shot-area'})
+    page = g.get_page(link)
+    charts = page.find_all('div', {'class': 'shot-area'})
     return charts
 
 
