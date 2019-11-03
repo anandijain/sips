@@ -28,7 +28,7 @@ CONFIG_PATH = m.PROJ_DIR + 'lines/config/lines.json'
 
 
 parser = argparse.ArgumentParser(description='configure lines.py')
-parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run2')
+parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run3')
 parser.add_argument('-s', '--sports', type=list,
                     help='list of 3 letter sports', default=['nba', 'nfl', 'nhl'])
 parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
