@@ -1,6 +1,6 @@
-from sips.lines.bov.utils import bov_utils as u
-from sips.macros import bov as bm
 import sips.h.grab as g
+from sips.macros import bov as bm
+from sips.lines.bov.utils import bov_utils as u
 
 
 def get_scores(events, session=None):

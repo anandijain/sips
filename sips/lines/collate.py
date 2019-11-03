@@ -13,12 +13,12 @@ from sips.lines.bov.utils import bov_utils as u
 from nfl_ref import full_package as fp
 
 
-def to_dict(lists, index):
+def to_dict(lists):
     '''
     convert lists to a dictionary where the index-th elt is the key
     not needed?
     '''
-    return {l[index]: l for l in lists}
+    return {l[i]: l for i, l in enumerate(lists)}
 
 
 def get_and_compare(sports=['nfl', 'nba'], output='dict'):
@@ -68,7 +68,7 @@ def match_api_lines(bov_events, espn_events, output='list'):
     rows = ret
 
     if output == 'dict':
-        rows = to_dict(rows, 1)
+        rows = to_dict(rows)
     return rows
 
 

@@ -45,12 +45,29 @@ def reduce_mkt_type(market_desc):
     return reduced
 
 
+def get_event():
+    '''
+    used for quick debug purposes
+    '''
+    req = g.req_json(bm.BOV_URL + 'basketball/nba')
+    event = req[0]['events'][0]
+    return event
+
+
+def fxn():
+    ev = get_event()
+    fs = parse_display_groups(ev)
+    return fs
+
+
 def parse_display_groups(event):
     '''
     given an event, it will parse all of the displaygroups
     returns a dictionary with a key for every group and the value is the data of
     each market in that group
     '''
+    comps = competitors(event)
+
     groups = event['displayGroups']
     full_set = {}
     for group in groups:
@@ -58,16 +75,16 @@ def parse_display_groups(event):
         if not desc:
             continue
         # cleaned = clean_desc(desc)
-        data_dict = parse_display_group(group)
+        data_dict = parse_display_group(group, comps)
         full_set[desc] = data_dict
 
     # print(f'full_set: {full_set}')
     return full_set
 
 
-def parse_display_group(display_group):
+def parse_display_group(display_group, competitors):
     group_markets = display_group.get('markets')
-    data = parse_markets(group_markets)
+    data = parse_markets(group_markets, competitors=competitors)
     return data
 
 
@@ -137,7 +154,7 @@ def dict_from_events(events, key='id', rows=True):
     return event_dict
 
 
-def parse_event(event, verbose=False):
+def parse_event(event, output='list', verbose=False):
     '''
     parses an event with three markets (spread, ml, total)
     returns list of data following the order in header()
@@ -145,7 +162,10 @@ def parse_event(event, verbose=False):
     game_id, sport, live, num_markets, last_mod = p.parse_json(
         event, ['id', 'sport', 'live', 'numMarkets', 'lastModified'],
         output='list')
-    a_team, h_team = teams(event)
+    ev_teams = teams(event)
+    if not ev_teams:
+        return
+    a_team, h_team = ev_teams
     game_start_time = event.get('startTime')
     display_groups = event.get('displayGroups')
     markets = [dg.get('markets') for dg in display_groups] 
@@ -164,9 +184,9 @@ def parse_event(event, verbose=False):
 
         # to fix
         if ml_M:
-            a_team, a_ml, h_team, h_ml, ml_M_live = ml_M
-        else:
-            a_team, a_ml, h_team, h_ml, ml_M_live = [None for _ in range(5)]
+            a_ml, h_ml, ml_M_live = ml_M
+        else: 
+            a_ml, h_ml, ml_M_live = [None for _ in range(3)]
         if ps_M:
             a_ps, h_ps, a_hcap, h_hcap, ps_M_live = ps_M
         else:
@@ -214,7 +234,7 @@ def grab_row_from_markets(markets):
     return data
 
 
-def parse_markets(markets, output='dict'):
+def parse_markets(markets, competitors, output='dict'):
     '''
     parse markets in bov event
     keys of all_markets are: mkt_desc + reduced mkt type + period abbrv
@@ -231,17 +251,15 @@ def parse_markets(markets, output='dict'):
 
     for market in markets:
         market_desc = market.get('description')
-        # print(f'market_desc: {market_desc}')
         mkt_type = reduce_mkt_type(market_desc)
         if not mkt_type or market_desc == 'Futures':
             continue
 
         period_desc, abbrv, live = mkt_period_info(market)
 
-        # desc = clean_desc(market_desc)
         mkt_key = market_desc + '_' + mkt_type + '_' + abbrv
 
-        market_data = parse_market(market)
+        market_data = parse_market(market, competitors=competitors)
         all_markets[mkt_key] = market_data
 
     if output == 'list':
@@ -250,7 +268,7 @@ def parse_markets(markets, output='dict'):
     return all_markets
 
 
-def parse_market(market):
+def parse_market(market, competitors):
     '''
     given: market in bovada sport json
     returns: dictionary w (field , field_value)
@@ -266,17 +284,40 @@ def parse_market(market):
     elif mkt_type == 'tot':
         data = total(outcomes)
     else:
-        data = ml_no_teams(outcomes)
+        data = ml_from_outcomes(outcomes, competitors)
 
-    ret = data
+    data.append(live)
+    return data
 
-    if isinstance(data, dict):
-        ret = []
-        for v in data.values():
-            ret += v
 
-    ret.append(live)
-    return ret
+def ml_from_outcomes(outcomes, competitors):
+    '''
+    returns a_ml, h_ml
+    '''
+    a_ml, h_ml = None, None
+    if competitors:
+        t1 = competitors[0]
+        t2 = competitors[1]
+        if t1['home']:
+            h_team = t1
+            a_team = t2
+        else:
+            a_team = t1
+            h_team = t2
+
+        for oc in outcomes:
+            competitor_id = oc.get('competitorId')
+            desc = oc.get('description')
+            price = oc.get('price')
+            american = price['american']
+
+            if competitor_id == a_team['id'] or desc == a_team['name']:
+                a_ml = american
+            elif competitor_id == h_team['id'] or desc == h_team['name']:
+                h_ml = american
+
+    return [a_ml, h_ml]
+
 
 
 def mkt_period_info(market):
@@ -327,23 +368,7 @@ def moneyline(outcomes):
             a_ml = price['american']
         else:
             h_ml = price['american']
-    # print(f'a_ml, h_ml: {a_ml, h_ml}')
     return [a_ml, h_ml]
-
-
-def ml_no_teams(outcomes):
-    '''
-
-    '''
-    mls = {}
-    for oc in outcomes:
-        competitor_id = oc.get('competitorId')
-        desc = oc.get('description')
-        # cleaned = clean_desc(desc)
-        price = oc.get('price')
-        american = price['american']
-        mls[competitor_id] = [desc, american]
-    return mls
 
 
 def total(outcomes):
@@ -366,11 +391,14 @@ def total(outcomes):
     return [a_tot, h_tot, a_hcap_tot, h_hcap_tot, a_ou, h_ou]
 
 
-def competitors(competitors, verbose=False):
+def competitors(event, verbose=False):
     '''
     keys: 'home' (bool), 'id' (str), 'name' (str)
     '''
-    data = [p.parse_json(t, TO_GRAB['competitors']) for t in competitors]
+    comps = event.get('competitors')
+    if not comps:
+        return
+    data = [p.parse_json(t, TO_GRAB['competitors']) for t in comps]
     if verbose:
         print(f'competitors: {data}')
     return data  # list of two dictionaries
@@ -380,10 +408,9 @@ def teams(event):
     '''
     returns away, home team names (str)
     '''
-    comps = event.get('competitors')
-    if not comps:
-        return 'NaN', 'NaN'
-    teams = competitors(comps)
+    teams = competitors(event)
+    if not teams:
+        return
     a_team, h_team = [team['name'] for team in teams]
     return a_team, h_team
 
@@ -395,7 +422,7 @@ def bov_team_ids(event):
     comps = event.get('competitors')
     if not comps:
         return 'NaN', 'NaN'
-    teams = competitors(comps)
+    teams = competitors(event)
     a_id, h_id = [team['id'] for team in teams]
     return a_id, h_id
 

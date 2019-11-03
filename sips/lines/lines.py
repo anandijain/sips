@@ -11,11 +11,11 @@ import json
 
 import sips
 import sips.h.fileio as io
+from sips.lines import collate
 from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
-from sips.lines import collate
 
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -26,27 +26,9 @@ from requests_futures.sessions import FuturesSession
 LINES_DATA_PATH = m.PARENT_DIR + '/data/lines/'
 CONFIG_PATH = m.PROJ_DIR + 'lines/config/lines.json'
 
-'''
-{
-    "sports": ["nba", "nfl", "nhl"], done
-    "wait": 0.25, done 
-    "verbose": false, done
-    "grab_espn": false, done
-    "all_mkts": true, done
-    "async_req": false, 
-    "run": true,
-    "file": {
-        "new_only": true,
-        "file_per_game": true,
-        "keep_open": false,
-        "folder_name": "",
-        "flush_rate": 10
-    }
-}
 
-'''
 parser = argparse.ArgumentParser(description='configure lines.py')
-parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run1')
+parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run2')
 parser.add_argument('-s', '--sports', type=list,
                     help='list of 3 letter sports', default=['nba', 'nfl', 'nhl'])
 parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
@@ -56,7 +38,7 @@ parser.add_argument('-w', '--wait', type=float,
                     help='how long to wait after each step', default=0.25)
 parser.add_argument('-v', '--verbose', type=bool,
                     help='print more', default=False)
-parser.add_argument('-c', '--collate', type=bool,
+parser.add_argument('-c', '--grab_espn', type=bool,
                     help='collate with espn data', default=False)
 parser.add_argument('-r', '--run', type=bool, help='run on init', default=True)
 parser.add_argument('-u', '--unique', type=bool,
@@ -66,7 +48,11 @@ parser.add_argument('-k', '--keep_open', type=bool,
 parser.add_argument('-f', '--flush_rate', type=int,
                     help='how often log is flushed, as well as the files if keep_open',
                     default=10)
+parser.add_argument('--async_req', type=bool,
+                    help='use async_req (broken)',
+                    default=False)
 args = parser.parse_args()
+
 
 class Lines:
     '''
@@ -81,15 +67,17 @@ class Lines:
         , sport='nfl', wait=5, start=True, write_new=False, verbose=False
     '''
 
-    def __init__(self, config_path=CONFIG_PATH):
+    def __init__(self, config_path=None):
         '''
 
         '''
+        if config_path:
+            with open(config_path) as config:
+                self.config = json.load(config)
 
-        with open(config_path) as config:
-            self.config = json.load(config)
-
-        self.conf_from_file()
+            self.conf_from_file()
+        else:
+            self.conf_from_args()
         self.init_fileio()
         print(f'sports: {self.sports}')
 
@@ -106,6 +94,29 @@ class Lines:
         self.step_num = 0
         if self.start:
             self.run()
+
+    def conf_from_args(self):
+        '''
+
+        '''
+        self.sports = args.sports
+        if self.sports == 'all':
+            self.sports = sports = list(m.SPORT_TO_SUFFIX.keys())
+
+        self.wait = args.wait
+        self.verb = args.verbose
+        self.req_async = args.async_req
+        self.start = args.run
+        self.espn = args.grab_espn
+        self.all_mkts = args.all_mkts
+        self.write_new = args.new_only
+        self.flush_rate = args.flush_rate
+        self.keep_open = args.keep_open
+        self.file_per_game = args.unique
+        self.folder_name = args.dir
+        self.dir = LINES_DATA_PATH + self.folder_name + '/'
+        self.session = None
+
 
     def conf_from_file(self):
         '''
@@ -125,7 +136,7 @@ class Lines:
         self.write_new = file_conf.get('new_only')
         self.flush_rate = file_conf.get('flush_rate')
         self.keep_open = file_conf.get('keep_open')
-        # self.file_per_game = file_conf.get('file_per_game')  todo
+        self.file_per_game = file_conf.get('file_per_game')
         self.folder_name = file_conf.get('folder_name')
         self.dir = LINES_DATA_PATH + self.folder_name + '/'
 
@@ -268,8 +279,12 @@ def open_and_write(dir, file_dict, data_dict, verbose=True):
 
 
 def main():
-    sips_path = sips.__path__[0] + '/'
-    bov_lines = Lines(sips_path + 'lines/config/lines.json')
+    # using config
+    # sips_path = sips.__path__[0] + '/'
+    # bov_lines = Lines(sips_path + 'lines/config/lines.json')
+    
+    # using argparse
+    bov_lines = Lines()
     return bov_lines
 
 
