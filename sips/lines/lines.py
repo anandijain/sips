@@ -1,4 +1,11 @@
+'''
+this is the main runner for bovada
+
+argparse args will overwrite the config values
+'''
+
 import os
+import argparse
 import time
 import json
 
@@ -19,6 +26,47 @@ from requests_futures.sessions import FuturesSession
 LINES_DATA_PATH = m.PARENT_DIR + '/data/lines/'
 CONFIG_PATH = m.PROJ_DIR + 'lines/config/lines.json'
 
+'''
+{
+    "sports": ["nba", "nfl", "nhl"], done
+    "wait": 0.25, done 
+    "verbose": false, done
+    "grab_espn": false, done
+    "all_mkts": true, done
+    "async_req": false, 
+    "run": true,
+    "file": {
+        "new_only": true,
+        "file_per_game": true,
+        "keep_open": false,
+        "folder_name": "",
+        "flush_rate": 10
+    }
+}
+
+'''
+parser = argparse.ArgumentParser(description='configure lines.py')
+parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run1')
+parser.add_argument('-s', '--sports', type=list,
+                    help='list of 3 letter sports', default=['nba', 'nfl', 'nhl'])
+parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
+                    default=False)
+parser.add_argument('-n', '--new_only', type=bool, help='', default=True)
+parser.add_argument('-w', '--wait', type=float,
+                    help='how long to wait after each step', default=0.25)
+parser.add_argument('-v', '--verbose', type=bool,
+                    help='print more', default=False)
+parser.add_argument('-c', '--collate', type=bool,
+                    help='collate with espn data', default=False)
+parser.add_argument('-r', '--run', type=bool, help='run on init', default=True)
+parser.add_argument('-u', '--unique', type=bool,
+                    help='write each game to a unique file', default=True)
+parser.add_argument('-k', '--keep_open', type=bool,
+                    help='keep files open while running', default=False)
+parser.add_argument('-f', '--flush_rate', type=int,
+                    help='how often log is flushed, as well as the files if keep_open',
+                    default=10)
+args = parser.parse_args()
 
 class Lines:
     '''
@@ -41,27 +89,9 @@ class Lines:
         with open(config_path) as config:
             self.config = json.load(config)
 
-        self.conf()
+        self.conf_from_file()
+        self.init_fileio()
         print(f'sports: {self.sports}')
-
-        if self.req_async:
-            self.session = FuturesSession(
-                executor=ProcessPoolExecutor())
-        else:
-            self.session = None
-
-        self.files = {}
-        self.log_path = self.dir + 'LOG.csv'
-        if os.path.isfile(self.log_path):
-            self.log_file = open(self.log_path, 'a')
-        else:
-            log_header = ['index', 'time', 'time_diff', 'num_events',
-                          'num_changes']
-            self.log_file = open(self.log_path, 'a')
-            io.write_list(self.log_file, log_header)
-
-        self.files['LOG'] = self.log_file
-        self.log_data = None
 
         self.prev_time = time.time()
         if self.write_new:
@@ -69,6 +99,7 @@ class Lines:
                 self.prevs = collate.get_and_compare(sports=self.sports)
             else:
                 self.prevs = bov.lines(self.sports, output='dict',
+                                       all_mkts=self.all_mkts,
                                        verbose=self.verb)
             self.current = None
 
@@ -76,7 +107,7 @@ class Lines:
         if self.start:
             self.run()
 
-    def conf(self):
+    def conf_from_file(self):
         '''
 
         '''
@@ -88,7 +119,7 @@ class Lines:
         self.wait = self.config.get('wait')
         self.verb = self.config.get('verbose')
         self.req_async = self.config.get('async_req')
-        self.start = self.config.get('start')
+        self.start = self.config.get('run')
         self.espn = self.config.get('grab_espn')
         self.all_mkts = self.config.get('all_mkts')
         self.write_new = file_conf.get('new_only')
@@ -98,8 +129,28 @@ class Lines:
         self.folder_name = file_conf.get('folder_name')
         self.dir = LINES_DATA_PATH + self.folder_name + '/'
 
+        if self.req_async:
+            self.session = FuturesSession(
+                executor=ProcessPoolExecutor())
+        else:
+            self.session = None
+
+    def init_fileio(self):
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
+
+        self.files = {}
+        self.log_path = self.dir + 'LOG.csv'
+        if os.path.isfile(self.log_path):
+            self.log_file = open(self.log_path, 'a')
+        else:
+            log_header = ['index', 'time', 'time_diff', 'num_events',
+                          'num_changes']
+            self.log_file = open(self.log_path, 'a')
+            io.write_list(self.log_file, log_header)
+
+        self.files['log'] = self.log_file
+        self.log_data = None
 
     def step(self):
         '''
@@ -110,8 +161,7 @@ class Lines:
             self.current = collate.get_and_compare(sports=self.sports)
         else:
             self.current = bov.lines(self.sports, output='dict',
-                                     all_mkts=self.all_mkts,
-                                     verbose=self.verb)
+                                     all_mkts=self.all_mkts, verbose=self.verb)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)

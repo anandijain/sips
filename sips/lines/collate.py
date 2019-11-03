@@ -8,7 +8,7 @@ from sips.lines.espn import espn_box as eb
 from sips.lines.espn import espn_api as api
 
 from sips.lines.bov import bov
-from sips.lines.bov.utils import bov_utils
+from sips.lines.bov.utils import bov_utils as u
 
 from nfl_ref import full_package as fp
 
@@ -32,7 +32,7 @@ def get_and_compare(sports=['nfl', 'nba'], output='dict'):
 
 
 def get_events(sports=['nfl'], verbose=False):
-    bov_events = bov.get_events(sports=sports)
+    bov_events = u.sports_to_events(sports=sports, all_mkts=False)
     espn_events = api.req_events(sports=sports)
     espn_boxes = eb.boxscores(sports=sports)
     if verbose:
@@ -47,12 +47,12 @@ def match_api_lines(bov_events, espn_events, output='list'):
     rows = []
     eteams = None
     for event in bov_events:
-        bteams = bov_utils.teams(event)
+        bteams = u.teams(event)
         for espn_event in espn_events:
             eteams = api.teams(espn_event)
             if sorted(list(bteams)) == sorted(list(eteams)):
                 print(f'games matched: {bteams}')
-                line = bov_utils.parse_event(event)
+                line = u.parse_event(event)
                 espn_data = api.parse_event(espn_event)
                 row = line + espn_data
                 rows.append(row)

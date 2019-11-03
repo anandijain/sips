@@ -1,9 +1,30 @@
 '''
-bs4 utilities for grabbing data from sites:
-
-
+ mainly bs4 utilities for grabbing data from sites:
 '''
 import bs4
+
+
+def parse_json(json, keys, output='dict'):
+    '''
+    input: dictionary and list of strings
+    returns dict
+
+    if the key does not exist in the json
+    the key is still created with None as the value
+    '''
+    data = {}
+    json_keys = json.keys()
+    for j_key in json_keys:
+        if j_key in keys:
+            d = json.get(j_key)
+            data[j_key] = d
+
+    if output == 'list':
+        return list(data.values())
+    elif output == 'dict':
+        return data
+    else:
+        return None
 
 
 def comments(page):

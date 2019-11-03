@@ -8,27 +8,12 @@ from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
 
-def get_links(sports, all_mkts=True):
-    if all_mkts:
-        links = [bm.BOV_URL + u.match_sport_str(s) for s in sports]
-    else:
-        links = u.filtered_links(sports)
-    return links
-
-
-def sports_to_jsons(sports, all_mkts=True):
-    links = get_links(sports, all_mkts=all_mkts)
-    jsons = g.reqs_json(links)
-    return jsons
-
-
-def lines(sports, output='list', parse=True, all_mkts=True, verbose=False):
+def lines(sports, output='list', parse=True, all_mkts=False, verbose=False):
     '''
     returns either a dictionary or list
     dictionary - (game_id, row)
     '''
-    jsons = sports_to_jsons(sports, all_mkts)
-    events = u.events_from_jsons(jsons)
+    events = u.sports_to_events(sports, all_mkts)
 
     if output == 'dict':
         data = u.dict_from_events(events, key='id', rows=parse)
@@ -41,6 +26,7 @@ def lines(sports, output='list', parse=True, all_mkts=True, verbose=False):
 def main():
     data = lines(["nba"], output='dict')
     print(data)
+    print(len(data))
     return data
 
 
