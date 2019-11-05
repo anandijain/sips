@@ -19,6 +19,7 @@ HEADERS = {'User-Agent': 'Mozilla/5.0'}
 MKT_TYPE = {
     'Point Spread': 'ps',
     'Runline': 'ps',
+    'Puck Line' : 'ps',
     'Moneyline': 'ml',
     'Total': 'tot'
 }
