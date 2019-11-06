@@ -13,7 +13,7 @@ def get_scores(events, session=None):
         raw = g.async_req(links, output='dict',
                           key='eventId', session=session)
     else:
-        raw = g.req_json(links)
+        raw = g.reqs_json(links)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 

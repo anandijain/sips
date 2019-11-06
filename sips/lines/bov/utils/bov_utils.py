@@ -412,7 +412,16 @@ def teams(event):
     teams = competitors(event)
     if not teams:
         return
-    a_team, h_team = [team['name'] for team in teams]
+    
+    t1 = teams[0]
+    t2 = teams[1]
+    if t1['home']:
+        h_team = t1['name']
+        a_team = t2['name']
+    else: 
+        a_team = t1['name']
+        h_team = t2['name']
+
     return a_team, h_team
 
 
@@ -420,11 +429,18 @@ def bov_team_ids(event):
     '''
     get competitor ids
     '''
-    comps = event.get('competitors')
-    if not comps:
+    teams = event.get('competitors')
+    if not teams:
         return 'NaN', 'NaN'
-    teams = competitors(event)
-    a_id, h_id = [team['id'] for team in teams]
+
+    t1 = teams[0]
+    t2 = teams[1]
+    if t1['home']:
+        h_id = t1['id']
+        a_id = t2['id']
+    else:
+        a_id = t1['id']
+        h_id = t2['id']
     return a_id, h_id
 
 
