@@ -3,13 +3,13 @@ LINE_COLUMNS = ['sport', 'game_id', 'a_team', 'h_team', 'last_mod', 'num_markets
                 'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml', 'a_tot', 'h_tot',
                 'a_hcap_tot', 'h_hcap_tot', 'a_ou', 'h_ou', 'game_start_time']
 
+BOV_ROOT = 'https://www.bovada.lv/'
 
-BOV_URL = 'https://www.bovada.lv/services/sports/'\
-    'event/v2/events/A/description/'
+BOV_URL = BOV_ROOT + 'services/sports/event/v2/events/A/description/'
 
-BOV_SCORES_URL = 'https://services.bovada.lv/services/'\
-    'sports/results/api/v1/scores/'
+BOV_SCORES_URL = BOV_ROOT + 'services/sports/results/api/v1/scores/'
 
+BOV_EVENT_SFX = 'services/sports/event/coupon/events/A/description/'
 
 SUFFIXES = ['?marketFilterId=def&liveOnly=true&lang=en',
             '?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en']
