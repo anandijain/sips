@@ -10,8 +10,6 @@ from sips.lines.espn import espn_api as api
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as u
 
-from nfl_ref import full_package as fp
-
 
 def to_dict(lists):
     '''

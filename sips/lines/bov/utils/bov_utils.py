@@ -410,9 +410,8 @@ def teams(event):
     returns away, home team names (str)
     '''
     teams = competitors(event)
-    if not teams:
+    if not teams or len(teams) != 2:
         return
-    
     t1 = teams[0]
     t2 = teams[1]
     if t1['home']:
@@ -430,8 +429,8 @@ def bov_team_ids(event):
     get competitor ids
     '''
     teams = event.get('competitors')
-    if not teams:
-        return 'NaN', 'NaN'
+    if not teams or len(teams) != 2:
+        return 
 
     t1 = teams[0]
     t2 = teams[1]
