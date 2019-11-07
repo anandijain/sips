@@ -100,8 +100,8 @@ class Lines:
 
         '''
         self.sports = args.sports
-        if self.sports == 'all':
-            self.sports = sports = list(m.SPORT_TO_SUFFIX.keys())
+        if self.sports == ['all']:
+            self.sports = bm.SPORTS
 
         self.wait = args.wait
         self.verb = args.verbose

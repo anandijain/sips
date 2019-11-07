@@ -15,7 +15,7 @@ SUFFIXES = ['?marketFilterId=def&liveOnly=true&lang=en',
             '?marketFilterId=def&preMatchOnly=true&eventsLimit=10&lang=en']
 
 
-SPORTS = ['basketball', 'baseball', 'esports', 'football', 'football', 'tennis',
+SPORTS = ['basketball', 'baseball', 'esports', 'football', 'tennis',
           'volleyball', 'hockey', 'badminton', 'table-tennis']
 
 
