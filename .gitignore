@@ -3,7 +3,7 @@ __pycache__/
 *.swp
 *.out
 *.csv
-
+*.pyc
 .vscode
 
 local/
