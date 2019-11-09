@@ -11,6 +11,7 @@ import json
 
 import sips
 import sips.h.fileio as io
+from sips.log import profiler
 from sips.lines import collate
 from sips.macros import macros as m
 from sips.macros import bov as bm
@@ -29,10 +30,13 @@ CONFIG_PATH = m.PROJ_DIR + 'lines/config/lines.json'
 
 parser = argparse.ArgumentParser(description='configure lines.py')
 parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run3')
-parser.add_argument('-s', '--sports', type=list,
-                    help='list of 3 letter sports', default=['nba', 'nfl', 'nhl'])
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-s', '--sports', type=list,
+                    help='list of 3 letter sports', default=['basketball/nba', 'football/nfl', 'hockey/nhl'])
+group.add_argument('-A', '--all')
 parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
                     default=False)
+parser.add_argument('-l', '--log', type=bool, help='add the gcloud profiler')
 parser.add_argument('-n', '--new_only', type=bool, help='', default=True)
 parser.add_argument('-w', '--wait', type=float,
                     help='how long to wait after each step', default=0.25)
@@ -53,6 +57,8 @@ parser.add_argument('--async_req', type=bool,
                     default=False)
 args = parser.parse_args()
 
+if args.log:
+    profiler.main()
 
 class Lines:
     '''
@@ -64,7 +70,7 @@ class Lines:
 
     write_config: 
         - if true, data is only written if it is different than previous
-        , sport='nfl', wait=5, start=True, write_new=False, verbose=False
+        sport='football/nfl', wait=5, start=True, write_new=False, verbose=False
     '''
 
     def __init__(self, config_path=None):
@@ -99,10 +105,12 @@ class Lines:
         '''
 
         '''
-        self.sports = args.sports
-        if self.sports == ['all']:
+        if args.all:
             self.sports = bm.SPORTS
+        else:
+            self.sports = args.sports
 
+        print(self.sports)
         self.wait = args.wait
         self.verb = args.verbose
         self.req_async = args.async_req
@@ -125,7 +133,7 @@ class Lines:
         file_conf = self.config.get('file')
         self.sports = self.config.get('sports')
         if self.sports == 'all':
-            self.sports = sports = list(m.SPORT_TO_SUFFIX.keys())
+            self.sports = bm.SPORTS
 
         self.wait = self.config.get('wait')
         self.verb = self.config.get('verbose')

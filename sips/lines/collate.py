@@ -19,7 +19,7 @@ def to_dict(lists):
     return {l[i]: l for i, l in enumerate(lists)}
 
 
-def get_and_compare(sports=['nfl', 'nba'], output='dict'):
+def get_and_compare(sports=['football/nfl', 'basketball/nba'], output='dict'):
     '''
     access the espn boxscores and api and merge with bovada lines 
     '''
@@ -29,7 +29,7 @@ def get_and_compare(sports=['nfl', 'nba'], output='dict'):
     return rows
 
 
-def get_events(sports=['nfl'], verbose=False):
+def get_events(sports=['football/nfl'], verbose=False):
     bov_events = u.sports_to_events(sports=sports, all_mkts=False)
     espn_events = api.req_events(sports=sports)
     espn_boxes = eb.boxscores(sports=sports)
@@ -104,7 +104,7 @@ def match_lines_boxes(lines, boxes, output='dict', verbose=True):
     return rows
 
 
-def box_lines_comp(sports=['nfl'], output='dict'):
+def box_lines_comp(sports=['football/nfl'], output='dict'):
     lines = bov.lines(sports, output='list')
     boxes = eb.boxscores(sports=sports)
     rows = match_lines_boxes(lines, boxes, output=output)

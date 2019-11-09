@@ -10,11 +10,12 @@ TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:live')
 
 
 def get_sports():
-    sports = 'nfl', 'mlb', 'nba', 'college-football', 'mens-college-basketball'
+    sports = ['football/nfl', 'baseball/mlb', 'basketball/nba', 'football/college-football',
+             'basketball/mens-college-basketball']
     return sports
 
 
-def time_ids(page=None, sport='nfl'):
+def time_ids(page=None, sport='football/nfl'):
     if not page:
         page = schedule(sport)
     unparsed_ids = page.find_all(
@@ -22,7 +23,7 @@ def time_ids(page=None, sport='nfl'):
     return unparsed_ids
 
 
-def score_ids(page=None, sport='nfl'):
+def score_ids(page=None, sport='football/nfl'):
     if not page:
         page = schedule(sport)
     unparsed_ids = page.find_all(
@@ -30,7 +31,7 @@ def score_ids(page=None, sport='nfl'):
     return unparsed_ids
 
 
-def live_ids(page=None, sport='nfl'):
+def live_ids(page=None, sport='football/nfl'):
     if not page:
         page = schedule(sport)
     unparsed_ids = page.find_all(
@@ -46,7 +47,7 @@ def get_all_ids(page=None, sports=get_sports()):
     return ids
 
 
-def live_links(page=None, sport='nfl'):
+def live_links(page=None, sport='football/nfl'):
     if not page:
         page = schedule(sport)
     ids = live_ids(page, sport)
@@ -54,7 +55,7 @@ def live_links(page=None, sport='nfl'):
     return links
 
 
-def schedules(sports=['nfl']):
+def schedules(sports=['football/nfl']):
     if not sports:
         sports = get_sports()
 
@@ -66,13 +67,13 @@ def schedules(sports=['nfl']):
     return pages
 
 
-def schedule(sport='nfl'):
+def schedule(sport='football/nfl'):
     espn_id_link = ESPN_ROOT + sport + '/schedule'
     p = g.get_page(espn_id_link)
     return p
 
 
-def get_ids(sport='nfl', live_only=True):
+def get_ids(sport='football/nfl', live_only=True):
     '''
 
     '''
@@ -157,7 +158,7 @@ def parse_ids(tags):
     return parsed_ids
 
 
-def id_to_boxlink(id, sport='nfl'):
+def id_to_boxlink(id, sport='football/nfl'):
     return ESPN_ROOT + sport + '/boxscore?gameId=' + id
 
 
@@ -233,7 +234,7 @@ def box_teamnames(page):
     return a_team, h_team
 
 
-def boxlinks(ids=None, sports=['nfl'], live_only=True):
+def boxlinks(ids=None, sports=['football/nfl'], live_only=True):
     '''
 
     '''
@@ -247,7 +248,7 @@ def boxlinks(ids=None, sports=['nfl'], live_only=True):
     return links
 
 
-def boxscores(sports=['nfl'], output='dict'):
+def boxscores(sports=['football/nfl'], output='dict'):
     '''
     ~ 10 seconds
     '''

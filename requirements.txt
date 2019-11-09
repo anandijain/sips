@@ -3,3 +3,4 @@ beautifulsoup4
 numpy
 pandas
 scikit-learn
+google-cloud-profiler

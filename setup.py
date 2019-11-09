@@ -9,5 +9,5 @@ setup(
    packages=['sips'],  #same as name
    install_requires= \
            ['pandas', 'requests', 'beautifulsoup4', 'numpy', 
-           'scikit-learn', 'requests-futures'] # external packages as dependencies
+            'scikit-learn', 'requests-futures', 'google-cloud-profiler']  # external packages as dependencies
 )

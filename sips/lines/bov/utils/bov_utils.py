@@ -106,7 +106,7 @@ def merge_lines_scores(lines, scores):
 
 def get_links(sports, all_mkts=True):
     if all_mkts:
-        links = [bm.BOV_URL + match_sport_str(s) for s in sports]
+        links = [bm.BOV_URL + s for s in sports]
     else:
         links = filtered_links(sports)
     return links
@@ -446,7 +446,7 @@ def bov_team_ids(event):
 def filtered_links(sports, verbose=False):
     # append market filter to each url
     sfx = '?marketFilterId=def&lang=en'
-    links = [bm.BOV_URL + match_sport_str(s) + sfx for s in sports]
+    links = [bm.BOV_URL + s + sfx for s in sports]
     if verbose:
         print(f'bov_links: {links}')
     return links
@@ -468,7 +468,7 @@ def events_from_json(json_dict):
     return events
 
 
-def match_sport_str(sport='mlb'):
+def match_sport_str(sport='baseball/mlb'):
     '''
     maps string to the url suffix to bovada api
     give sport='all' to get a list of all  
@@ -477,7 +477,7 @@ def match_sport_str(sport='mlb'):
         sport = m.SPORT_TO_SUFFIX[sport]
     except KeyError:
         print('forcing nfl')
-        sport = m.SPORT_TO_SUFFIX['nfl']
+        sport = m.SPORT_TO_SUFFIX['football/nfl']
     return sport
 
 

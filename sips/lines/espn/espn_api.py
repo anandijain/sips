@@ -7,17 +7,12 @@ from sips.lines import collate
 espn = 'http://site.api.espn.com/apis/site/v2/sports/'
 
 
-def sport_to_api_url(sport='nfl'):
-    try:
-        sport = m.SPORT_TO_SUFFIX[sport]
-    except KeyError:
-        print('forcing nfl')
-        sport = m.SPORT_TO_SUFFIX['nfl']
+def sport_to_api_url(sport='football/nfl'):
     url = espn + sport + '/scoreboard'
     return url 
 
 
-def req_events(sports=['nfl']):
+def req_events(sports=['football/nfl']):
     urls = [sport_to_api_url(sport) for sport in sports]
     espn_jsons = g.reqs_json(urls)
     events = []
@@ -26,7 +21,7 @@ def req_events(sports=['nfl']):
     return events
 
 
-def get_parsed_events(events=None, sports=['nfl']):
+def get_parsed_events(events=None, sports=['football/nfl']):
     if not events:
         events = req_events(sports=sports)
     game_data = []

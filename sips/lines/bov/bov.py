@@ -23,7 +23,7 @@ def lines(sports, output='list', parse=True, all_mkts=False, verbose=False):
     return data
 
 
-def single_game_line(sport='nba', a_team='Detroit Pistons', h_team='Washington Wizards', game_start_time='201911041910'):
+def single_game_line(sport='basketball/nba', a_team='Detroit Pistons', h_team='Washington Wizards', game_start_time='201911041910'):
     '''
     sport: 3-letter sport 
         eg. one in (nfl, nba, nhl)
@@ -38,10 +38,9 @@ def single_game_line(sport='nba', a_team='Detroit Pistons', h_team='Washington W
     201911041910
     '''
 
-    sport_sfx = u.match_sport_str(sport)
     a_tm, h_tm = [team.lower().replace(' ', '-') for team in [a_team, h_team]]
 
-    url = bm.BOV_ROOT + bm.BOV_EVENT_SFX + sport_sfx + '/' + \
+    url = bm.BOV_ROOT + bm.BOV_EVENT_SFX + sport + '/' + \
         a_tm + '-' + h_tm + '-' + game_start_time
     print(url)
     req = g.req_json(url)
