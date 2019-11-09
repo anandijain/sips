@@ -9,11 +9,11 @@
         - 'Game Props'
 
         
-        'Futures'
+        'Futures' - issue is that there are >2 outcomes and I haven't written
+                    the code to handle that yet
         'Alternate Lines'
     
     secondary:
-        - '
         - 'Score Props'
         - 'Receiving Props'
         - 'Quarterback Props'

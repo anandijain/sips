@@ -1,13 +1,10 @@
 import os
 import random
-from pathlib import Path
 
 import pandas as pd
 import numpy as np
 
-import torch
 from sklearn.preprocessing import StandardScaler
-
 import sips.h as h
 
 
@@ -63,7 +60,8 @@ def label_split(df, col):
 
 def sk_scale(df, to_pd=False):
     '''
-
+    scales pandas or np data(frame) using StandardScaler 
+    returns numpy or dataframe (to_pd=True)
     '''
     scaler = StandardScaler()
     cols = df.columns
@@ -85,3 +83,29 @@ def num_flat_features(x):
     for s in size:
         num_features *= s
     return num_features
+
+
+def apply_wins(game_df):
+    '''
+    given a dataframe for a single game, takes the last row 
+    checks if the status is 'GAME_END' 
+    then adds new columns for the winner of the game based on the score
+    '''
+    last_row = game_df.iloc[-1]
+    status = last_row.status
+    if status == 'GAME_END':
+        if last_row.a_pts > last_row.h_pts:
+            a_win = True
+            h_win = False
+        elif last_row.a_pts < last_row.h_pts:
+            a_win = False
+            h_win = True
+        else:
+            print('game tied at end')
+            a_win = False
+            h_win = False
+        game_df['a_win'] = a_win
+        game_df['h_win'] = h_win
+    else:
+        print('no game end status')
+    return game_df

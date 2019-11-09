@@ -1,20 +1,64 @@
+'''
+this is the main runner for bovada
+
+argparse args will overwrite the config values
+'''
+
 import os
+import argparse
 import time
 import json
 
 import sips
-import sips.h.openers as io
+import sips.h.fileio as io
+from sips.log import profiler
+from sips.lines import collate
+from sips.macros import macros as m
+from sips.macros import bov as bm
 from sips.lines.bov import bov
 from sips.lines.bov.utils import bov_utils as utils
-from sips.lines import collate
 
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from requests_futures.sessions import FuturesSession
 
-CONFIG_PATH = sips.__path__[0] + '/' + 'lines/config/lines.json'
 
+LINES_DATA_PATH = m.PARENT_DIR + '/data/lines/'
+CONFIG_PATH = m.PROJ_DIR + 'lines/config/lines.json'
+
+
+parser = argparse.ArgumentParser(description='configure lines.py')
+parser.add_argument('-d', '--dir', type=str, help='folder name of run', default='run3')
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-s', '--sports', type=list,
+                    help='list of 3 letter sports', default=['basketball/nba', 'football/nfl', 'hockey/nhl'])
+group.add_argument('-A', '--all', type=bool, help='run on all sports')
+parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
+                    default=False)
+parser.add_argument('-l', '--log', type=bool, help='add the gcloud profiler')
+parser.add_argument('-n', '--new_only', type=bool, help='', default=True)
+parser.add_argument('-w', '--wait', type=float,
+                    help='how long to wait after each step', default=0.25)
+parser.add_argument('-v', '--verbose', type=bool,
+                    help='print more', default=False)
+parser.add_argument('-c', '--grab_espn', type=bool,
+                    help='collate with espn data', default=False)
+parser.add_argument('-r', '--run', type=bool, help='run on init', default=True)
+parser.add_argument('-u', '--unique', type=bool,
+                    help='write each game to a unique file', default=True)
+parser.add_argument('-k', '--keep_open', type=bool,
+                    help='keep files open while running', default=False)
+parser.add_argument('-f', '--flush_rate', type=int,
+                    help='how often log is flushed, as well as the files if keep_open',
+                    default=10)
+parser.add_argument('--async_req', type=bool,
+                    help='use async_req (broken)',
+                    default=False)
+args = parser.parse_args()
+
+if args.log:
+    profiler.main()
 
 class Lines:
     '''
@@ -26,25 +70,93 @@ class Lines:
 
     write_config: 
         - if true, data is only written if it is different than previous
-        , sport='nfl', wait=5, start=True, write_new=False, verbose=False
+        sport='football/nfl', wait=5, start=True, write_new=False, verbose=False
     '''
 
-    def __init__(self, config_path=CONFIG_PATH):
+    def __init__(self, config_path=None):
         '''
 
         '''
+        if config_path:
+            with open(config_path) as config:
+                self.config = json.load(config)
 
-        with open(config_path) as config:
-            self.config = json.load(config)
-
-        self.conf()
+            self.conf_from_file()
+        else:
+            self.conf_from_args()
+        self.init_fileio()
         print(f'sports: {self.sports}')
+
+        self.prev_time = time.time()
+        if self.write_new:
+            if self.espn:
+                self.prevs = collate.get_and_compare(sports=self.sports)
+            else:
+                self.prevs = bov.lines(self.sports, output='dict',
+                                       all_mkts=self.all_mkts,
+                                       verbose=self.verb)
+            self.current = None
+
+        self.step_num = 0
+        if self.start:
+            self.run()
+
+    def conf_from_args(self):
+        '''
+
+        '''
+        if args.all:
+            self.sports = bm.SPORTS
+        else:
+            self.sports = args.sports
+
+        print(self.sports)
+        self.wait = args.wait
+        self.verb = args.verbose
+        self.req_async = args.async_req
+        self.start = args.run
+        self.espn = args.grab_espn
+        self.all_mkts = args.all_mkts
+        self.write_new = args.new_only
+        self.flush_rate = args.flush_rate
+        self.keep_open = args.keep_open
+        self.file_per_game = args.unique
+        self.folder_name = args.dir
+        self.dir = LINES_DATA_PATH + self.folder_name + '/'
+        self.session = None
+
+
+    def conf_from_file(self):
+        '''
+
+        '''
+        file_conf = self.config.get('file')
+        self.sports = self.config.get('sports')
+        if self.sports == 'all':
+            self.sports = bm.SPORTS
+
+        self.wait = self.config.get('wait')
+        self.verb = self.config.get('verbose')
+        self.req_async = self.config.get('async_req')
+        self.start = self.config.get('run')
+        self.espn = self.config.get('grab_espn')
+        self.all_mkts = self.config.get('all_mkts')
+        self.write_new = file_conf.get('new_only')
+        self.flush_rate = file_conf.get('flush_rate')
+        self.keep_open = file_conf.get('keep_open')
+        self.file_per_game = file_conf.get('file_per_game')
+        self.folder_name = file_conf.get('folder_name')
+        self.dir = LINES_DATA_PATH + self.folder_name + '/'
 
         if self.req_async:
             self.session = FuturesSession(
                 executor=ProcessPoolExecutor())
         else:
             self.session = None
+
+    def init_fileio(self):
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
 
         self.files = {}
         self.log_path = self.dir + 'LOG.csv'
@@ -56,43 +168,8 @@ class Lines:
             self.log_file = open(self.log_path, 'a')
             io.write_list(self.log_file, log_header)
 
-        self.files['LOG'] = self.log_file
+        self.files['log'] = self.log_file
         self.log_data = None
-
-        self.prev_time = time.time()
-        if self.write_new:
-            if self.espn:
-                self.prevs = collate.get_and_compare(sports=self.sports)
-            else:
-                self.prevs = bov.lines(self.sports, output='dict',
-                                       verbose=self.verbose, espn=self.espn)
-            self.current = None
-
-        self.step_num = 0
-        if self.start:
-            self.run()
-
-    def conf(self):
-        '''
-
-        '''
-        file_conf = self.config.get('file')
-        self.sports = self.config.get('sports')
-        self.wait = self.config.get('wait')
-        self.verbose = self.config.get('verbose')
-        self.req_async = self.config.get('async_req')
-        self.start = self.config.get('start')
-        self.espn = self.config.get('grab_espn')
-        self.write_new = file_conf.get('new_only')
-        self.flush_rate = file_conf.get('flush_rate')
-        self.keep_open = file_conf.get('keep_open')
-        # self.file_per_game = file_conf.get('file_per_game')  todo
-        self.folder_name = file_conf.get('folder_name')
-        sips_path = sips.__path__[0] + '/'
-        self.dir = sips_path + 'lines/data/lines/' + self.folder_name + '/'
-
-        if not os.path.exists(self.dir):
-            os.makedirs(self.dir)
 
     def step(self):
         '''
@@ -102,8 +179,8 @@ class Lines:
         if self.espn:
             self.current = collate.get_and_compare(sports=self.sports)
         else:
-            self.current = bov.lines(self.sports, verbose=self.verbose,
-                                     output='dict', espn=self.espn)
+            self.current = bov.lines(self.sports, output='dict',
+                                     all_mkts=self.all_mkts, verbose=self.verb)
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
@@ -118,11 +195,11 @@ class Lines:
         self.prev_time = self.new_time
 
         if self.keep_open:
-            self.files = write_opened(
-                self.files, to_write, verbose=self.verbose)
+            self.files = write_opened(self.dir,
+                                      self.files, to_write, verbose=self.verb)
         else:
-            self.files = open_and_write(
-                self.files, to_write, verbose=self.verbose)
+            self.files = open_and_write(self.dir,
+                                        self.files, to_write, verbose=self.verb)
 
         self.step_num += 1
 
@@ -167,7 +244,7 @@ def compare_and_filter(prevs, news):
     return to_write
 
 
-def write_opened(file_dict, data_dict, verbose=True):
+def write_opened(dir, file_dict, data_dict, verbose=True):
     '''
     read in dictionary with open files as values
     and write data to files
@@ -176,8 +253,8 @@ def write_opened(file_dict, data_dict, verbose=True):
         f = file_dict.get(game_id)
 
         if not f:
-            fn = '../data/lines/' + str(game_id) + '.csv'
-            f = io.init_csv(fn, header=utils.header(), close=False)
+            fn = dir + str(game_id) + '.csv'
+            f = io.init_csv(fn, header=bm.LINE_COLUMNS, close=False)
             file_dict[game_id] = f
 
         io.write_list(f, vals)
@@ -187,55 +264,17 @@ def write_opened(file_dict, data_dict, verbose=True):
     return file_dict
 
 
-# def async_write_opened(file_dict, data_dict, verbose=True):
-#     '''
-#     read in dictionary with open files as values
-#     and write data to files
-#     '''
-
-#     args = ((check_if_exists(file_dict, game_id), game_id, val)
-#             for game_id, val in data_dict.items())
-
-#     with concurrent.futures.ProcessPoolExecutor() as executor:
-#         results = [executor.map(write_for_map, args)]
-#         as_completed = concurrent.futures.as_completed(results)
-#         file_dict = as_completed[-1]
-
-#     return file_dict
-
-
-def write_for_map(file_dict, game_id, vals):
-    file_dict = check_if_exists(file_dict, game_id)
-    f = file_dict[game_id]
-    io.write_list(f, vals)
-    return file_dict
-
-
-def check_if_exists(file_dict, key):
-    '''
-    given a dictionary and a key
-    if key not in dict, init file, add to dict, return updated dict
-    '''
-    f = file_dict.get(key)
-
-    if not f:
-        fn = '../data/lines/' + str(key) + '.csv'
-        f = io.init_csv(fn, header=utils.header(), close=False)
-        file_dict[key] = f
-    return file_dict
-
-
-def open_and_write(file_dict, data_dict, verbose=True):
+def open_and_write(dir, file_dict, data_dict, verbose=True):
     '''
     read in dictionary of file names and compare to new data
     '''
     for game_id, vals in data_dict.items():
         f = file_dict.get(game_id)
-        fn = '../data/lines/' + str(game_id) + '.csv'
+        fn = dir + str(game_id) + '.csv'
         if not f:
             file_dict[game_id] = fn
             if not os.path.isfile(fn):
-                io.init_csv(fn, header=utils.header())
+                io.init_csv(fn, header=bm.LINE_COLUMNS)
 
         f = open(fn, 'a')
 
@@ -248,8 +287,12 @@ def open_and_write(file_dict, data_dict, verbose=True):
 
 
 def main():
-    sips_path = sips.__path__[0] + '/'
-    bov_lines = Lines(sips_path + 'lines/config/lines.json')
+    # using config
+    # sips_path = sips.__path__[0] + '/'
+    # bov_lines = Lines(sips_path + 'lines/config/lines.json')
+    
+    # using argparse
+    bov_lines = Lines()
     return bov_lines
 
 

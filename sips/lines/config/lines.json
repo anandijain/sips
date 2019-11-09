@@ -1,15 +1,16 @@
 {
-    "sports": ["nba", "nfl"],
-    "wait": 0.5,
+    "sports": ["nba", "nfl", "nhl"],
+    "wait": 0.25,
     "verbose": false,
     "grab_espn": false,
-    "async_req": true,
-    "start": true,
+    "all_mkts": true,
+    "async_req": false,
+    "run": true,
     "file": {
         "new_only": true,
         "file_per_game": true,
         "keep_open": false,
-        "folder_name": "pycall_test",
+        "folder_name": "realtest6",
         "flush_rate": 10
     }
 }
