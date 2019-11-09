@@ -33,7 +33,7 @@ parser.add_argument('-d', '--dir', type=str, help='folder name of run', default=
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-s', '--sports', type=list,
                     help='list of 3 letter sports', default=['basketball/nba', 'football/nfl', 'hockey/nhl'])
-group.add_argument('-A', '--all')
+group.add_argument('-A', '--all', type=bool, help='run on all sports')
 parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
                     default=False)
 parser.add_argument('-l', '--log', type=bool, help='add the gcloud profiler')

@@ -83,3 +83,23 @@ def num_flat_features(x):
     for s in size:
         num_features *= s
     return num_features
+
+
+def apply_wins(game_df):
+    '''
+    given a dataframe for a single game, takes the last row 
+    '''
+    last_row = game_df.iloc[-1]
+    status = last_row.status
+    if status == 'GAME_END':
+        if last_row.a_pts > last_row.h_pts:
+            a_win = True
+            h_win = False
+        else:
+            a_win = False
+            h_win = True
+        game_df['a_win'] = a_win
+        game_df['h_win'] = h_win
+    else:
+        print('no game end status')
+    return game_df
