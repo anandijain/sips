@@ -88,6 +88,8 @@ def num_flat_features(x):
 def apply_wins(game_df):
     '''
     given a dataframe for a single game, takes the last row 
+    checks if the status is 'GAME_END' 
+    then adds new columns for the winner of the game based on the score
     '''
     last_row = game_df.iloc[-1]
     status = last_row.status
@@ -95,9 +97,13 @@ def apply_wins(game_df):
         if last_row.a_pts > last_row.h_pts:
             a_win = True
             h_win = False
-        else:
+        elif last_row.a_pts < last_row.h_pts:
             a_win = False
             h_win = True
+        else:
+            print('game tied at end')
+            a_win = False
+            h_win = False
         game_df['a_win'] = a_win
         game_df['h_win'] = h_win
     else:
