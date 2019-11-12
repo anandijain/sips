@@ -346,7 +346,7 @@ def spread(outcomes):
     '''
     gets both teams spread data
     '''
-    a_ps, a_hcap, h_ps, h_hcap = ['NaN' for _ in range(4)]
+    a_ps, a_hcap, h_ps, h_hcap = [None for _ in range(4)]
     for outcome in outcomes:
         price = outcome['price']
         if outcome['type'] == 'A':
@@ -361,8 +361,8 @@ def moneyline(outcomes):
     '''
     gets both teams moneyline
     '''
-    a_ml = 'NaN'
-    h_ml = 'NaN'
+    a_ml = None
+    h_ml = None
     for outcome in outcomes:
         price = outcome['price']
         if outcome['type'] == 'A':
@@ -376,15 +376,24 @@ def total(outcomes):
     '''
     gets the over_under
     '''
+    null_ret = [None for _ in range(6)]
     if not outcomes:
-        return ['NaN' for _ in range(6)]
+        return null_ret
+    try:
+        a_outcome = outcomes[0]
+    except IndexError:
+        return null_ret
+    try:
+        h_outcome = outcomes[1]
+    except IndexError:
+        h_tot, h_hcap_tot, h_ou = [None for _ in range(3)]
 
+    
     a_outcome = outcomes[0]
     a_ou = a_outcome.get('type')
     a_price = a_outcome.get('price')
     a_tot, a_hcap_tot = p.parse_json(a_price, TO_GRAB['tot'], 'list')
 
-    h_outcome = outcomes[1]
     h_ou = h_outcome.get('type')
     h_price = h_outcome.get('price')
     h_tot, h_hcap_tot = p.parse_json(h_price, TO_GRAB['tot'], 'list')
