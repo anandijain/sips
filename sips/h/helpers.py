@@ -8,6 +8,22 @@ from sklearn.preprocessing import StandardScaler
 import sips.h as h
 
 
+def hot_list(strings):
+    '''
+    given a list of strings it will return a dict
+    string : one hotted np array 
+    '''
+    str_set = set(strings)
+    length = len(str_set)
+    hots = {}
+    for i, s in enumerate(str_set):
+        hot_arr = np.zeros(length)
+        hot_arr[i] = 1
+        if hots.get(s) is None:
+            hots[s] = hot_arr
+    return hots
+
+
 def remove_string_cols(df):
     cols_to_remove = []
     for col in df.columns:
