@@ -263,7 +263,7 @@ class Lines:
             pred_mls = self.model(np_prev)
 
             pred_transition = bov.classify_transition(prev_mls, pred_mls)
-            y, yhat = map(torch.tensor, true_transition, pred_transition)
+            y, yhat = map(torch.tensor, [true_transition, pred_transition])
 
             loss = self.loss_fxn(yhat, y)
 
