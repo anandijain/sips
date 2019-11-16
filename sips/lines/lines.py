@@ -11,7 +11,7 @@ import json
 
 import sips
 import sips.h.fileio as io
-from sips.log import profiler
+from sips.h.log import profiler
 from sips.lines import collate
 from sips.macros import macros as m
 from sips.macros import bov as bm
@@ -159,7 +159,7 @@ class Lines:
             os.makedirs(self.dir)
 
         self.files = {}
-        self.log_path = self.dir + 'LOG.csv'
+        self.log_path = self.dir + 'log.csv'
         if os.path.isfile(self.log_path):
             self.log_file = open(self.log_path, 'a')
         else:
