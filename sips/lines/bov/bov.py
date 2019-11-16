@@ -2,6 +2,9 @@
 uses the bovada api to get json data for odds and scores
 '''
 import requests as r
+
+import numpy as np
+
 import sips.h.grab as g
 import sips.h.helpers as h
 from sips.macros import nfl
@@ -59,11 +62,67 @@ def serialize_row(row):
     '-145', '40.0', '40.0', '-110', '-110', 'O', 'U', 1573780800000]
     and return a np array 
     '''
-    nfl_teams = nfl.teams
-    hotted_team_dict = h.hot_list(nfl_teams)
+    ret = []
+
     teams = row[2:4]
-    hot_teams = [hotted_team_dict[t] for t in teams]
-    return hot_teams
+    nfl_teams = nfl.teams
+    hotted_team_dict = h.hot_list(nfl_teams, output='list')
+
+    for t in teams:
+        ret += hotted_team_dict[t]
+    ret += row[4:6]
+    if row[6]:
+        ret += [1, 0]
+    else:
+        ret += [0, 1]
+    ret += row[7:11]
+    statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED', 'IN_PROGRESS', 'None', 'PRE_GAME']
+    statuses_dict = h.hot_list(statuses, output='list')
+    row_status = row[11]
+    hot_status = statuses_dict[row_status]
+    ret += hot_status
+
+    ret += row[12:22]
+    
+
+    
+    ret.append(row[-1])
+    final = np.array(ret, dtype=np.float32)
+    return final
+
+def classify_transition(prev_mls, cur_mls):
+    '''
+    stays same
+    a goes up
+    a goes down
+    h goes up
+    h goes down
+    both a and h go up
+    both a and h go down
+    a goes up and h goes down
+    a goes down and h goes up
+    '''
+    ret = np.zeros(9)
+    if prev_mls == cur_mls:
+        ret[0] = 1
+    elif prev_mls[1] < cur_mls[1] and prev_mls[2] == cur_mls[2]:
+        ret[1] = 1
+    elif prev_mls[1] > cur_mls[1] and prev_mls[2] == cur_mls[2]:
+        ret[2] = 1
+    elif prev_mls[1] == cur_mls[1] and prev_mls[2] < cur_mls[2]:
+        ret[3] = 1
+    elif prev_mls[1] == cur_mls[1] and prev_mls[2] > cur_mls[2]:
+        ret[4] = 1
+    elif prev_mls[1] < cur_mls[1] and prev_mls[2] < cur_mls[2]:
+        ret[5] = 1
+    elif prev_mls[1] > cur_mls[1] and prev_mls[2] > cur_mls[2]:
+        ret[6] = 1
+    elif prev_mls[1] < cur_mls[1] and prev_mls[2] > cur_mls[2]:
+        ret[7] = 1
+    elif prev_mls[1] > cur_mls[1] and prev_mls[2] < cur_mls[2]:
+        ret[8] = 1
+
+    return ret
 
 def main():
     # data = lines(["nba"], output='dict')

@@ -12,9 +12,9 @@ import torch.nn.functional as F
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size=1, hidden_layer_size=100, output_size=1):
+    def __init__(self, input_size=1, hidden_layer_size=100, output_size=2):
         '''
-        
+
         '''
         super().__init__()
         self.hidden_layer_size = hidden_layer_size
