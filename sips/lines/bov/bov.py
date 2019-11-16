@@ -8,6 +8,9 @@ import numpy as np
 import sips.h.grab as g
 import sips.h.helpers as h
 from sips.macros import nfl
+from sips.macros import nba
+from sips.macros import nhl
+
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
@@ -65,8 +68,8 @@ def serialize_row(row):
     ret = []
 
     teams = row[2:4]
-    nfl_teams = nfl.teams
-    hotted_team_dict = h.hot_list(nfl_teams, output='list')
+    all_teams = nfl.teams + nba.teams + nhl.teams 
+    hotted_team_dict = h.hot_list(all_teams, output='list')
 
     for t in teams:
         ret += hotted_team_dict[t]
@@ -103,23 +106,23 @@ def classify_transition(prev_mls, cur_mls):
     a goes down and h goes up
     '''
     ret = np.zeros(9)
-    if prev_mls == cur_mls:
+    if prev_mls[0] == cur_mls[0] and prev_mls[1] == cur_mls[1]:
         ret[0] = 1
-    elif prev_mls[1] < cur_mls[1] and prev_mls[2] == cur_mls[2]:
+    elif prev_mls[0] < cur_mls[0] and prev_mls[1] == cur_mls[1]:
         ret[1] = 1
-    elif prev_mls[1] > cur_mls[1] and prev_mls[2] == cur_mls[2]:
+    elif prev_mls[0] > cur_mls[0] and prev_mls[1] == cur_mls[1]:
         ret[2] = 1
-    elif prev_mls[1] == cur_mls[1] and prev_mls[2] < cur_mls[2]:
+    elif prev_mls[0] == cur_mls[0] and prev_mls[1] < cur_mls[1]:
         ret[3] = 1
-    elif prev_mls[1] == cur_mls[1] and prev_mls[2] > cur_mls[2]:
+    elif prev_mls[0] == cur_mls[0] and prev_mls[1] > cur_mls[1]:
         ret[4] = 1
-    elif prev_mls[1] < cur_mls[1] and prev_mls[2] < cur_mls[2]:
+    elif prev_mls[0] < cur_mls[0] and prev_mls[1] < cur_mls[1]:
         ret[5] = 1
-    elif prev_mls[1] > cur_mls[1] and prev_mls[2] > cur_mls[2]:
+    elif prev_mls[0] > cur_mls[0] and prev_mls[1] > cur_mls[1]:
         ret[6] = 1
-    elif prev_mls[1] < cur_mls[1] and prev_mls[2] > cur_mls[2]:
+    elif prev_mls[0] < cur_mls[0] and prev_mls[1] > cur_mls[1]:
         ret[7] = 1
-    elif prev_mls[1] > cur_mls[1] and prev_mls[2] < cur_mls[2]:
+    elif prev_mls[0] > cur_mls[0] and prev_mls[1] < cur_mls[1]:
         ret[8] = 1
 
     return ret

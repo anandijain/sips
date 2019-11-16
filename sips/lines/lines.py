@@ -254,16 +254,18 @@ class Lines:
 
         '''
         for k, v in to_write.items():
-            prev_mls = torch.tensor(map(float, self.prevs[k][16:18]))
-            cur_mls = torch.tensor(map(float, self.current[k][16:18]))
-            yhat = bov.classify_transition(prev_mls, cur_mls)
+            data = [self.prevs, self.current]
+            prev_mls, cur_mls = [torch.tensor(list(map(float, line[k][16:18]))) for line in data]
+            true_transition = bov.classify_transition(prev_mls, cur_mls)
             np_prev = torch.tensor(bov.serialize_row(self.prevs[k]))
 
             self.optimizer.zero_grad()
             pred_mls = self.model(np_prev)
 
             pred_transition = bov.classify_transition(prev_mls, pred_mls)
-            loss = self.loss_fxn(pred_transition, yhat)
+            y, yhat = map(torch.tensor, true_transition, pred_transition)
+
+            loss = self.loss_fxn(yhat, y)
 
             self.optimizer.step()
 

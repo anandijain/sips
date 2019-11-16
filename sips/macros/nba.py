@@ -1,4 +1,4 @@
-az_teams = ['Atlanta Hawks', 'Boston Celtics',
+teams = ['Atlanta Hawks', 'Boston Celtics',
             'Brooklyn Nets', 'Charlotte Hornets',
             'Chicago Bulls', 'Cleveland Cavaliers',
             'Dallas Mavericks', 'Denver Nuggets',
