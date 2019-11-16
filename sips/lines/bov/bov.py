@@ -3,7 +3,8 @@ uses the bovada api to get json data for odds and scores
 '''
 import requests as r
 import sips.h.grab as g
-from sips.macros import macros as m
+import sips.h.helpers as h
+from sips.macros import nfl
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
@@ -49,6 +50,20 @@ def single_game_line(sport='basketball/nba', a_team='Detroit Pistons', h_team='W
     row = u.parse_event(event)
     return row
 
+
+def serialize_row(row):
+    '''
+    going to take in something like this:
+    ['FOOT', 5741304, 'Pittsburgh Steelers', 'Cleveland Browns', 1573540736617, 28, 
+    False, '0', '-1', '0', '0', 'PRE_GAME', '2.5', '-2.5', '-105', '-115', '+125', 
+    '-145', '40.0', '40.0', '-110', '-110', 'O', 'U', 1573780800000]
+    and return a np array 
+    '''
+    nfl_teams = nfl.teams
+    hotted_team_dict = h.hot_list(nfl_teams)
+    teams = row[2:4]
+    hot_teams = [hotted_team_dict[t] for t in teams]
+    return hot_teams
 
 def main():
     # data = lines(["nba"], output='dict')

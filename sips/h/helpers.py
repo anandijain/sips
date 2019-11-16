@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import sips.h as h
 
 
-def hot_list(strings):
+def hot_list(strings, output='np'):
     '''
     given a list of strings it will return a dict
     string : one hotted np array 
@@ -20,6 +20,8 @@ def hot_list(strings):
         hot_arr = np.zeros(length)
         hot_arr[i] = 1
         if hots.get(s) is None:
+            if output == 'list':
+                hot_arr = list(hot_arr)
             hots[s] = hot_arr
     return hots
 

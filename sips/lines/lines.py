@@ -11,7 +11,7 @@ import json
 
 import sips
 import sips.h.fileio as io
-from sips.h.log import profiler
+from sips.h.cloud import profiler
 from sips.lines import collate
 from sips.macros import macros as m
 from sips.macros import bov as bm
