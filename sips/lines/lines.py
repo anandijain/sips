@@ -255,7 +255,7 @@ class Lines:
         '''
         for k, v in to_write.items():
             data = [self.prevs, self.current]
-            prev_mls, cur_mls = [torch.tensor(list(map(float, line[k][16:18]))) for line in data]
+            prev_mls, cur_mls = [list(map(float, line[k][16:18])) for line in data]
             true_transition = bov.classify_transition(prev_mls, cur_mls)
             np_prev = torch.tensor(bov.serialize_row(self.prevs[k]))
 

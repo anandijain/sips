@@ -95,35 +95,46 @@ def serialize_row(row):
 
 def classify_transition(prev_mls, cur_mls):
     '''
-    stays same
-    a goes up
-    a goes down
-    h goes up
-    h goes down
-    both a and h go up
-    both a and h go down
-    a goes up and h goes down
-    a goes down and h goes up
+    1. a closes and h closes
+    2. a closes and h goes up
+    3. a closes and h goes down
+    4. h closes and a goes up
+    5. h closes and a goes down
+    6. stays same
+    7. a goes up
+    8. a goes down
+    9. h goes up
+    10. h goes down
+    11. both a and h go up
+    12. both a and h go down
+    13. a goes up and h goes down
+    14. a goes down and h goes up
     '''
-    ret = np.zeros(9)
-    if prev_mls[0] == cur_mls[0] and prev_mls[1] == cur_mls[1]:
-        ret[0] = 1
-    elif prev_mls[0] < cur_mls[0] and prev_mls[1] == cur_mls[1]:
-        ret[1] = 1
-    elif prev_mls[0] > cur_mls[0] and prev_mls[1] == cur_mls[1]:
-        ret[2] = 1
-    elif prev_mls[0] == cur_mls[0] and prev_mls[1] < cur_mls[1]:
-        ret[3] = 1
-    elif prev_mls[0] == cur_mls[0] and prev_mls[1] > cur_mls[1]:
-        ret[4] = 1
-    elif prev_mls[0] < cur_mls[0] and prev_mls[1] < cur_mls[1]:
-        ret[5] = 1
-    elif prev_mls[0] > cur_mls[0] and prev_mls[1] > cur_mls[1]:
-        ret[6] = 1
-    elif prev_mls[0] < cur_mls[0] and prev_mls[1] > cur_mls[1]:
-        ret[7] = 1
-    elif prev_mls[0] > cur_mls[0] and prev_mls[1] < cur_mls[1]:
-        ret[8] = 1
+    ret = np.zeros(14)
+    a_prev = prev_mls[0]
+    a_cur = cur_mls[0]
+
+    h_prev = prev_mls[1]
+    h_cur = cur_mls[1]
+    
+    # how to metaprogram the enumeration of combinations given binary relations
+    propositions = [((a_prev and not a_cur) and (h_prev and not h_cur)),
+                    ((a_prev and not a_cur) and (h_prev < h_cur)),
+                    ((a_prev and not a_cur) and (h_prev > h_cur)),
+                    ((a_prev < a_cur) and (h_prev and not h_cur)),
+                    ((a_prev > a_cur) and (h_prev and not h_cur)),
+                    (a_prev == a_cur and h_prev == h_cur),
+                    (a_prev < a_cur and h_prev == h_cur),
+                    (a_prev > a_cur and h_prev == h_cur),
+                    (a_prev == a_cur and h_prev < h_cur),
+                    (a_prev == a_cur and h_prev > h_cur),
+                    (a_prev < a_cur and h_prev < h_cur),
+                    (a_prev > a_cur and h_prev > h_cur),
+                    (a_prev < a_cur and h_prev > h_cur),
+                    (a_prev > a_cur and h_prev < h_cur)]
+    for i, phi in enumerate(propositions):
+        if phi:
+            ret[i] = 1
 
     return ret
 
