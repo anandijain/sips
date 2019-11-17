@@ -9,11 +9,8 @@ import argparse
 import time
 import json
 
-
 import sips
 import sips.h.fileio as io
-from sips.ml import lstm
-
 import sips.h.helpers as h
 from sips.h.cloud import profiler
 from sips.lines import collate
@@ -74,6 +71,7 @@ if args.predict:
     import torch.nn as nn
     import torch.nn.functional as F
     import torch.optim as optim
+    from sips.ml import lstm
 
 
 class Lines:
