@@ -9,6 +9,10 @@ import sips.h.grab as g
 
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
+from sips.macros import nfl
+from sips.macros import nba
+from sips.macros import nhl
+import sips.h.helpers as h
 
 
 def lines(sports, output='list', parse=True, all_mkts=False, verbose=False):
@@ -28,9 +32,9 @@ def lines(sports, output='list', parse=True, all_mkts=False, verbose=False):
 
 def single_game_line(sport='basketball/nba', a_team='Detroit Pistons', h_team='Washington Wizards', game_start_time='201911041910'):
     '''
-    sport: 3-letter sport 
+    sport: 3-letter sport
         eg. one in (nfl, nba, nhl)
-    teams: [a_team, h_team] 
+    teams: [a_team, h_team]
         eg [, ]
     Game date: str Y
         eg.201911041910
@@ -56,19 +60,18 @@ def single_game_line(sport='basketball/nba', a_team='Detroit Pistons', h_team='W
 def serialize_row(row, teams_dict, statuses_dict):
     '''
     going to take in something like this:
-    ['FOOT', 5741304, 'Pittsburgh Steelers', 'Cleveland Browns', 1573540736617, 28, 
-    False, '0', '-1', '0', '0', 'PRE_GAME', '2.5', '-2.5', '-105', '-115', '+125', 
+    ['FOOT', 5741304, 'Pittsburgh Steelers', 'Cleveland Browns', 1573540736617, 28,
+    False, '0', '-1', '0', '0', 'PRE_GAME', '2.5', '-2.5', '-105', '-115', '+125',
     '-145', '40.0', '40.0', '-110', '-110', 'O', 'U', 1573780800000]
-    and return a np array 
+    and return a np array
     '''
     ret = []
 
     teams = row[2:4]
 
-
     for t in teams:
         ret += teams_dict[t]
-    
+
     ret += row[4:6]
 
     if row[6]:
@@ -87,16 +90,73 @@ def serialize_row(row, teams_dict, statuses_dict):
     return final
 
 
+def game_transitions(game, verbose=False):
+    '''
+    given a dataframe of live lines for a single game,
+    returns a list of classifications for the line movement
+    '''
+    transition_classes = []
+    teams_dict, statuses_dict = dicts_for_one_hotting()
+
+    prev = [None, None]
+
+    for i, row in game.iterrows():
+        cur = list(row[['a_ml', 'h_ml']])
+        transition_class = classify_transition(prev, cur)
+        transition_classes.append(transition_class)
+        prev = cur
+    
+    if verbose:
+        strings = {i : s for i, s in enumerate(bm.TRANSITION_CLASS_STRINGS)}
+
+        for i, t in enumerate(transition_classes):
+            class_num = np.argmax(t)
+            print(f'{i}: {strings[class_num]}')
+
+    return transition_classes
+
+
+def dicts_for_one_hotting():
+    all_teams = nfl.teams + nba.teams + nhl.teams
+    teams_dict = h.hot_list(all_teams, output='list')
+    statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED',
+                'IN_PROGRESS', 'None', 'PRE_GAME']
+    statuses_dict = h.hot_list(statuses, output='list')
+    return teams_dict, statuses_dict
+
+
+def parse_row_mls(ml_list):
+    '''
+    given a list of unparsed moneylines (eg can be 'EVEN' and None)
+    edit the values such that 'EVEN' -> 100 and None -> -1
+    typical order of list is [a0, h0, a1, h1]
+    '''
+    ret = []
+    for line in ml_list:
+        if line == 'EVEN':
+            ret.append(100)
+        elif line == None:
+            ret.append(-1)
+        else:
+            try:
+                x = float(line)
+            except:
+                x = -1
+            ret.append(x)
+    return ret
+
+
 def classify_transition(prev_mls, cur_mls):
     '''
     uses the propositions described in transitions() to return a numpy array
     with the class of transition corresponding to the input moneylines
     '''
-    a_prev = prev_mls[0]
-    a_cur = cur_mls[0]
 
-    h_prev = prev_mls[1]
-    h_cur = cur_mls[1]
+    mls = parse_row_mls(prev_mls + cur_mls)
+    a_prev = mls[0]
+    h_prev = mls[1]
+    a_cur = mls[2]
+    h_cur = mls[3]
 
     propositions = transitions(a_prev, a_cur, h_prev, h_cur)
     ret = np.zeros(len(propositions))
@@ -139,6 +199,9 @@ def transitions(a1, a2, h1, h2):
         (a1 > a2 and h1 < h2)
     ]
     return propositions
+
+
+
 
 
 def main():

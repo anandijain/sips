@@ -195,11 +195,7 @@ class Lines:
         self.loss_fxn = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(
             self.model.parameters(), lr=0.001, momentum=0.9)
-        self.all_teams = nfl.teams + nba.teams + nhl.teams
-        self.teams_dict = h.hot_list(self.all_teams, output='list')
-        statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED',
-                    'IN_PROGRESS', 'None', 'PRE_GAME']
-        self.statuses_dict = h.hot_list(statuses, output='list')
+        self.teams_dict, self.statuses_dict = bov.dicts_for_one_hotting()
         self.running_loss = 0.0
         self.correct = 0
         self.model_log_file = io.init_csv(
@@ -277,24 +273,14 @@ class Lines:
         todo: async exec
         '''
         for i, k, v in enumerate(self.current.items()):
+            prevs = self.prevs[k]
+            prev_mls = prevs[16:18]
+            cur_mls = v[16:18]
 
-            nls = []
-            for line in [self.prevs, self.current]:
-                a, h = line[k][16:18]
-                nl = []
-                for t in [a, h]:
-                    try:
-                        x = float(t)
-                    except:
-                        x = -1
-                    nl.append(x)
-                nls.append(nl)
-
-            prev_mls, cur_mls = nls
             true_transition = bov.classify_transition(prev_mls, cur_mls)
 
             X = torch.tensor(bov.serialize_row(
-                self.prevs[k], self.teams_dict, self.statuses_dict))
+                prevs, self.teams_dict, self.statuses_dict))
             self.optimizer.zero_grad()
 
             yhat = self.model(X).view(1, -1)
