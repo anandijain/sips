@@ -22,7 +22,7 @@ def score(json_data):
     '''
     given json data for a game_id, returns the score data of the game
     '''
-    [quarter, secs, a_pts, h_pts, game_status] = ['NaN' for _ in range(5)]
+    [quarter, secs, a_pts, h_pts, game_status] = [None for _ in range(5)]
 
     if not json_data:
         return [quarter, secs, a_pts, h_pts, game_status]

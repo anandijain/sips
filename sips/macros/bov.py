@@ -18,6 +18,28 @@ SUFFIXES = ['?marketFilterId=def&liveOnly=true&lang=en',
 SPORTS = ['basketball', 'baseball', 'esports', 'football', 'tennis',
           'volleyball', 'hockey', 'badminton', 'table-tennis']
 
+TRANSITION_CLASS_STRINGS = [
+    'a opens and h opens',
+    'a opens and h goes up',
+    'a opens and h goes down',
+    'h opens and a goes up',
+    'h opens and a goes down',
+    'a closes and h closes',
+    'a closes and h goes up',
+    'a closes and h goes down',
+    'h closes and a goes up',
+    'h closes and a goes down',
+    'stays same',
+    'a goes up',
+    'a goes down',
+    'h goes up',
+    'h goes down',
+    'both a and h go up',
+    'both a and h go down',
+    'a goes up and h goes down',
+    'a goes down and h goes up'
+]
+
 
 def build_urls(sports=SPORTS):
     '''
