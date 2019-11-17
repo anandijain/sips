@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size=1, hidden_layer_size=100, output_size=2):
+    def __init__(self, input_size=1, hidden_layer_size=100, output_size=19):
         '''
 
         '''
@@ -30,4 +30,5 @@ class LSTM(nn.Module):
         lstm_out, self.hidden_cell = self.lstm(
             input_seq.view(len(input_seq), 1, -1), self.hidden_cell)
         predictions = self.linear(lstm_out.view(len(input_seq), -1))
-        return predictions[-1]
+        out = nn.Softmax(predictions[-1], 1)
+        return out

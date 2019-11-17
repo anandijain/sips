@@ -70,7 +70,6 @@ def serialize_row(row):
     teams = row[2:4]
     all_teams = nfl.teams + nba.teams + nhl.teams 
     hotted_team_dict = h.hot_list(all_teams, output='list')
-
     for t in teams:
         ret += hotted_team_dict[t]
     ret += row[4:6]
@@ -85,58 +84,86 @@ def serialize_row(row):
     hot_status = statuses_dict[row_status]
     ret += hot_status
 
-    ret += row[12:22]
-    
-
-    
-    ret.append(row[-1])
+    mls = [100 if ml == 'EVEN' else ml for ml in row[12:22]]
     final = np.array(ret, dtype=np.float32)
     return final
 
 def classify_transition(prev_mls, cur_mls):
     '''
-    1. a closes and h closes
-    2. a closes and h goes up
-    3. a closes and h goes down
-    4. h closes and a goes up
-    5. h closes and a goes down
-    6. stays same
-    7. a goes up
-    8. a goes down
-    9. h goes up
-    10. h goes down
-    11. both a and h go up
-    12. both a and h go down
-    13. a goes up and h goes down
-    14. a goes down and h goes up
+    uses the propositions described in transitions() to return a numpy array
+    with the class of transition corresponding to the input moneylines
     '''
-    ret = np.zeros(14)
     a_prev = prev_mls[0]
     a_cur = cur_mls[0]
 
     h_prev = prev_mls[1]
     h_cur = cur_mls[1]
     
-    # how to metaprogram the enumeration of combinations given binary relations
-    propositions = [((a_prev and not a_cur) and (h_prev and not h_cur)),
-                    ((a_prev and not a_cur) and (h_prev < h_cur)),
-                    ((a_prev and not a_cur) and (h_prev > h_cur)),
-                    ((a_prev < a_cur) and (h_prev and not h_cur)),
-                    ((a_prev > a_cur) and (h_prev and not h_cur)),
-                    (a_prev == a_cur and h_prev == h_cur),
-                    (a_prev < a_cur and h_prev == h_cur),
-                    (a_prev > a_cur and h_prev == h_cur),
-                    (a_prev == a_cur and h_prev < h_cur),
-                    (a_prev == a_cur and h_prev > h_cur),
-                    (a_prev < a_cur and h_prev < h_cur),
-                    (a_prev > a_cur and h_prev > h_cur),
-                    (a_prev < a_cur and h_prev > h_cur),
-                    (a_prev > a_cur and h_prev < h_cur)]
+    propositions, strings = transitions(a_prev, a_cur, h_prev, h_cur)
+    ret = np.zeros(len(propositions))
+
+    descs = {i : s for i, s in enumerate(strings)}
+
     for i, phi in enumerate(propositions):
         if phi:
             ret[i] = 1
+            break
 
     return ret
+
+def transitions(a1, a2, h1, h2):
+    '''
+    classification of the movement of lines where -1 is closed
+    '''
+    strings = [
+        'a opens and h opens',
+        'a opens and h goes up',
+        'a opens and h goes down',
+        'h opens and a goes up',
+        'h opens and a goes down',
+        'a closes and h closes',
+        'a closes and h goes up',
+        'a closes and h goes down',
+        'h closes and a goes up',
+        'h closes and a goes down',
+        'stays same',
+        'a goes up',
+        'a goes down',
+        'h goes up',
+        'h goes down',
+        'both a and h go up',
+        'both a and h go down',
+        'a goes up and h goes down',
+        'a goes down and h goes up'
+    ]
+
+    # how to metaprogram the enumeration of combinations given binary relations
+    propositions = [
+        # opening actions
+        ((a1 == -1 and a2 != -1) and (h1 == -1 and h2 != -1)),
+        ((a1 == -1 and a2 != -1) and (h1 < h2)),
+        ((a1 == -1 and a2 != -1) and (h1 > h2)),
+        ((a1 < a2) and (h1 == -1 and h2 != -1)),
+        ((a1 > a2) and (h1 == -1 and h2 != -1)),
+        # closing actions
+        ((a1 and a2 == -1) and (h1 and h2 == -1)),
+        ((a1 and a2 == -1) and (h1 < h2)),
+        ((a1 and a2 == -1) and (h1 > h2)),
+        ((a1 < a2) and (h1 and h2 == -1)),
+        ((a1 > a2) and (h1 and h2 == -1)),
+        # directionals
+        (a1 == a2 and h1 == h2),
+        (a1 < a2 and h1 == h2),
+        (a1 > a2 and h1 == h2),
+        (a1 == a2 and h1 < h2),
+        (a1 == a2 and h1 > h2),
+        (a1 < a2 and h1 < h2),
+        (a1 > a2 and h1 > h2),
+        (a1 < a2 and h1 > h2),
+        (a1 > a2 and h1 < h2)
+    ]
+    return propositions, strings
+
 
 def main():
     # data = lines(["nba"], output='dict')

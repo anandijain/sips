@@ -40,7 +40,7 @@ parser.add_argument('-d', '--dir', type=str,
                     help='folder name of run', default='run3')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-s', '--sports', type=list,
-                   help='list of 3 letter sports', default=['basketball/nba', 'football/nfl', 'hockey/nhl'])
+                   help='list of 3 letter sports', default=['basketball/nba'])  # , 'football/nfl', 'hockey/nhl'])
 group.add_argument('-A', '--all', type=bool, help='run on all sports')
 parser.add_argument('-m', '--all_mkts', type=bool, help='true grabs extra markets',
                     default=False)
@@ -111,7 +111,9 @@ class Lines:
         self.optimizer = optim.SGD(
             self.model.parameters(), lr=0.001, momentum=0.9)
         self.running_loss = 0.0
-        self.model_log_file = io.init_csv('model_log.csv', header=['i', 'running_loss'], close=False)
+        self.correct = 0
+        self.model_log_file = io.init_csv(
+            'model_log.csv', header=['i', 'running_loss'], close=False)
 
         self.step_num = 0
         if self.start:
@@ -202,7 +204,7 @@ class Lines:
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
-            self.run_model(to_write)
+            self.run_model()
             self.prevs = self.current
             time.sleep(self.wait)
             num_changes = len(to_write)
@@ -249,33 +251,55 @@ class Lines:
                 for game_file in self.files.values():
                     game_file.flush()
 
-    def run_model(self, to_write):
+    def run_model(self):
         '''
+        for each event, predict what the transition type
+        todo: async exec
+        '''
+        for k, v in self.current.items():
 
-        '''
-        for k, v in to_write.items():
-            data = [self.prevs, self.current]
-            prev_mls, cur_mls = [list(map(float, line[k][16:18])) for line in data]
+            nls = []
+            for line in [self.prevs, self.current]:
+                a, h = line[k][16:18]
+                nl = []
+                for t in [a, h]:
+                    try:
+                        x = float(t)
+                    except:
+                        x = -1
+                    nl.append(x)
+                nls.append(nl)
+
+            prev_mls, cur_mls = nls
             true_transition = bov.classify_transition(prev_mls, cur_mls)
-            np_prev = torch.tensor(bov.serialize_row(self.prevs[k]))
+            print(f'true: {true_transition}')
 
+            X = torch.tensor(bov.serialize_row(self.prevs[k]))
             self.optimizer.zero_grad()
-            pred_mls = self.model(np_prev)
 
-            pred_transition = bov.classify_transition(prev_mls, pred_mls)
-            y, yhat = map(torch.tensor, [true_transition, pred_transition])
+            yhat = self.model(X).view(1, -1)
+            y = torch.tensor(true_transition).view(1, -1).long()
+            
+            # print(f'y: {y}, pred: {yhat}')
+            # print(f'y.dtype: {y.dtype}, yhat.dtype: {yhat.dtype}')
+            # print(f'y.shape: {y.shape}, yhat.shape: {yhat.shape}')
 
-            loss = self.loss_fxn(yhat, y)
-
+            loss = self.loss_fxn(yhat, torch.max(y, 1)[1])
             self.optimizer.step()
+
+            class_preds = torch.argmax(yhat)
 
             # print statistics
             self.running_loss += loss.item()
+            self.correct += (class_preds == y).sum().item()
             if self.step_num % self.flush_rate == 0:
-                print('[%5d] loss: %.3f' %
-                      (self.step_num, self.running_loss / self.flush_rate))
-                io.write_list(self.model_log_file, [self.step_num, self.running_loss])
+                print(f'{self.step_num}: correct: {self.correct} \
+                    loss: {self.running_loss / self.flush_rate}')
+
+                io.write_list(self.model_log_file, [
+                              self.step_num, self.running_loss, self.correct])
                 self.running_loss = 0.0
+                self.correct = 0.0
 
 
 def compare_and_filter(prevs, news):
