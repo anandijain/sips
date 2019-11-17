@@ -9,11 +9,6 @@ import argparse
 import time
 import json
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-
 
 import sips
 import sips.h.fileio as io
@@ -64,6 +59,8 @@ parser.add_argument('-k', '--keep_open', type=bool,
 parser.add_argument('-f', '--flush_rate', type=int,
                     help='how often log is flushed, as well as the files if keep_open',
                     default=42)
+parser.add_argument('-M', '--predict', type=bool,
+                    help='run lstm Model on it', default=False)
 parser.add_argument('--async_req', type=bool,
                     help='use async_req (broken)',
                     default=False)
@@ -71,6 +68,12 @@ args = parser.parse_args()
 
 if args.log:
     profiler.main()
+
+if args.predict:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    import torch.optim as optim
 
 
 class Lines:
@@ -110,19 +113,8 @@ class Lines:
                                        verbose=self.verb)
             self.current = None
 
-        self.model = lstm.LSTM()
-        self.loss_fxn = nn.CrossEntropyLoss()
-        self.optimizer = optim.SGD(
-            self.model.parameters(), lr=0.001, momentum=0.9)
-        self.all_teams = nfl.teams + nba.teams + nhl.teams
-        self.teams_dict = h.hot_list(self.all_teams, output='list')
-        statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED',
-                    'IN_PROGRESS', 'None', 'PRE_GAME']
-        self.statuses_dict = h.hot_list(statuses, output='list')
-        self.running_loss = 0.0
-        self.correct = 0
-        self.model_log_file = io.init_csv(
-            'model_log.csv', header=['i', 'running_loss'], close=False)
+        if args.predict:
+            self.init_model()
 
         self.step_num = 0
         if self.start:
@@ -200,6 +192,21 @@ class Lines:
         self.files['log'] = self.log_file
         self.log_data = None
 
+    def init_model(self):
+        self.model = lstm.LSTM()
+        self.loss_fxn = nn.CrossEntropyLoss()
+        self.optimizer = optim.SGD(
+            self.model.parameters(), lr=0.001, momentum=0.9)
+        self.all_teams = nfl.teams + nba.teams + nhl.teams
+        self.teams_dict = h.hot_list(self.all_teams, output='list')
+        statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED',
+                    'IN_PROGRESS', 'None', 'PRE_GAME']
+        self.statuses_dict = h.hot_list(statuses, output='list')
+        self.running_loss = 0.0
+        self.correct = 0
+        self.model_log_file = io.init_csv(
+            'model_log.csv', header=['i', 'running_loss'], close=False)
+
     def step(self):
         '''
 
@@ -213,13 +220,16 @@ class Lines:
 
         if self.write_new:
             to_write = compare_and_filter(self.prevs, self.current)
-            self.run_model()
-            self.prevs = self.current
             time.sleep(self.wait)
             num_changes = len(to_write)
         else:
             to_write = self.current
             num_changes = "NaN"
+
+        if args.predict:
+            self.run_model()
+        
+        self.prevs = self.current
 
         time_delta = self.new_time - self.prev_time
         self.prev_time = self.new_time
@@ -255,7 +265,10 @@ class Lines:
         if self.step_num % self.flush_rate == 1:
             print(f'{self.log_data}')
             self.log_file.flush()
-            torch.save(self.model, f'live_{self.step_num}.pt')
+            
+            if args.predict:
+                torch.save(self.model, f'live_{self.step_num}.pt')
+            
             if self.keep_open:
                 for game_file in self.files.values():
                     game_file.flush()
@@ -282,12 +295,13 @@ class Lines:
             prev_mls, cur_mls = nls
             true_transition = bov.classify_transition(prev_mls, cur_mls)
 
-            X = torch.tensor(bov.serialize_row(self.prevs[k], self.teams_dict, self.statuses_dict))
+            X = torch.tensor(bov.serialize_row(
+                self.prevs[k], self.teams_dict, self.statuses_dict))
             self.optimizer.zero_grad()
 
             yhat = self.model(X).view(1, -1)
             y = torch.tensor(true_transition).view(1, -1).long()
-            
+
             # print(f'y: {y}, pred: {yhat}')
             # print(f'y.dtype: {y.dtype}, yhat.dtype: {yhat.dtype}')
             # print(f'y.shape: {y.shape}, yhat.shape: {yhat.shape}')
@@ -301,7 +315,8 @@ class Lines:
             self.running_loss += loss.item()
             self.correct += (class_preds == y).sum().item()
             if self.step_num % self.flush_rate == 0:
-                print(f'{self.step_num}: correct: {self.correct} loss: {self.running_loss / self.flush_rate}')
+                print(
+                    f'{self.step_num}: correct: {self.correct} loss: {self.running_loss / self.flush_rate}')
 
                 io.write_list(self.model_log_file, [
                               self.step_num, self.running_loss, self.correct])
