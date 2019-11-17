@@ -26,9 +26,11 @@ class LSTM(nn.Module):
         self.hidden_cell = (torch.zeros(1, 1, self.hidden_layer_size),
                             torch.zeros(1, 1, self.hidden_layer_size))
 
+        # self.sm = nn.Softmax(dim=1)
+
     def forward(self, input_seq):
         lstm_out, self.hidden_cell = self.lstm(
             input_seq.view(len(input_seq), 1, -1), self.hidden_cell)
         predictions = self.linear(lstm_out.view(len(input_seq), -1))
-        out = nn.Softmax(predictions[-1], 1)
-        return out
+        # out = self.sm(predictions[-1]) 
+        return predictions[-1]

@@ -6,10 +6,6 @@ import requests as r
 import numpy as np
 
 import sips.h.grab as g
-import sips.h.helpers as h
-from sips.macros import nfl
-from sips.macros import nba
-from sips.macros import nhl
 
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
@@ -38,7 +34,7 @@ def single_game_line(sport='basketball/nba', a_team='Detroit Pistons', h_team='W
         eg [, ]
     Game date: str Y
         eg.201911041910
-    
+
     services/sports/event/coupon/events/A/description/
     basketball/nba/
     detroit-pistons-washington-wizards-
@@ -57,7 +53,7 @@ def single_game_line(sport='basketball/nba', a_team='Detroit Pistons', h_team='W
     return row
 
 
-def serialize_row(row):
+def serialize_row(row, teams_dict, statuses_dict):
     '''
     going to take in something like this:
     ['FOOT', 5741304, 'Pittsburgh Steelers', 'Cleveland Browns', 1573540736617, 28, 
@@ -68,18 +64,20 @@ def serialize_row(row):
     ret = []
 
     teams = row[2:4]
-    all_teams = nfl.teams + nba.teams + nhl.teams 
-    hotted_team_dict = h.hot_list(all_teams, output='list')
+
+
     for t in teams:
-        ret += hotted_team_dict[t]
+        ret += teams_dict[t]
+    
     ret += row[4:6]
+
     if row[6]:
         ret += [1, 0]
     else:
         ret += [0, 1]
+
     ret += row[7:11]
-    statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED', 'IN_PROGRESS', 'None', 'PRE_GAME']
-    statuses_dict = h.hot_list(statuses, output='list')
+
     row_status = row[11]
     hot_status = statuses_dict[row_status]
     ret += hot_status
@@ -87,6 +85,7 @@ def serialize_row(row):
     mls = [100 if ml == 'EVEN' else ml for ml in row[12:22]]
     final = np.array(ret, dtype=np.float32)
     return final
+
 
 def classify_transition(prev_mls, cur_mls):
     '''
@@ -98,11 +97,9 @@ def classify_transition(prev_mls, cur_mls):
 
     h_prev = prev_mls[1]
     h_cur = cur_mls[1]
-    
-    propositions, strings = transitions(a_prev, a_cur, h_prev, h_cur)
-    ret = np.zeros(len(propositions))
 
-    descs = {i : s for i, s in enumerate(strings)}
+    propositions = transitions(a_prev, a_cur, h_prev, h_cur)
+    ret = np.zeros(len(propositions))
 
     for i, phi in enumerate(propositions):
         if phi:
@@ -111,32 +108,11 @@ def classify_transition(prev_mls, cur_mls):
 
     return ret
 
+
 def transitions(a1, a2, h1, h2):
     '''
     classification of the movement of lines where -1 is closed
     '''
-    strings = [
-        'a opens and h opens',
-        'a opens and h goes up',
-        'a opens and h goes down',
-        'h opens and a goes up',
-        'h opens and a goes down',
-        'a closes and h closes',
-        'a closes and h goes up',
-        'a closes and h goes down',
-        'h closes and a goes up',
-        'h closes and a goes down',
-        'stays same',
-        'a goes up',
-        'a goes down',
-        'h goes up',
-        'h goes down',
-        'both a and h go up',
-        'both a and h go down',
-        'a goes up and h goes down',
-        'a goes down and h goes up'
-    ]
-
     # how to metaprogram the enumeration of combinations given binary relations
     propositions = [
         # opening actions
@@ -162,7 +138,7 @@ def transitions(a1, a2, h1, h2):
         (a1 < a2 and h1 > h2),
         (a1 > a2 and h1 < h2)
     ]
-    return propositions, strings
+    return propositions
 
 
 def main():
