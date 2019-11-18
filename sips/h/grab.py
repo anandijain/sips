@@ -74,7 +74,7 @@ def async_req(links, output='list', session=None, max_workers=10, key=None):
     if output == 'dict':
         if not key:
             print('no key provided, enumerating')
-            jsons = {i : game for i, game in enumerate(jsons)}
+            jsons = {i: game for i, game in enumerate(jsons)}
         else:
             jsons = {game.get(key): game for game in jsons}
 

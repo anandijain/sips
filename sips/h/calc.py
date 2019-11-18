@@ -52,11 +52,8 @@ class Hedge:
             print('$$$$$$$$$$$$$$$$$ made money')
         print('\n')
 
-    # TODO
-    # add function that writes bets to CSV for later analysis
 
-
-def _eq(odd):
+def eq(odd):
     '''
     to find the adjusted odds multiplier
     returns float
@@ -105,9 +102,9 @@ def net(bet, bet2):
     '''
     # bet_sum = bet.amt + bet2.amt
     if bet.team == 0:
-        return bet.amt * _eq(bet.a_odds) - bet2.amt
+        return bet.amt * eq(bet.a_odds) - bet2.amt
     else:
-        return bet.amt * _eq(bet.h_odds) - bet2.amt
+        return bet.amt * eq(bet.h_odds) - bet2.amt
 
 
 def net_score(pick, pick2):
@@ -132,9 +129,9 @@ def bet_amt(money):
 def hedge_amt(bet, cur_odds):
     # takes in Bet 1 and calculates the
     if bet.team == 0:
-        return (bet.amt * (_eq(bet.a_odds) + 1)) / (_eq(cur_odds[1]) + 1)
+        return (bet.amt * (eq(bet.a_odds) + 1)) / (eq(cur_odds[1]) + 1)
     else:
-        return (bet.amt * (_eq(bet.h_odds) + 1)) / (_eq(cur_odds[0]) + 1)
+        return (bet.amt * (eq(bet.h_odds) + 1)) / (eq(cur_odds[0]) + 1)
 
 
 def net_given_odds(bet, cur_odds):
@@ -144,6 +141,6 @@ def net_given_odds(bet, cur_odds):
     bet2_amt = hedge_amt(bet, cur_odds)
     # bet_sum = bet.amt + bet2_amt
     if bet.team == 0:
-        return bet.amt * _eq(bet.a_odds) - bet2_amt
+        return bet.amt * eq(bet.a_odds) - bet2_amt
     else:
-        return bet.amt * _eq(bet.h_odds) - bet2_amt
+        return bet.amt * eq(bet.h_odds) - bet2_amt

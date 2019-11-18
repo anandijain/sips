@@ -4,6 +4,7 @@ import numpy as np
 from sklearn import preprocessing
 
 import torch
+import torch.nn as nn
 from torch.utils.data import Dataset
 
 from sips.h import helpers as h

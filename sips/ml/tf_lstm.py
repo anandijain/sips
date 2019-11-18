@@ -1,5 +1,6 @@
 import os
 import datetime
+import random
 
 import pandas as pd
 import numpy as np
@@ -51,8 +52,6 @@ def get_tf_dataset(fn):
     return dataset
 
 
-
-
 train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
 train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
     'train_accuracy')
@@ -61,13 +60,11 @@ test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy')
 
 
 
-
-
-
 def train_step(model, optimizer, loss_object, x_train, y_train):
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
+        print(loss)
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
@@ -85,12 +82,20 @@ def test_step(model, loss_object, x_test, y_test):
     return te, tea
 
 def main():
-    EPOCHS = 10
-    fns = os.listdir('./lines/')
-    fn = '~/absa/data/micro_la_nov_16_6006198.csv'
-    test_fn = '~/absa/data/micro_la_nov_16_6006233.csv'
-    dataset = get_tf_dataset(fn)
-    test_dataset = get_tf_dataset(test_fn)
+    # EPOCHS = 10
+    folder = './lines/'
+    fns = os.listdir(folder)
+    fns.remove('LOG.csv')
+    num_files = len(fns)
+    train_frac = 0.7
+    split_idx = round(0.7 * num_files)
+    random.shuffle(fns)
+    train_fns = fns[0:split_idx]
+    test_fns = fns[split_idx:]
+
+    datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
+    test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
+
     # model = TfLSTM()
     model = make_model()
     loss_object = tf.keras.losses.CategoricalCrossentropy()
@@ -105,7 +110,7 @@ def main():
     test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
 
-    for epoch in range(EPOCHS):
+    for epoch, dataset in enumerate(datasets):
         for (x_train, y_train) in dataset:
             tl, ta = train_step(model, optimizer, loss_object, x_train, y_train)
         with train_summary_writer.as_default():
@@ -113,6 +118,7 @@ def main():
             tf.summary.scalar('loss', tl.numpy(), step=epoch)
             tf.summary.scalar('accuracy', ta.numpy(), step=epoch)
 
+        test_dataset = random.choice(test_datasets)
         for (x_test, y_test) in test_dataset:
             tel, tea = test_step(model, loss_object, x_test, y_test)
         with test_summary_writer.as_default():

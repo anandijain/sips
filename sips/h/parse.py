@@ -4,9 +4,11 @@
 import bs4
 import pandas as pd
 
+import numpy as np
+
+
 def read_html_with_links(html_table):
     thead = html_table.thead
-    
 
 
 def parse_json(json, keys, output='dict'):
@@ -38,7 +40,7 @@ def comments(page):
     return comments
 
 
-def get_table(page, table_id):  
+def get_table(page, table_id):
     # given bs4 page and table id, finds table using bs4. returns soup table
     table = page.find('table', {'id': table_id})
     return table
@@ -52,14 +54,14 @@ def columns_from_table(table, attr=None):
     thead = table['thead']
     if not thead:
         print('table has no headers')
-        return 
+        return
     headers = thead.find_all('th')
     if not attr:
         columns = [h.text for h in headers]
     else:
         columns = [h[attr] for h in headers]
-    return columns 
-    
+    return columns
+
 
 def parse_table(table, tag='th'):
     '''
@@ -123,6 +125,58 @@ def write_table(table, fn, tag='th'):
 
     print('{} written to {}'.format(fn, './data/'))
     file.close()
+
+
+def serialize_row(row, teams_dict, statuses_dict):
+    '''
+    going to take in something like this:
+    ['FOOT', 5741304, 'Pittsburgh Steelers', 'Cleveland Browns', 1573540736617, 28,
+    False, '0', '-1', '0', '0', 'PRE_GAME', '2.5', '-2.5', '-105', '-115', '+125',
+    '-145', '40.0', '40.0', '-110', '-110', 'O', 'U', 1573780800000]
+    and return a np array
+    '''
+    ret = []
+    row = list(row)
+    teams = row[2:4]
+
+    for t in teams:
+        hot_teams = teams_dict[t]
+        ret += hot_teams
+
+    ret += row[4:6]
+
+    if row[6]:
+        ret += [1, 0]
+    else:
+        ret += [0, 1]
+
+    ret += [row_ml(ml) for ml in row[7:11]]
+
+    row_status = row[11]
+    hot_status = statuses_dict[row_status]
+    ret += hot_status
+    mls = [row_ml(ml) for ml in row[12:22]]
+    ret += mls
+    final = np.array(ret, dtype=np.float32)
+    return final
+
+
+def row_ml(ml):
+    '''
+    given a list of unparsed moneylines (eg can be 'EVEN' and None)
+    edit the values such that 'EVEN' -> 100 and None -> -1
+    typical order of list is [a0, h0, a1, h1]
+    '''
+    if ml == 'EVEN':
+        ret = 100
+    elif ml == None:
+        ret = -1
+    else:
+        try:
+            ret = float(ml)
+        except:
+            ret = -1
+    return ret
 
 
 if __name__ == "__main__":

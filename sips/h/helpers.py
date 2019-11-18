@@ -6,6 +6,9 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 import sips.h as h
+from sips.macros import nfl
+from sips.macros import nba
+from sips.macros import nhl
 
 
 def hot_list(strings, output='np'):
@@ -24,6 +27,24 @@ def hot_list(strings, output='np'):
                 hot_arr = list(hot_arr)
             hots[s] = hot_arr
     return hots
+
+
+def dicts_for_one_hotting(sports=['nfl', 'nba', 'nhl']):
+    team_list = []
+
+    for s in sports:
+        if s == 'nfl':
+            team_list += nfl.teams
+        elif s == 'nba':
+            team_list += nba.teams
+        elif s == 'nhl':
+            team_list += nhl.teams
+
+    teams_dict = hot_list(team_list, output='list')
+    statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED',
+                'IN_PROGRESS', 'None', 'PRE_GAME']
+    statuses_dict = hot_list(statuses, output='list')
+    return teams_dict, statuses_dict
 
 
 def remove_string_cols(df):
