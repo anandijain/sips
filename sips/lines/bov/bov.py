@@ -3,6 +3,8 @@ uses the bovada api to get json data for odds and scores
 '''
 import requests as r
 
+import pandas as pd
+
 import numpy as np
 
 import sips.h.grab as g
@@ -66,11 +68,12 @@ def serialize_row(row, teams_dict, statuses_dict):
     and return a np array
     '''
     ret = []
-
+    row = list(row)
     teams = row[2:4]
 
     for t in teams:
-        ret += teams_dict[t]
+        hot_teams = teams_dict[t]
+        ret += hot_teams
 
     ret += row[4:6]
 
@@ -88,6 +91,43 @@ def serialize_row(row, teams_dict, statuses_dict):
     mls = [100 if ml == 'EVEN' else ml for ml in row[12:22]]
     final = np.array(ret, dtype=np.float32)
     return final
+
+
+def prep_game_dataset(fn, sports=['nba']): # , zip_data=True, verbose=False):
+    teams_dict, statuses_dict = dicts_for_one_hotting(sports)
+
+    df = pd.read_csv(fn)
+    prev = [None, None]
+    prev_row = [None for _ in range(25)]
+    X = []
+    y = []
+    for i, row in df.iterrows():
+            
+        cur_row = row.values
+        cur_ml = list(row[['a_ml', 'h_ml']])
+        if i == 0:
+            prev_ml = cur_ml
+            prev_row = cur_row
+            continue
+
+        x = serialize_row(prev_row, teams_dict, statuses_dict)
+        transition_class = classify_transition(prev_ml, cur_ml)
+        y.append(transition_class)
+        X.append(x)
+        prev_ml = cur_ml
+        prev_row = cur_row
+    # ret = [X, y]
+
+    # if zip_data:
+    #     ret = list(zip(X, y))
+
+    # if verbose:
+    #     print(f'game dataset: {ret}')
+    len_game = len(y)
+    X = np.reshape(np.concatenate(X, axis=0), (len_game, 1, -1))
+    # y = np.reshape(np.concatenate(y, axis=0), (466, 1, -1))
+
+    return X, y
 
 
 def game_transitions(game, verbose=False):
@@ -116,9 +156,18 @@ def game_transitions(game, verbose=False):
     return transition_classes
 
 
-def dicts_for_one_hotting():
-    all_teams = nfl.teams + nba.teams + nhl.teams
-    teams_dict = h.hot_list(all_teams, output='list')
+def dicts_for_one_hotting(sports=['nfl', 'nba', 'nhl']):
+    team_list = [] 
+
+    for s in sports:
+        if s == 'nfl':
+            team_list += nfl.teams
+        elif s == 'nba':
+            team_list += nba.teams
+        elif s == 'nhl':
+            team_list += nhl.teams
+
+    teams_dict = h.hot_list(team_list, output='list')
     statuses = ['GAME_END', 'HALF_TIME', 'INTERRUPTED',
                 'IN_PROGRESS', 'None', 'PRE_GAME']
     statuses_dict = h.hot_list(statuses, output='list')

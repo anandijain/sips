@@ -9,6 +9,7 @@ __pycache__/
 local/
 data/
 models/
+logs/
 
 sips.egg-info/
 sips/gym_sip/gym_sip.egg-info
