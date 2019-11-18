@@ -1,4 +1,6 @@
+import os
 import datetime
+
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -9,7 +11,7 @@ from sips.lines.bov import bov
 
 class TfLSTM(tf.keras.Model):
     '''
-    subclass model type
+    subclassing model type
     '''
 
     def __init__(self):
