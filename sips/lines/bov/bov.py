@@ -72,9 +72,11 @@ def prep_game_dataset(fn, sports=['nba']): # , zip_data=True, verbose=False):
             prev_ml = cur_ml
             prev_row = cur_row
             continue
+        transition_class = analyze.classify_transition(prev_ml, cur_ml)
+        if bm.TRANSITION_CLASS_STRINGS[np.argmax(transition_class)] == 'stays same':
+            continue
 
         x = p.serialize_row(prev_row, teams_dict, statuses_dict)
-        transition_class = analyze.classify_transition(prev_ml, cur_ml)
         y.append(transition_class)
         X.append(x)
         prev_ml = cur_ml
@@ -87,6 +89,8 @@ def prep_game_dataset(fn, sports=['nba']): # , zip_data=True, verbose=False):
     # if verbose:
     #     print(f'game dataset: {ret}')
     len_game = len(y)
+    if not X:
+        return
     X = np.reshape(np.concatenate(X, axis=0), (len_game, 1, -1))
     # y = np.reshape(np.concatenate(y, axis=0), (466, 1, -1))
 

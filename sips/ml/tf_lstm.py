@@ -7,8 +7,8 @@ import numpy as np
 import tensorflow as tf
 
 
+from sips.macros import bov as bm
 from sips.lines.bov import bov
-
 
 class TfLSTM(tf.keras.Model):
     '''
@@ -17,8 +17,8 @@ class TfLSTM(tf.keras.Model):
 
     def __init__(self):
         super(TfLSTM, self).__init__()
-        self.l1 = tf.keras.layers.Dense(100, activation='relu')
-        self.l2 = tf.keras.layers.Dense(128, activation='relu')
+        self.l1 = tf.keras.layers.LSTM(100, activation='relu')
+        self.l2 = tf.keras.layers.LSTM(128, activation='relu')
         self.l3 = tf.keras.layers.Dense(19, activation='softmax')
 
     def call(self, x):
@@ -28,24 +28,68 @@ class TfLSTM(tf.keras.Model):
         return x
 
 
+def multivariate_data(dataset, target, start_index, end_index, history_size,
+                      target_size, step, single_step=False):
+    data = []
+    labels = []
+
+    start_index = start_index + history_size
+    if end_index is None:
+        end_index = len(dataset) - target_size
+
+    for i in range(start_index, end_index):
+        indices = range(i-history_size, i, step)
+        data.append(dataset[indices])
+
+        if single_step:
+            labels.append(target[i+target_size])
+        else:
+            labels.append(target[i:i+target_size])
+
+    return np.array(data), np.array(labels)
+
+
 def make_model():
     # sequential model
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(100, activation='relu'),
+        # tf.keras.layers.LSTM(100, input_shape = (15, 210), return_sequences=True, activation='relu'),
+        # tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(256, activation='relu'),
         tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(50, activation='relu'),
         tf.keras.layers.Dense(19, activation='softmax')
     ])
     return model
 
 
-def get_tf_dataset(fn):
+def get_tf_dataset(fn, verbose=False):
     data = bov.prep_game_dataset(fn)
+    if not data:
+        return
     X, y = data
-    print(f'X: {X}, X[0].shape: {X[0].shape}')
-    print(f'y: {y}')
+    if verbose:
+        print(f'X: {X}, X[0].shape: {X[0].shape}')
+        print(f'y: {y}')
     # tf_X = tf.convert_to_tensor(X)
     # tf_y = tf.convert_to_tensor(y)
+    X = tf.keras.utils.normalize(X)
+
+    past_history = 15
+    future_target = 5
+    STEP = 1
+
+    # x_train_single, y_train_single = multivariate_data(X, y, 0,
+    #                                                 len(y), past_history,
+    #                                                 future_target, STEP,
+    #                                                 single_step=False)
+    # x_train_single = tf.reshape(x_train_single, ())
+    # print('Single window of past history : {}'.format(x_train_single[0]))
+    # print('Single window of past history shape: {}'.format(x_train_single[0].shape))
+
+    # print('Single window of past history : {}'.format(y_train_single[0]))
+    # print('Single window of past history shape: {}'.format(y_train_single[0].shape))
+    # dataset = tf.data.Dataset.from_tensor_slices((x_train_single, y_train_single))
 
     dataset = tf.data.Dataset.from_tensor_slices((np.array(X), np.array(y)))
 
@@ -64,13 +108,23 @@ def train_step(model, optimizer, loss_object, x_train, y_train):
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
-        print(loss)
+        # predictions = tf.reshape(predictions, [-1])
+        maxed_pred = tf.argmax(predictions, 1).numpy()[0]
+        maxed_true = tf.argmax(y_train).numpy()
+        correct = tf.equal(maxed_pred, maxed_true).numpy()  # assumes batch size 1
+        strs = bm.TRANSITION_CLASS_STRINGS
+        print(f'preds: {maxed_pred}')
+        print(f'actuals: {maxed_true}')
+
+        print(f'preds_str: {strs[maxed_pred]}')
+        print(f'actual_str: {strs[maxed_true]}')
+        print(loss.numpy())
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
     tl = train_loss(loss)
     ta = train_accuracy(y_train, predictions)
-    return tl, ta
+    return tl, ta, correct
 
 
 def test_step(model, loss_object, x_test, y_test):
@@ -83,6 +137,8 @@ def test_step(model, loss_object, x_test, y_test):
 
 def main():
     # EPOCHS = 10
+    BATCH_SIZE = 1
+    BUFFER_SIZE = 10000
     folder = './lines/'
     fns = os.listdir(folder)
     fns.remove('LOG.csv')
@@ -96,6 +152,10 @@ def main():
     datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
     test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
 
+    dataset = datasets[0]
+    test_dataset = test_datasets[0]
+
+ 
     # model = TfLSTM()
     model = make_model()
     loss_object = tf.keras.losses.CategoricalCrossentropy()
@@ -111,14 +171,22 @@ def main():
 
 
     for epoch, dataset in enumerate(datasets):
+        if not dataset:
+            continue
         for (x_train, y_train) in dataset:
-            tl, ta = train_step(model, optimizer, loss_object, x_train, y_train)
+            tl, ta, correct = train_step(model, optimizer, loss_object, x_train, y_train)
+            if correct.any():
+                print('guessed correctly')
+            else:
+                print('guessed wrong')
         with train_summary_writer.as_default():
             
             tf.summary.scalar('loss', tl.numpy(), step=epoch)
             tf.summary.scalar('accuracy', ta.numpy(), step=epoch)
 
         test_dataset = random.choice(test_datasets)
+        if not test_dataset:
+            continue
         for (x_test, y_test) in test_dataset:
             tel, tea = test_step(model, loss_object, x_test, y_test)
         with test_summary_writer.as_default():
@@ -138,7 +206,7 @@ def main():
         train_accuracy.reset_states()
         test_accuracy.reset_states()
 
-
+    tf.saved_model.save(model, "./logs/models/1/")
 
 
 
