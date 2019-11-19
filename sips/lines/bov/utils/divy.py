@@ -1,5 +1,5 @@
 def divy_games(events):
-    '''
+    """
 
     we want to divy up the games by locations closest to our server.
     prereq: dataframe for arena latitude and longitudes,
@@ -21,4 +21,4 @@ def divy_games(events):
         all events every time (even just as a new-game check)
 
     
-    '''
+    """

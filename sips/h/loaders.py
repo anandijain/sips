@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 
 from sips.h import helpers as h
+
 # from sips.macros import macros as m
 
 
@@ -33,20 +34,22 @@ class DfWindow(Dataset):
         self.out_shape = item[1].shape
 
     def __getitem__(self, index):
-        self.past = self.tdf[index - self.prev_n:index]
+        self.past = self.tdf[index - self.prev_n : index]
         # if len(self.past) < prev_n:
 
         if index < self.total_len - self.next_n - 1:
-            self.past = self.tdf[index - self.prev_n: index]
+            self.past = self.tdf[index - self.prev_n : index]
             # self.past = torch.from_numpy(self.past)
 
-            self.future = self.tdf[index: index + self.next_n]
+            self.future = self.tdf[index : index + self.next_n]
             # self.future_n = torch.from_numpy(self.future_n)
-            past_new = self.past.new(self.prev_n - self.past.size(0),
-                                     * self.past.size()[1:]).zero_()
+            past_new = self.past.new(
+                self.prev_n - self.past.size(0), *self.past.size()[1:]
+            ).zero_()
             self.past = torch.cat([self.past, past_new])
-            future_new = self.future.new(self.next_n - self.future.size(0),
-                                         * self.future.size()[1:]).zero_()
+            future_new = self.future.new(
+                self.next_n - self.future.size(0), *self.future.size()[1:]
+            ).zero_()
             self.future = torch.cat([self.future, future_new])
             return (self.past, self.future)
 
@@ -58,13 +61,18 @@ class DfWindow(Dataset):
 
 
 class DfCols(Dataset):
-    '''
+    """
     each line of csv is a game,
     takes in pandas and a list of strings of which columns are labels
-    '''
+    """
 
-    def __init__(self, df, train_cols=['quarter', 'secs'],
-                 label_cols=['a_pts', 'h_pts'], scale=True):
+    def __init__(
+        self,
+        df,
+        train_cols=["quarter", "secs"],
+        label_cols=["a_pts", "h_pts"],
+        scale=True,
+    ):
         # self.df = df.sort_values(by='cur_time')
         self.df = df
         self.data_len = len(self.df)
@@ -103,16 +111,24 @@ class DfCols(Dataset):
 class LineGen(Dataset):
     def __init__(self, game_df):
         self.df = game_df
-        self.df = self.df[(self.df.a_odds_ml != np.int64(0))
-                          & (self.df.h_odds_ml != np.int64(0))]
+        self.df = self.df[
+            (self.df.a_odds_ml != np.int64(0)) & (self.df.h_odds_ml != np.int64(0))
+        ]
         self.data_len = len(self.df)
 
         min_max_scaler = preprocessing.MinMaxScaler()
 
-        self.pregame = self.df[['a_odds_ps', 'h_odds_ps']].iloc[0].values
-        self.train_cols = ['last_mod_to_start', 'a_pts',
-                           'h_pts', 'quarter', 'status', 'secs', 'num_markets']
-        self.label_cols = ['a_odds_ml', 'h_odds_ml']
+        self.pregame = self.df[["a_odds_ps", "h_odds_ps"]].iloc[0].values
+        self.train_cols = [
+            "last_mod_to_start",
+            "a_pts",
+            "h_pts",
+            "quarter",
+            "status",
+            "secs",
+            "num_markets",
+        ]
+        self.label_cols = ["a_odds_ml", "h_odds_ml"]
         self.X = self.df[self.train_cols].values
         self.Y = self.df[self.label_cols].values
 
@@ -136,10 +152,13 @@ class LineGen(Dataset):
 
 
 class PlayerDataset(Dataset):
-    def __init__(self, window=1, fn='./data/static/lets_try5.csv',
-                 predict_columns=['pass_rating',
-                                  'pass_yds', 'rush_yds', 'rec_yds'],
-                 team_columns=None):
+    def __init__(
+        self,
+        window=1,
+        fn="./data/static/lets_try5.csv",
+        predict_columns=["pass_rating", "pass_yds", "rush_yds", "rec_yds"],
+        team_columns=None,
+    ):
         self.projections_frame = pd.read_csv(fn)
         self.transform(self.projections_frame)
         self.team_columns = team_columns
@@ -149,13 +168,13 @@ class PlayerDataset(Dataset):
 
     def transform(self, df):
         self.projections_frame = self.projections_frame.drop_duplicates()
-        dfs = self.projections_frame.groupby('playerid')
+        dfs = self.projections_frame.groupby("playerid")
         bigcsv = []
         for i in dfs:
             df = i[1]
             length = len(df)
-            df = df.sort_values(by=['age'])
-            if df.pass_yds.astype(bool).sum(axis=0) > .4*length:
+            df = df.sort_values(by=["age"])
+            if df.pass_yds.astype(bool).sum(axis=0) > 0.4 * length:
                 bigcsv.append(df)
         self.projections_frame = pd.concat(bigcsv)
 
@@ -163,15 +182,14 @@ class PlayerDataset(Dataset):
         return len(self.projections_frame)
 
     def __getitem__(self, index):
-        upper = index+self.window
-        past = torch.tensor(
-            self.projections_frame[index:upper][self.all_cols].values)
+        upper = index + self.window
+        past = torch.tensor(self.projections_frame[index:upper][self.all_cols].values)
         past = torch.tensor(past.reshape(-1, 1))
-        team_data = torch.tensor(
-            self.projections_frame.iloc[upper][self.team_columns])
+        team_data = torch.tensor(self.projections_frame.iloc[upper][self.team_columns])
         # past = past.t()
         y = torch.tensor(
-            self.projections_frame.iloc[index+self.window][self.predict_columns])
+            self.projections_frame.iloc[index + self.window][self.predict_columns]
+        )
         past = past.float()
         team_data = team_data.float()
         x = torch.cat((past.flatten(), team_data.flatten())).view(1, 1, -1)
@@ -181,7 +199,7 @@ class PlayerDataset(Dataset):
 
 
 class LinesLoader(Dataset):
-    def __init__(self, dir='../data/', fn='nfl_history_no_strings.csv'):
+    def __init__(self, dir="../data/", fn="nfl_history_no_strings.csv"):
         df = pd.read_csv(dir + fn)
         df = df.fillna(0)
         print(df)
@@ -192,11 +210,11 @@ class LinesLoader(Dataset):
         # for i, dtype in enumerate(df.dtypes):
         #     print(f'{i}: {dtype}')
 
-        self.df = pd.get_dummies(df, columns=['a_team', 'h_team', 'Venue'])
+        self.df = pd.get_dummies(df, columns=["a_team", "h_team", "Venue"])
         self.df = h.remove_string_cols(self.df)
         print(self.df)
 
-        self.target_columns = ['a_win', 'h_win']
+        self.target_columns = ["a_win", "h_win"]
         self.X = self.df.drop(self.target_columns, axis=1)
         self.y = self.df[self.target_columns]
         self.length = len(self.df)
@@ -212,15 +230,24 @@ class LinesLoader(Dataset):
 
 
 class WinSet(Dataset):
-    def __init__(self, predict_column=['h_win'], train_columns=['gen_avg_allowed',
-                                                                'gen_avg_pass_comp_pct', 'gen_avg_pass_yards',
-                                                                'gen_avg_rush_yards', 'gen_avg_rush_yards_per_attempt',
-                                                                'gen_avg_score', 'gen_avg_total_yards']):
+    def __init__(
+        self,
+        predict_column=["h_win"],
+        train_columns=[
+            "gen_avg_allowed",
+            "gen_avg_pass_comp_pct",
+            "gen_avg_pass_yards",
+            "gen_avg_rush_yards",
+            "gen_avg_rush_yards_per_attempt",
+            "gen_avg_score",
+            "gen_avg_total_yards",
+        ],
+    ):
         self.predict_col = predict_column
         self.train_cols = train_columns
 
-        df = pd.read_csv('./data/static/big_daddy2.csv')
-        labels = df['h_win'].copy()
+        df = pd.read_csv("./data/static/big_daddy2.csv")
+        labels = df["h_win"].copy()
         df = df[df.Gen_Games > 4]
         x = df[self.train_cols].values  # returns a numpy array
         min_max_scaler = preprocessing.MinMaxScaler()
@@ -233,14 +260,15 @@ class WinSet(Dataset):
 
     def __getitem__(self, index):
         x = torch.tensor(
-            self.projections_frame.iloc[index][self.train_cols], dtype=torch.float)
+            self.projections_frame.iloc[index][self.train_cols], dtype=torch.float
+        )
         y = self.projections_frame.iloc[index][self.predict_col].values
         if y == 1:
-            y = torch.tensor([0., 1.], dtype=torch.float)
+            y = torch.tensor([0.0, 1.0], dtype=torch.float)
         elif y == 0:
-            y = torch.tensor([1., 0.], dtype=torch.float)
+            y = torch.tensor([1.0, 0.0], dtype=torch.float)
         else:
-            y = torch.tensor([0., 0.], dtype=torch.float)
+            y = torch.tensor([0.0, 0.0], dtype=torch.float)
 
         tup = (x, y)
         return tup
@@ -248,15 +276,31 @@ class WinSet(Dataset):
 
 class VAELoader(Dataset):
     def __init__(self):
-        self.df = pd.read_csv('./data/nba2.csv')
-        self.cols = ['game_id', 'cur_time', 'quarter', 'secs', 'a_pts', 'h_pts',
-                     'status', 'a_win', 'h_win', 'last_mod_to_start',
-                     'last_mod_lines', 'num_markets', 'a_odds_ml', 'h_odds_ml',
-                     'a_odds_ps', 'h_odds_ps', 'a_hcap_ps', 'h_hcap_ps',
-                     'game_start_time']
+        self.df = pd.read_csv("./data/nba2.csv")
+        self.cols = [
+            "game_id",
+            "cur_time",
+            "quarter",
+            "secs",
+            "a_pts",
+            "h_pts",
+            "status",
+            "a_win",
+            "h_win",
+            "last_mod_to_start",
+            "last_mod_lines",
+            "num_markets",
+            "a_odds_ml",
+            "h_odds_ml",
+            "a_odds_ps",
+            "h_odds_ps",
+            "a_hcap_ps",
+            "h_hcap_ps",
+            "game_start_time",
+        ]
 
         self.df_parsed = self.df[self.cols]
-        group = self.df_parsed.groupby(['game_id', 'quarter'])
+        group = self.df_parsed.groupby(["game_id", "quarter"])
 
         # might be a torch fxn to find max seq len
         max = 0
@@ -321,8 +365,11 @@ class LSTMLoader(Dataset):
         for i in range(0, self.length - self.predict_window):
             upper_idx = i + self.window_len
             x = torch.tensor(self.data[i:upper_idx, :]).view(1, 1, -1).float()
-            y = torch.tensor(
-                self.data[upper_idx:upper_idx + self.predict_window, :]).view(1, 1, -1).float()
+            y = (
+                torch.tensor(self.data[upper_idx : upper_idx + self.predict_window, :])
+                .view(1, 1, -1)
+                .float()
+            )
             self.samples.append((x, y))
 
     def __len__(self):

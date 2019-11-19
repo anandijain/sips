@@ -1,8 +1,8 @@
 def init_csv(fn, header, close=True):
-    '''
+    """
 
-    '''
-    f = open(fn, 'a')
+    """
+    f = open(fn, "a")
     write_list(f, header)
     if close:
         f.close()
@@ -17,6 +17,6 @@ def write_list(file, list):
     for i, elt in enumerate(list):
         file.write(str(elt))
         if i == length - 1:
-            file.write('\n')
+            file.write("\n")
         else:
-            file.write(',')
+            file.write(",")

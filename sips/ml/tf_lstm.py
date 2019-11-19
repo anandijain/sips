@@ -12,15 +12,15 @@ from sips.lines.bov import bov
 
 
 class TfLSTM(tf.keras.Model):
-    '''
+    """
     subclassing model type
-    '''
+    """
 
     def __init__(self):
         super(TfLSTM, self).__init__()
-        self.l1 = tf.keras.layers.LSTM(100, activation='relu')
-        self.l2 = tf.keras.layers.LSTM(128, activation='relu')
-        self.l3 = tf.keras.layers.Dense(19, activation='softmax')
+        self.l1 = tf.keras.layers.LSTM(100, activation="relu")
+        self.l2 = tf.keras.layers.LSTM(128, activation="relu")
+        self.l3 = tf.keras.layers.Dense(19, activation="softmax")
 
     def call(self, x):
         x = self.l1(x)
@@ -29,8 +29,16 @@ class TfLSTM(tf.keras.Model):
         return x
 
 
-def multivariate_data(dataset, target, start_index, end_index, history_size,
-                      target_size, step, single_step=False):
+def multivariate_data(
+    dataset,
+    target,
+    start_index,
+    end_index,
+    history_size,
+    target_size,
+    step,
+    single_step=False,
+):
     data = []
     labels = []
 
@@ -39,13 +47,13 @@ def multivariate_data(dataset, target, start_index, end_index, history_size,
         end_index = len(dataset) - target_size
 
     for i in range(start_index, end_index):
-        indices = range(i-history_size, i, step)
+        indices = range(i - history_size, i, step)
         data.append(dataset[indices])
 
         if single_step:
-            labels.append(target[i+target_size])
+            labels.append(target[i + target_size])
         else:
-            labels.append(target[i:i+target_size])
+            labels.append(target[i : i + target_size])
 
     return np.array(data), np.array(labels)
 
@@ -53,14 +61,16 @@ def multivariate_data(dataset, target, start_index, end_index, history_size,
 def make_model():
     # sequential model
 
-    model = tf.keras.models.Sequential([
-        # tf.keras.layers.LSTM(100, input_shape = (15, 210), return_sequences=True, activation='relu'),
-        # tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(256, activation='relu'),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(50, activation='relu'),
-        tf.keras.layers.Dense(19, activation='softmax')
-    ])
+    model = tf.keras.models.Sequential(
+        [
+            # tf.keras.layers.LSTM(100, input_shape = (15, 210), return_sequences=True, activation='relu'),
+            # tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(256, activation="relu"),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(50, activation="relu"),
+            tf.keras.layers.Dense(19, activation="softmax"),
+        ]
+    )
     return model
 
 
@@ -70,8 +80,8 @@ def get_tf_dataset(fn, verbose=False):
         return
     X, y = data
     if verbose:
-        print(f'X: {X}, X[0].shape: {X[0].shape}')
-        print(f'y: {y}')
+        print(f"X: {X}, X[0].shape: {X[0].shape}")
+        print(f"y: {y}")
     # tf_X = tf.convert_to_tensor(X)
     # tf_y = tf.convert_to_tensor(y)
     X = tf.keras.utils.normalize(X)
@@ -97,11 +107,10 @@ def get_tf_dataset(fn, verbose=False):
     return dataset
 
 
-train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
-train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
-    'train_accuracy')
-test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
-test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy')
+train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("train_accuracy")
+test_loss = tf.keras.metrics.Mean("test_loss", dtype=tf.float32)
+test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("test_accuracy")
 
 
 def train_step(model, optimizer, loss_object, x_train, y_train):
@@ -114,11 +123,11 @@ def train_step(model, optimizer, loss_object, x_train, y_train):
         # assumes batch size 1
         correct = tf.equal(maxed_pred, maxed_true).numpy()
         strs = bm.TRANSITION_CLASS_STRINGS
-        print(f'preds: {maxed_pred}')
-        print(f'actuals: {maxed_true}')
+        print(f"preds: {maxed_pred}")
+        print(f"actuals: {maxed_true}")
 
-        print(f'preds_str: {strs[maxed_pred]}')
-        print(f'actual_str: {strs[maxed_true]}')
+        print(f"preds_str: {strs[maxed_pred]}")
+        print(f"actual_str: {strs[maxed_true]}")
         print(loss.numpy())
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
@@ -140,7 +149,7 @@ def test_step(model, loss_object, x_test, y_test):
 def get_fns(dir):
     fns = os.listdir(dir)
     try:
-        fns.remove('LOG.csv')
+        fns.remove("LOG.csv")
     except ValueError:
         pass
 
@@ -148,9 +157,9 @@ def get_fns(dir):
 
 
 def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
-    '''
+    """
 
-    '''
+    """
     num_files = len(fns)
     split_idx = round(0.7 * num_files)
 
@@ -164,12 +173,12 @@ def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
 
 
 def init_summary_writers():
-    '''
+    """
 
-    '''
+    """
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
-    test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+    train_log_dir = "logs/gradient_tape/" + current_time + "/train"
+    test_log_dir = "logs/gradient_tape/" + current_time + "/test"
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     test_summary_writer = tf.summary.create_file_writer(test_log_dir)
     return train_summary_writer, test_summary_writer
@@ -187,7 +196,7 @@ def main():
     BATCH_SIZE = 1
     BUFFER_SIZE = 10000
 
-    folder = './lines/'
+    folder = "./lines/"
     fns = get_fns(folder)
     train_fns, test_fns = train_test_split_dir(fns)
 
@@ -208,15 +217,16 @@ def main():
             continue
         for (x_train, y_train) in dataset:
             tl, ta, correct = train_step(
-                model, optimizer, loss_object, x_train, y_train)
+                model, optimizer, loss_object, x_train, y_train
+            )
             if correct.any():
-                print('guessed correctly')
+                print("guessed correctly")
             else:
-                print('guessed wrong')
+                print("guessed wrong")
         with train_summary_writer.as_default():
 
-            tf.summary.scalar('loss', tl.numpy(), step=epoch)
-            tf.summary.scalar('accuracy', ta.numpy(), step=epoch)
+            tf.summary.scalar("loss", tl.numpy(), step=epoch)
+            tf.summary.scalar("accuracy", ta.numpy(), step=epoch)
 
         test_dataset = random.choice(test_datasets)
 
@@ -225,15 +235,19 @@ def main():
         for (x_test, y_test) in test_dataset:
             tel, tea = test_step(model, loss_object, x_test, y_test)
         with test_summary_writer.as_default():
-            tf.summary.scalar('loss', tel.numpy(), step=epoch)
-            tf.summary.scalar('accuracy', tea.numpy(), step=epoch)
+            tf.summary.scalar("loss", tel.numpy(), step=epoch)
+            tf.summary.scalar("accuracy", tea.numpy(), step=epoch)
 
-        template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
-        print(template.format(epoch+1,
-                              train_loss.result(),
-                              train_accuracy.result()*100,
-                              test_loss.result(),
-                              test_accuracy.result()*100))
+        template = "Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}"
+        print(
+            template.format(
+                epoch + 1,
+                train_loss.result(),
+                train_accuracy.result() * 100,
+                test_loss.result(),
+                test_accuracy.result() * 100,
+            )
+        )
 
         # Reset metrics every epoch
         train_loss.reset_states()
@@ -246,11 +260,24 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    cols = ['last_mod', 'num_markets', 'live', 'quarter', 'secs', 'a_pts',
-            'h_pts', 'status', 'a_ps', 'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml',
-            'game_start_time']
-    fns = get_fns('./lines/')
+    cols = [
+        "last_mod",
+        "num_markets",
+        "live",
+        "quarter",
+        "secs",
+        "a_pts",
+        "h_pts",
+        "status",
+        "a_ps",
+        "h_ps",
+        "a_hcap",
+        "h_hcap",
+        "a_ml",
+        "h_ml",
+        "game_start_time",
+    ]
+    fns = get_fns("./lines/")
     df = pd.read_csv(fns[0])
 
     raw = df[cols]
-    

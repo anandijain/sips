@@ -1,41 +1,43 @@
 import time
 from sips.h import grab as g
 
-ESPN_ROOT = 'https://www.espn.com/'
+ESPN_ROOT = "https://www.espn.com/"
 
 
-TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:time')
-TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:score')
-TIME_GAME_TUP = ('a', 'name', '&lpos=nfl:schedule:live')
+TIME_GAME_TUP = ("a", "name", "&lpos=nfl:schedule:time")
+TIME_GAME_TUP = ("a", "name", "&lpos=nfl:schedule:score")
+TIME_GAME_TUP = ("a", "name", "&lpos=nfl:schedule:live")
 
 
 def get_sports():
-    sports = ['football/nfl', 'baseball/mlb', 'basketball/nba', 'football/college-football',
-             'basketball/mens-college-basketball']
+    sports = [
+        "football/nfl",
+        "baseball/mlb",
+        "basketball/nba",
+        "football/college-football",
+        "basketball/mens-college-basketball",
+    ]
     return sports
 
 
-def time_ids(page=None, sport='football/nfl'):
+def time_ids(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all(
-        'a', {'name': '&lpos=' + sport + ':schedule:time'})
+    unparsed_ids = page.find_all("a", {"name": "&lpos=" + sport + ":schedule:time"})
     return unparsed_ids
 
 
-def score_ids(page=None, sport='football/nfl'):
+def score_ids(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all(
-        'a', {'name': '&lpos=' + sport + ':schedule:score'})
+    unparsed_ids = page.find_all("a", {"name": "&lpos=" + sport + ":schedule:score"})
     return unparsed_ids
 
 
-def live_ids(page=None, sport='football/nfl'):
+def live_ids(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all(
-        'a', {'name': '&lpos=' + sport + ':schedule:live'})
+    unparsed_ids = page.find_all("a", {"name": "&lpos=" + sport + ":schedule:live"})
     live_ids = parse_live_ids(unparsed_ids)
     return live_ids
 
@@ -47,7 +49,7 @@ def get_all_ids(page=None, sports=get_sports()):
     return ids
 
 
-def live_links(page=None, sport='football/nfl'):
+def live_links(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
     ids = live_ids(page, sport)
@@ -55,28 +57,28 @@ def live_links(page=None, sport='football/nfl'):
     return links
 
 
-def schedules(sports=['football/nfl']):
+def schedules(sports=["football/nfl"]):
     if not sports:
         sports = get_sports()
 
     pages = []
     for sport in sports:
-        espn_id_link = '/' + sport + '/schedule'
+        espn_id_link = "/" + sport + "/schedule"
         p = g.get_page(espn_id_link)
         pages.append(p)
     return pages
 
 
-def schedule(sport='football/nfl'):
-    espn_id_link = ESPN_ROOT + sport + '/schedule'
+def schedule(sport="football/nfl"):
+    espn_id_link = ESPN_ROOT + sport + "/schedule"
     p = g.get_page(espn_id_link)
     return p
 
 
-def get_ids(sport='football/nfl', live_only=True):
-    '''
+def get_ids(sport="football/nfl", live_only=True):
+    """
 
-    '''
+    """
     p = schedule(sport)
     ids_live = live_ids(p, sport)
     if live_only:
@@ -108,7 +110,7 @@ def get_live_boxes(pages=None):
 
 def parse_live_id(tag):
     # print(tag)
-    id = tag['href'].split('=')[-1]
+    id = tag["href"].split("=")[-1]
     return id
 
 
@@ -125,7 +127,7 @@ def parse_live_ids(tags):
 
 
 def tag_to_id(tag):
-    id = tag['href'].split('/')[-1]
+    id = tag["href"].split("/")[-1]
     return id
 
 
@@ -136,9 +138,9 @@ def parse_id_dict(tags_dict):
 
 
 def parse_ids(tags):
-    '''
+    """
 
-    '''
+    """
     parsed_ids = []
     if tags:
         if isinstance(tags, dict):
@@ -149,7 +151,7 @@ def parse_ids(tags):
             except TypeError:
                 pass
             try:
-                game_id = game_id.split('=')[-1]
+                game_id = game_id.split("=")[-1]
             except TypeError:
                 pass
             parsed_ids.append(game_id)
@@ -158,8 +160,8 @@ def parse_ids(tags):
     return parsed_ids
 
 
-def id_to_boxlink(id, sport='football/nfl'):
-    return ESPN_ROOT + sport + '/boxscore?gameId=' + id
+def id_to_boxlink(id, sport="football/nfl"):
+    return ESPN_ROOT + sport + "/boxscore?gameId=" + id
 
 
 def box_tds(tds):
@@ -169,33 +171,33 @@ def box_tds(tds):
         if x == 1:
             data.append(td.text)
         txt = td.text
-        if txt == 'TEAM':
+        if txt == "TEAM":
             x = 1
     return data
 
 
 def teamstats(page):
-    '''
+    """
 
-    '''
+    """
     a_newstats = []
     h_newstats = []
     # if table_index % 2 == 1, then home_team
-    tables = page.find_all('div', {'class': 'content desktop'})
+    tables = page.find_all("div", {"class": "content desktop"})
     for i, table in enumerate(tables):
-        header = table.find('thead')
-        len_header = len(header.find_all('th')) - 1  # - 1 for 'TEAM'
-        tds = table.find_all('td')
+        header = table.find("thead")
+        len_header = len(header.find_all("th")) - 1  # - 1 for 'TEAM'
+        tds = table.find_all("td")
         data = box_tds(tds)
         if i % 2 == 1:
             if len(data) == 0:
-                h_newstat = ['NaN' for _ in range(len_header)]
+                h_newstat = ["NaN" for _ in range(len_header)]
             else:
                 h_newstat = data
             h_newstats.append(h_newstat)
         else:
             if len(data) == 0:
-                a_newstat = ['NaN' for _ in range(len_header)]
+                a_newstat = ["NaN" for _ in range(len_header)]
             else:
                 a_newstat = data
             a_newstats.append(a_newstat)
@@ -203,16 +205,16 @@ def teamstats(page):
 
 
 def parse_teamstats(teamstats):
-    '''
+    """
     a @ h order
-    '''
+    """
     real_stats = []
     for team_newstats in teamstats:
         for team_newstat in team_newstats:
             for stat in team_newstat:
                 try:
                     real_stat = stat.text
-                    if real_stat == 'TEAM':
+                    if real_stat == "TEAM":
                         continue
                 except AttributeError:
                     real_stat = stat
@@ -221,37 +223,37 @@ def parse_teamstats(teamstats):
 
 
 def box_teamnames(page):
-    '''
+    """
     A @ H always
-    '''
-    teams = page.find_all('span', {'class': 'short-name'})
-    destinations = page.find_all('span', {'class': 'long-name'})
+    """
+    teams = page.find_all("span", {"class": "short-name"})
+    destinations = page.find_all("span", {"class": "long-name"})
     names = [team.text for team in teams]
     cities = [destination.text for destination in destinations]
     if not names or not cities:
         return None
-    a_team, h_team = [dest + ' ' + name for (dest, name) in zip(cities, names)]
+    a_team, h_team = [dest + " " + name for (dest, name) in zip(cities, names)]
     return a_team, h_team
 
 
-def boxlinks(ids=None, sports=['football/nfl'], live_only=True):
-    '''
+def boxlinks(ids=None, sports=["football/nfl"], live_only=True):
+    """
 
-    '''
+    """
     links = []
     for sport in sports:
         if not ids:
             ids = get_ids(sport=sport, live_only=live_only)
-        url = ESPN_ROOT + sport + '/boxscore?gameId='
+        url = ESPN_ROOT + sport + "/boxscore?gameId="
         sport_links = [url + id for id in ids]
         links += sport_links
     return links
 
 
-def boxscores(sports=['football/nfl'], output='dict'):
-    '''
+def boxscores(sports=["football/nfl"], output="dict"):
+    """
     ~ 10 seconds
-    '''
+    """
     links = boxlinks(sports=sports)
     # print(f'links: {links}')
     boxes = [boxscore(link) for link in links]
@@ -259,9 +261,9 @@ def boxscores(sports=['football/nfl'], output='dict'):
 
 
 def boxscore(link):
-    '''
+    """
 
-    '''
+    """
     page = g.get_page(link)
     teams = box_teamnames(page)
     if teams:
@@ -280,12 +282,12 @@ def main():
 
     real_stats = boxscores()
     for i, rs in enum(real_stats):
-        print(f'{i}: {len(rs)}')
+        print(f"{i}: {len(rs)}")
         print(rs)
     print(real_stats)
     end = time.time()
     delta = end - start
-    print(f'delta: {delta}')
+    print(f"delta: {delta}")
     return real_stats
 
 
