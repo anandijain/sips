@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
    name='sips',
    version='0.12',
-   description='tools for RL sports betting',
+   description='tools for quantitative sports betting',
    author='Anand Jain',
    author_email='anandj@uchicago.edu',
    packages=['sips'],  #same as name

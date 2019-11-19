@@ -10,6 +10,7 @@ import tensorflow as tf
 from sips.macros import bov as bm
 from sips.lines.bov import bov
 
+
 class TfLSTM(tf.keras.Model):
     '''
     subclassing model type
@@ -103,7 +104,6 @@ test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
 test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy')
 
 
-
 def train_step(model, optimizer, loss_object, x_train, y_train):
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
@@ -111,7 +111,8 @@ def train_step(model, optimizer, loss_object, x_train, y_train):
         # predictions = tf.reshape(predictions, [-1])
         maxed_pred = tf.argmax(predictions, 1).numpy()[0]
         maxed_true = tf.argmax(y_train).numpy()
-        correct = tf.equal(maxed_pred, maxed_true).numpy()  # assumes batch size 1
+        # assumes batch size 1
+        correct = tf.equal(maxed_pred, maxed_true).numpy()
         strs = bm.TRANSITION_CLASS_STRINGS
         print(f'preds: {maxed_pred}')
         print(f'actuals: {maxed_true}')
@@ -135,56 +136,90 @@ def test_step(model, loss_object, x_test, y_test):
     tea = test_accuracy(y_test, predictions)
     return te, tea
 
-def main():
-    # EPOCHS = 10
-    BATCH_SIZE = 1
-    BUFFER_SIZE = 10000
-    folder = './lines/'
-    fns = os.listdir(folder)
-    fns.remove('LOG.csv')
+
+def get_fns(dir):
+    fns = os.listdir(dir)
+    try:
+        fns.remove('LOG.csv')
+    except ValueError:
+        pass
+
+    return fns
+
+
+def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
+    '''
+
+    '''
     num_files = len(fns)
-    train_frac = 0.7
     split_idx = round(0.7 * num_files)
-    random.shuffle(fns)
+
+    if shuffle:
+        random.shuffle(fns)
+
     train_fns = fns[0:split_idx]
     test_fns = fns[split_idx:]
 
-    datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
-    test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
-
-    dataset = datasets[0]
-    test_dataset = test_datasets[0]
-
- 
-    # model = TfLSTM()
-    model = make_model()
-    loss_object = tf.keras.losses.CategoricalCrossentropy()
-    optimizer = tf.keras.optimizers.Adam()
+    return train_fns, test_fns
 
 
+def init_summary_writers():
+    '''
 
+    '''
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
     test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+    return train_summary_writer, test_summary_writer
 
+
+def model_core():
+    model = make_model()
+    loss_object = tf.keras.losses.CategoricalCrossentropy()
+    optimizer = tf.keras.optimizers.Adam()
+    return model, loss_object, optimizer
+
+
+def main():
+    # EPOCHS = 10
+    BATCH_SIZE = 1
+    BUFFER_SIZE = 10000
+
+    folder = './lines/'
+    fns = get_fns(folder)
+    train_fns, test_fns = train_test_split_dir(fns)
+
+    datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
+    test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
+
+    # single dataset example
+    dataset = datasets[0]
+    test_dataset = test_datasets[0]
+
+    # model = TfLSTM()
+    model, loss_object, optimizer = model_core()
+
+    train_summary_writer, test_summary_writer = init_summary_writers()
 
     for epoch, dataset in enumerate(datasets):
         if not dataset:
             continue
         for (x_train, y_train) in dataset:
-            tl, ta, correct = train_step(model, optimizer, loss_object, x_train, y_train)
+            tl, ta, correct = train_step(
+                model, optimizer, loss_object, x_train, y_train)
             if correct.any():
                 print('guessed correctly')
             else:
                 print('guessed wrong')
         with train_summary_writer.as_default():
-            
+
             tf.summary.scalar('loss', tl.numpy(), step=epoch)
             tf.summary.scalar('accuracy', ta.numpy(), step=epoch)
 
         test_dataset = random.choice(test_datasets)
+
         if not test_dataset:
             continue
         for (x_test, y_test) in test_dataset:
@@ -195,10 +230,10 @@ def main():
 
         template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
         print(template.format(epoch+1,
-                                train_loss.result(),
-                                train_accuracy.result()*100,
-                                test_loss.result(),
-                                test_accuracy.result()*100))
+                              train_loss.result(),
+                              train_accuracy.result()*100,
+                              test_loss.result(),
+                              test_accuracy.result()*100))
 
         # Reset metrics every epoch
         train_loss.reset_states()
@@ -209,6 +244,13 @@ def main():
     tf.saved_model.save(model, "./logs/models/1/")
 
 
-
 if __name__ == "__main__":
-    main()
+    # main()
+    cols = ['last_mod', 'num_markets', 'live', 'quarter', 'secs', 'a_pts',
+            'h_pts', 'status', 'a_ps', 'h_ps', 'a_hcap', 'h_hcap', 'a_ml', 'h_ml',
+            'game_start_time']
+    fns = get_fns('./lines/')
+    df = pd.read_csv(fns[0])
+
+    raw = df[cols]
+    

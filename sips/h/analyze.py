@@ -1,8 +1,8 @@
 import numpy as np
 
-from sips.h import parse
 from sips.h import helpers as h
 from sips.macros import bov as bm
+import sips.h.serialize as s
 
 def classify_transition(prev_mls, cur_mls):
     '''
@@ -10,7 +10,7 @@ def classify_transition(prev_mls, cur_mls):
     with the class of transition corresponding to the input moneylines
     '''
 
-    mls = [parse.row_ml(ml) for ml in prev_mls + cur_mls]
+    mls = [s.row_ml(ml) for ml in prev_mls + cur_mls]
 
     a_prev = mls[0]
     h_prev = mls[1]

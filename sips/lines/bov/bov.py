@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 import sips.h.grab as g
-import sips.h.parse as p
+import sips.h.serialize as s
 import sips.h.helpers as h
 import sips.h.analyze as analyze
 
@@ -76,7 +76,7 @@ def prep_game_dataset(fn, sports=['nba']): # , zip_data=True, verbose=False):
         if bm.TRANSITION_CLASS_STRINGS[np.argmax(transition_class)] == 'stays same':
             continue
 
-        x = p.serialize_row(prev_row, teams_dict, statuses_dict)
+        x = s.serialize_row(prev_row, teams_dict, statuses_dict)
         y.append(transition_class)
         X.append(x)
         prev_ml = cur_ml
