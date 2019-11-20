@@ -1,5 +1,6 @@
 import os
 
+import tensorflow as tf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -35,3 +36,20 @@ def show_plot(plot_data, delta, title):
     plt.xlim([time_steps[0], (future + 5) * 2])
     plt.xlabel("Time-Step")
     return plt
+
+
+def plot_train_history(history, title):
+    '''
+    simple tf loss plotter
+    '''
+    loss = history.history['loss']
+
+    epochs = range(len(loss))
+
+    plt.figure()
+
+    plt.plot(epochs, loss, 'b', label='Training loss')
+    plt.title(title)
+    plt.legend()
+
+    plt.show()

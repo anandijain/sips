@@ -5,12 +5,33 @@ import random
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.lines.bov import bov
 from sips.h import helpers as h
 from sips.h import serialize as s
+from sips.h import viz
+
+COLS = [
+    # "num_markets",
+    # "live",
+    'a_team',
+    'h_team',
+    "quarter",
+    "secs",
+    "a_pts",
+    "h_pts",
+    "status",
+    "a_ps",
+    "h_ps",
+    "a_hcap",
+    "h_hcap",
+    "a_ml",
+    "h_ml",
+    # "game_start_time",
+]
 
 
 class TfLSTM(tf.keras.Model):
@@ -18,9 +39,10 @@ class TfLSTM(tf.keras.Model):
     subclassing model type
     """
 
-    def __init__(self):
+    def __init__(self, in_shape):
         super(TfLSTM, self).__init__()
-        self.l1 = tf.keras.layers.LSTM(100, activation="relu")
+        self.l1 = tf.keras.layers.LSTM(
+            100, input_shape=in_shape, activation="relu")
         self.l2 = tf.keras.layers.LSTM(128, activation="relu")
         self.l3 = tf.keras.layers.Dense(19, activation="softmax")
 
@@ -29,35 +51,6 @@ class TfLSTM(tf.keras.Model):
         x = self.l2(x)
         x = self.l3(x)
         return x
-
-
-def multivariate_data(
-    dataset,
-    target,
-    start_index,
-    end_index,
-    history_size,
-    target_size,
-    step,
-    single_step=False,
-):
-    data = []
-    labels = []
-
-    start_index = start_index + history_size
-    if end_index is None:
-        end_index = len(dataset) - target_size
-
-    for i in range(start_index, end_index):
-        indices = range(i - history_size, i, step)
-        data.append(dataset[indices])
-
-        if single_step:
-            labels.append(target[i + target_size])
-        else:
-            labels.append(target[i : i + target_size])
-
-    return np.array(data), np.array(labels)
 
 
 def make_model():
@@ -87,22 +80,6 @@ def get_tf_dataset(fn, verbose=False):
     # tf_X = tf.convert_to_tensor(X)
     # tf_y = tf.convert_to_tensor(y)
     X = tf.keras.utils.normalize(X)
-
-    past_history = 15
-    future_target = 5
-    STEP = 1
-
-    # x_train_single, y_train_single = multivariate_data(X, y, 0,
-    #                                                 len(y), past_history,
-    #                                                 future_target, STEP,
-    #                                                 single_step=False)
-    # x_train_single = tf.reshape(x_train_single, ())
-    # print('Single window of past history : {}'.format(x_train_single[0]))
-    # print('Single window of past history shape: {}'.format(x_train_single[0].shape))
-
-    # print('Single window of past history : {}'.format(y_train_single[0]))
-    # print('Single window of past history shape: {}'.format(y_train_single[0].shape))
-    # dataset = tf.data.Dataset.from_tensor_slices((x_train_single, y_train_single))
 
     dataset = tf.data.Dataset.from_tensor_slices((np.array(X), np.array(y)))
 
@@ -148,32 +125,6 @@ def test_step(model, loss_object, x_test, y_test):
     return te, tea
 
 
-def get_fns(dir):
-    fns = os.listdir(dir)
-    try:
-        fns.remove("LOG.csv")
-    except ValueError:
-        pass
-
-    return fns
-
-
-def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
-    """
-
-    """
-    num_files = len(fns)
-    split_idx = round(0.7 * num_files)
-
-    if shuffle:
-        random.shuffle(fns)
-
-    train_fns = fns[0:split_idx]
-    test_fns = fns[split_idx:]
-
-    return train_fns, test_fns
-
-
 def init_summary_writers():
     """
 
@@ -193,24 +144,22 @@ def model_core():
     return model, loss_object, optimizer
 
 
-def main():
-    # EPOCHS = 10
-    BATCH_SIZE = 1
-    BUFFER_SIZE = 10000
-
-    folder = "./lines/"
-    fns = get_fns(folder)
-    
-    train_fns, test_fns = train_test_split_dir(fns)
-
+def get_directional_datasets():
+    folder = m.PROJ_DIR + "ml/lines/"
+    fns = h.get_fns(folder)
+    train_fns, test_fns = h.train_test_split_dir(fns)
     datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
     test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
+    return datasets, test_datasets
 
-    # single dataset example
-    dataset = datasets[0]
-    test_dataset = test_datasets[0]
 
-    # model = TfLSTM()
+def train_directional_predictor(datasets, test_datasets):
+    # EPOCHS = 10
+    BATCH_SIZE = 1
+    BUFFER_SIZE = 100
+
+    datasets, test_datasets = get_directional_datasets()
+
     model, loss_object, optimizer = model_core()
 
     train_summary_writer, test_summary_writer = init_summary_writers()
@@ -237,6 +186,7 @@ def main():
             continue
         for (x_test, y_test) in test_dataset:
             tel, tea = test_step(model, loss_object, x_test, y_test)
+
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
             tf.summary.scalar("accuracy", tea.numpy(), step=epoch)
@@ -261,35 +211,79 @@ def main():
     tf.saved_model.save(model, "./logs/models/1/")
 
 
-def get_pred_df():
-    cols = [
-        "num_markets",
-        "live",
-        "quarter",
-        "secs",
-        "a_pts",
-        "h_pts",
-        "status",
-        "a_ps",
-        "h_ps",
-        "a_hcap",
-        "h_hcap",
-        "a_ml",
-        "h_ml",
-        "game_start_time",
-    ]
-    folder = m.PROJ_DIR + "ml/lines/"
-    fns = get_fns(folder)
-    df = pd.read_csv(folder + fns[0])
+def get_pred_df(df, cols=COLS, to_numpy=True):
 
     raw = df[cols]
     test_cols = ['a_team', 'h_team', 'status']  # order matters
-    teams_map, statuses_map = h.dicts_for_one_hotting(sports=['nba', 'nfl', 'nhl']) 
-    hot_df = s.hot(df, columns=test_cols, hot_maps=[teams_map, teams_map, statuses_map])
+    teams_map, statuses_map = h.dicts_for_one_hotting(
+        sports=['nba', 'nfl', 'nhl'])
+    hot_df = s.hot(raw, columns=test_cols, hot_maps=[
+                   teams_map, teams_map, statuses_map])
+    vals = {'EVEN': 100, 'None': -1, None: -1}
+    full_df = hot_df.replace(vals)
+    serialized = full_df.astype(np.float32)
+    if to_numpy:
+        serialized = serialized.values
+    return serialized
 
-    return hot_df
+
+def prep_pred_df(dataset):
+    BATCH_SIZE = 1
+    BUFFER_SIZE = 1
+    past_history = 2
+    future_target = 1
+    STEP = 1
+    EVALUATION_INTERVAL = 200
+    EPOCHS = 10
+    X, y = h.multivariate_data(dataset, dataset[:, 8:10], 0,
+                               len(dataset) -
+                               1, past_history,
+                               future_target, STEP,
+                               single_step=True)
+    # X = tf.keras.utils.normalize(X)
+    X = tf.data.Dataset.from_tensor_slices((X, y))
+    # X = X.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+    return X
+
+
+def df_to_tf_dataset(df):
+    serialized = get_pred_df(df)
+    X = prep_pred_df(serialized)
+    return X
+
+
+def get_dfs():
+    folder = m.PROJ_DIR + "ml/lines/"
+    fns = h.get_fns(folder)
+    dfs = [pd.read_csv(folder + fn) for fn in fns]
+    return dfs
+
+
+def get_datasets():
+    dfs = get_dfs()
+    datasets = [df_to_tf_dataset(df) for df in dfs]
+    return datasets
+
+
+def main():
+    datasets = get_datasets()
+    loss_object = tf.losses.MeanAbsoluteError()
+    for d in datasets:
+        print(d)
+        print(dir(d))
+        break
+    optimizer = tf.keras.optimizers.RMSprop(clipvalue=1.0)
+    model = TfLSTM(in_shape=datasets[0][0].shape[-2:])
+    for epoch, dataset in enumerate(datasets):
+        if not dataset:
+            continue
+        for (x_train, y_train) in dataset:
+            tl, ta, correct = train_step(
+                model, optimizer, loss_object, x_train, y_train
+            )
+
 
 if __name__ == "__main__":
     # main()
-    hot_df = get_pred_df()
-    print(f'hot_df: {hot_df}')
+
+    main()

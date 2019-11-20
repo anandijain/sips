@@ -29,6 +29,9 @@ def serialize_row(row, teams_dict, statuses_dict, include_teams=False):
     final = np.array(ret, dtype=np.float32)
     return final
 
+# def serialize_df(df, obj_cols, maps):
+    
+
 
 def mkt_live(row):
     hot_mkt = [1, 0] if row[6] else [0, 1]

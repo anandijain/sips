@@ -62,6 +62,64 @@ def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
     return teams_dict, statuses_dict
 
 
+def multivariate_data(
+    dataset,
+    target,
+    start_index,
+    end_index,
+    history_size,
+    target_size,
+    step,
+    single_step=False,
+):
+    '''
+    create sliding window tuples for training nns on multivar timeseries
+    '''
+    data = []
+    labels = []
+
+    start_index = start_index + history_size
+    if end_index is None:
+        end_index = len(dataset) - target_size
+
+    for i in range(start_index, end_index):
+        indices = range(i - history_size, i, step)
+        data.append(dataset[indices])
+
+        if single_step:
+            labels.append(target[i + target_size])
+        else:
+            labels.append(target[i: i + target_size])
+
+    return np.array(data), np.array(labels)
+
+
+def get_fns(dir):
+    fns = os.listdir(dir)
+    try:
+        fns.remove("LOG.csv")
+    except ValueError:
+        pass
+
+    return fns
+
+
+def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
+    """
+
+    """
+    num_files = len(fns)
+    split_idx = round(0.7 * num_files)
+
+    if shuffle:
+        random.shuffle(fns)
+
+    train_fns = fns[0:split_idx]
+    test_fns = fns[split_idx:]
+
+    return train_fns, test_fns
+
+
 def remove_string_cols(df):
     cols_to_remove = []
     for col in df.columns:

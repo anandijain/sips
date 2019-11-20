@@ -62,9 +62,7 @@ def single_game_line(
         + "-"
         + game_start_time
     )
-    print(url)
     req = g.req_json(url)
-    print(req)
     event = req[0]["events"][0]
     row = u.parse_event(event)
     return row
@@ -95,18 +93,11 @@ def prep_game_dataset(fn, sports=["nba"]):  # , zip_data=True, verbose=False):
         X.append(x)
         prev_ml = cur_ml
         prev_row = cur_row
-    # ret = [X, y]
 
-    # if zip_data:
-    #     ret = list(zip(X, y))
-
-    # if verbose:
-    #     print(f'game dataset: {ret}')
     len_game = len(y)
     if not X:
         return
     X = np.reshape(np.concatenate(X, axis=0), (len_game, 1, -1))
-    # y = np.reshape(np.concatenate(y, axis=0), (466, 1, -1))
 
     return X, y
 
