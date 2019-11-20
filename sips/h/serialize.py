@@ -31,11 +31,16 @@ def serialize_row(row, teams_dict, statuses_dict, include_teams=False):
     return final
 
 
-def serialize_df(df):
+def serialize_df(df, cols_to_hot=None):
+    """
+
+    """
     teams_dict, statuses_dict = hot.dicts_for_one_hotting()
-    df = df.replace({'EVEN': 100})
-    df = hot.hot(df)
-    df = df.replace({'None': -1})
+    df = df.replace('EVEN', 100)
+    df = df.drop(['a_ou', 'h_ou'], axis=1, errors='ignore')
+    if cols_to_hot:
+        df = hot.hot(df, cols_to_hot=cols_to_hot)
+    df = df.replace('None', -1)
     ret = np.array(df, dtype=np.float32)
     return ret
 

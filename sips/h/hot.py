@@ -73,7 +73,7 @@ def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
     return teams_dict, statuses_dict
 
 
-def hot(df, columns=['sport', 'a_team', 'h_team', 'status'], hot_maps=[hot_sports_dict(), hot_teams_dict(), hot_teams_dict(), hot_statuses_dict()]):
+def hot(df, cols_to_hot=['sport', 'a_team', 'h_team', 'status'], hot_maps=[hot_sports_dict(), hot_teams_dict(), hot_teams_dict(), hot_statuses_dict()]):
     '''
     let m == len(hot_maps)
 
@@ -84,19 +84,28 @@ def hot(df, columns=['sport', 'a_team', 'h_team', 'status'], hot_maps=[hot_sport
         - create m many dfs of the hotted data 
         - concat onto df
     '''
-    to_hot = df[columns]
     hot_dfs = []
-    for col, hot_map in zip(to_hot.iteritems(), hot_maps):
+    hot_tups = []
+    for i, col in enumerate(cols_to_hot):
+        if col in df.columns:
+            hot_tups.append((df[col], hot_maps[i]))
+
+    for col, hot_map in hot_tups:
         hot_dfs.append(hot_col(col, hot_map))
     ret = pd.concat([df] + hot_dfs, axis=1)
-    ret = ret.drop(columns, axis=1)
+    ret = ret.drop(cols_to_hot, axis=1, errors='ignore')
     return ret
 
 
 def hot_col(col, hot_map):
+    """
+
+    """
     hot_cols = hot_map.keys()
     hot_rows = []
-    for i, elt in col[1].items():
+    for i, elt in col.items():
+
         hot_rows.append(hot_map[elt])
-    hotted_col = pd.DataFrame(hot_rows, columns=hot_cols)
-    return hotted_col
+
+    hotted_col_df = pd.DataFrame(hot_rows, columns=hot_cols)
+    return hotted_col_df

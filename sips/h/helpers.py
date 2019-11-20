@@ -39,7 +39,7 @@ def multivariate_data(
     '''
     data = []
     labels = []
-
+    # print(f'target: {target}')
     start_index = start_index + history_size
 
     if end_index is None:
@@ -50,9 +50,11 @@ def multivariate_data(
         data.append(dataset[indices])
 
         if single_step:
-            labels.append(target[i + target_size])
+            label = target[i + target_size, :]
         else:
-            labels.append(target[i: i + target_size])
+            label = target[i: i + target_size, :]
+
+        labels.append(label)
 
     return np.array(data), np.array(labels)
 

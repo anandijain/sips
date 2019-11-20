@@ -18,6 +18,10 @@ from sips.h import viz
 from sips.h import tf_loaders as tfls
 
 
+WRITE_TO = m.PROJ_DIR + "ml/logs/"
+READ_FROM = m.PROJ_DIR + "ml/lines/"
+
+
 class TfLSTM(tf.keras.Model):
     """
     subclassing model type
@@ -136,8 +140,8 @@ def init_summary_writers():
 
     """
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    train_log_dir = "logs/gradient_tape/" + current_time + "/train"
-    test_log_dir = "logs/gradient_tape/" + current_time + "/test"
+    train_log_dir = WRITE_TO + "gradient_tape/" + current_time + "/train"
+    test_log_dir = WRITE_TO + "gradient_tape/" + current_time + "/test"
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     test_summary_writer = tf.summary.create_file_writer(test_log_dir)
     return train_summary_writer, test_summary_writer
@@ -204,7 +208,7 @@ def train_directional_predictor(datasets, test_datasets):
         train_accuracy.reset_states()
         test_accuracy.reset_states()
 
-    tf.saved_model.save(model, "./logs/models/1/")
+    tf.saved_model.save(model, WRITE_TO + 'directional_prediction/')
 
 
 def get_example(datasets):
@@ -214,7 +218,8 @@ def get_example(datasets):
             continue
         # data = dataset.batch(1)
 
-        for (x_train, y_train) in dataset:
+        for example in dataset:
+            x_train, y_train = example[0], example[1]
             print(f'x_train: {x_train}')
             print(f'x_train.shape: {x_train.shape}')
             print(f'y_train: {y_train}')
@@ -228,8 +233,7 @@ def main():
     '''
 
     '''
-    folder = m.PROJ_DIR + "ml/lines/"
-    all_datasets = tfls.get_pred_datasets(folder, label_cols=[
+    all_datasets = tfls.get_pred_datasets(READ_FROM, label_cols=[
                                           'a_ml', 'h_ml'], batch_size=1, buffer_size=10, history_size=100, pred_size=1, step_size=1, norm=True)
     datasets, test_datasets = h.train_test_split_list(all_datasets)
     x, y = get_example(datasets)
@@ -245,7 +249,8 @@ def main():
         if not dataset:
             continue
 
-        for (x_train, y_train) in dataset:
+        for example in dataset:
+            x_train, y_train = example[0], example[1]
             tl = train_step_regress(
                 model, optimizer, loss_fxn, x_train, y_train, train_loss)
 
@@ -253,7 +258,7 @@ def main():
             tf.summary.scalar("loss", tl.numpy(), step=epoch)
 
         test_dataset = random.choice(test_datasets)
-        
+
         if not test_dataset:
             continue
 
@@ -278,7 +283,7 @@ def main():
         train_loss.reset_states()
         test_loss.reset_states()
 
-    tf.saved_model.save(model, "./logs/models/ml_pred/")
+    tf.saved_model.save(model, WRITE_TO + 'models/ml_pred/')
 
 
 if __name__ == "__main__":
