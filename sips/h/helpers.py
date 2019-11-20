@@ -29,9 +29,8 @@ def hot_list(strings, output="np"):
     return hots
 
 
-def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
+def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
     team_list = []
-
     for s in sports:
         if s == "nfl":
             team_list += nfl.teams
@@ -41,6 +40,10 @@ def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
             team_list += nhl.teams
 
     teams_dict = hot_list(team_list, output="list")
+    return teams_dict
+
+
+def hot_statuses():
     statuses = [
         "GAME_END",
         "HALF_TIME",
@@ -50,6 +53,12 @@ def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
         "PRE_GAME",
     ]
     statuses_dict = hot_list(statuses, output="list")
+    return statuses_dict
+
+
+def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
+    teams_dict = hot_teams_dict(sports=sports)
+    statuses_dict = hot_statuses()
     return teams_dict, statuses_dict
 
 

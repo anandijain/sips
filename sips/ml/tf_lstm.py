@@ -6,9 +6,11 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 
-
+from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.lines.bov import bov
+from sips.h import helpers as h
+from sips.h import serialize as s
 
 
 class TfLSTM(tf.keras.Model):
@@ -198,6 +200,7 @@ def main():
 
     folder = "./lines/"
     fns = get_fns(folder)
+    
     train_fns, test_fns = train_test_split_dir(fns)
 
     datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
@@ -258,10 +261,8 @@ def main():
     tf.saved_model.save(model, "./logs/models/1/")
 
 
-if __name__ == "__main__":
-    # main()
+def get_pred_df():
     cols = [
-        "last_mod",
         "num_markets",
         "live",
         "quarter",
@@ -277,7 +278,18 @@ if __name__ == "__main__":
         "h_ml",
         "game_start_time",
     ]
-    fns = get_fns("./lines/")
-    df = pd.read_csv(fns[0])
+    folder = m.PROJ_DIR + "ml/lines/"
+    fns = get_fns(folder)
+    df = pd.read_csv(folder + fns[0])
 
     raw = df[cols]
+    test_cols = ['a_team', 'h_team', 'status']  # order matters
+    teams_map, statuses_map = h.dicts_for_one_hotting(sports=['nba', 'nfl', 'nhl']) 
+    hot_df = s.hot(df, columns=test_cols, hot_maps=[teams_map, teams_map, statuses_map])
+
+    return hot_df
+
+if __name__ == "__main__":
+    # main()
+    hot_df = get_pred_df()
+    print(f'hot_df: {hot_df}')
