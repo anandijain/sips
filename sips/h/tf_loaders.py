@@ -107,14 +107,12 @@ def get_pred_df(df, cols=COLS, to_numpy=True):
     return serialized
 
 
-def prep_pred_df(dataset):
+def prep_pred_df(dataset):  #, batch_size, buffer_size, history_size, pred_size, step_size):
     BATCH_SIZE = 1
     BUFFER_SIZE = 1
     past_history = 2
     future_target = 1
     STEP = 1
-    EVALUATION_INTERVAL = 200
-    EPOCHS = 10
     X, y = h.multivariate_data(dataset, dataset[:, 8:10], 0,
                                len(dataset) -
                                1, past_history,
@@ -123,6 +121,8 @@ def prep_pred_df(dataset):
     # X = tf.keras.utils.normalize(X)
     X = tf.data.Dataset.from_tensor_slices((X, y))
     # X = X.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+    X = X.batch(BATCH_SIZE)
+    # X = X.take(BATCH_SIZE).shuffle(BUFFER_SIZE).cache().repeat()
     return X
 
 
@@ -132,7 +132,7 @@ def df_to_tf_dataset(df):
     return X
 
 
-def get_pred_datasets(folder):
+def get_pred_datasets(folder, label_cols):
     dfs = h.get_dfs(folder)
     datasets = [df_to_tf_dataset(df) for df in dfs]
     return datasets

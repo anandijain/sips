@@ -23,14 +23,16 @@ class TfLSTM(tf.keras.Model):
     subclassing model type
     """
 
-    def __init__(self, in_shape):
+    def __init__(self, in_dim):
         super(TfLSTM, self).__init__()
+        # self.e1 = tf.keras.layers.Embedding(input_dim=in_shape, output_dim=64)
         self.l1 = tf.keras.layers.LSTM(
-            100, input_shape=in_shape, activation="relu")
+            100, activation="relu", input_shape=(None, in_dim), return_sequences=True)
         self.l2 = tf.keras.layers.LSTM(128, activation="relu")
         self.l3 = tf.keras.layers.Dense(19, activation="softmax")
 
     def call(self, x):
+        print(x.shape)
         x = self.l1(x)
         x = self.l2(x)
         x = self.l3(x)
@@ -42,7 +44,7 @@ def make_model():
 
     model = tf.keras.models.Sequential(
         [
-            # tf.keras.layers.LSTM(100, input_shape = (15, 210), return_sequences=True, activation='relu'),
+            tf.keras.layers.LSTM(100, input_shape = (None, 202), return_sequences=True, activation='relu'),
             # tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(256, activation="relu"),
             tf.keras.layers.Dense(128, activation="relu"),
@@ -52,6 +54,13 @@ def make_model():
     )
     return model
 
+def make_model_functional(in_shape_tup):
+    inputs = tf.keras.Input(shape=in_shape_tup, batch_size=1)
+    x = tf.keras.layers.LSTM(64, activation='relu')(inputs)
+    outputs = tf.keras.layers.Dense(2)(x)
+    model = tf.keras.Model(inputs, outputs)
+    return model
+
 
 train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
 train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("train_accuracy")
@@ -59,21 +68,20 @@ test_loss = tf.keras.metrics.Mean("test_loss", dtype=tf.float32)
 test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("test_accuracy")
 
 
-def train_step(model, optimizer, loss_object, x_train, y_train):
+def train_step_classify(model, optimizer, loss_object, x_train, y_train):
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
-        # predictions = tf.reshape(predictions, [-1])
         maxed_pred = tf.argmax(predictions, 1).numpy()[0]
         maxed_true = tf.argmax(y_train).numpy()
         # assumes batch size 1
         correct = tf.equal(maxed_pred, maxed_true).numpy()
         strs = bm.TRANSITION_CLASS_STRINGS
-        print(f"preds: {maxed_pred}")
-        print(f"actuals: {maxed_true}")
+        # print(f"preds: {maxed_pred}")
+        # print(f"actuals: {maxed_true}")
 
-        print(f"preds_str: {strs[maxed_pred]}")
-        print(f"actual_str: {strs[maxed_true]}")
+        # print(f"preds_str: {strs[maxed_pred]}")
+        # print(f"actual_str: {strs[maxed_true]}")
         print(loss.numpy())
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
@@ -81,6 +89,19 @@ def train_step(model, optimizer, loss_object, x_train, y_train):
     tl = train_loss(loss)
     ta = train_accuracy(y_train, predictions)
     return tl, ta, correct
+
+
+def train_step_regress(model, optimizer, loss_object, x_train, y_train):
+    with tf.GradientTape() as tape:
+        predictions = model(x_train, training=True)
+        loss = loss_object(y_train, predictions)
+        print(loss.numpy())
+    grads = tape.gradient(loss, model.trainable_variables)
+    optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+    tl = train_loss(loss)
+    return tl
+
 
 
 def test_step(model, loss_object, x_test, y_test):
@@ -115,24 +136,20 @@ def train_directional_predictor(datasets, test_datasets):
     # EPOCHS = 10
     BATCH_SIZE = 1
     BUFFER_SIZE = 100
-
     datasets, test_datasets = tfls.get_directional_datasets()
-
-    model, loss_object, optimizer = model_core()
-
+    model, loss_fxn, optim = model_core()
     train_summary_writer, test_summary_writer = init_summary_writers()
-
     for epoch, dataset in enumerate(datasets):
         if not dataset:
             continue
-        for (x_train, y_train) in dataset:
-            tl, ta, correct = train_step(
-                model, optimizer, loss_object, x_train, y_train
-            )
+        for (xtr, ytr) in dataset:
+            tl, ta, correct = train_step_classify(model, optim, loss_fxn, xtr, ytr)
+
             if correct.any():
                 print("guessed correctly")
             else:
                 print("guessed wrong")
+
         with train_summary_writer.as_default():
 
             tf.summary.scalar("loss", tl.numpy(), step=epoch)
@@ -142,8 +159,8 @@ def train_directional_predictor(datasets, test_datasets):
 
         if not test_dataset:
             continue
-        for (x_test, y_test) in test_dataset:
-            tel, tea = test_step(model, loss_object, x_test, y_test)
+        for (xte, yte) in test_dataset:
+            tel, tea = test_step(model, loss_fxn, xte, yte)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
@@ -169,26 +186,42 @@ def train_directional_predictor(datasets, test_datasets):
     tf.saved_model.save(model, "./logs/models/1/")
 
 
-def main():
-    folder = m.PROJ_DIR + "ml/lines/"
-    datasets = tfls.get_pred_datasets(folder)
-    loss_object = tf.losses.MeanAbsoluteError()
-    for d in datasets:
-        print(d)
-        print(dir(d))
+def get_example(datasets):
+    for epoch, dataset in enumerate(datasets):
+
+        if not dataset:
+            continue
+        # data = dataset.batch(1)
+
+        for (x_train, y_train) in dataset:
+            print(f'x_train: {x_train}')
+            print(f'x_train.shape: {x_train.shape}')
+            print(f'y_train: {y_train}')
+            print(f'y_train.shape: {y_train.shape}')
+            break
         break
+    return x_train, y_train
+
+
+def main():
+    '''
+
+    '''
+    folder = m.PROJ_DIR + "ml/lines/"
+    datasets = tfls.get_pred_datasets(folder, label_cols=['a_ml', 'h_ml'])
+    x, y = get_example(datasets)
+    loss_object = tf.losses.MeanAbsoluteError()
     optimizer = tf.keras.optimizers.RMSprop(clipvalue=1.0)
-    model = TfLSTM(in_shape=datasets[0][0].shape[-2:])
+    model = make_model_functional(x.shape[-2:])
     for epoch, dataset in enumerate(datasets):
         if not dataset:
             continue
+        
         for (x_train, y_train) in dataset:
-            tl, ta, correct = train_step(
-                model, optimizer, loss_object, x_train, y_train
-            )
+            tl = train_step_regress(
+                model, optimizer, loss_object, x_train, y_train)
 
 
 if __name__ == "__main__":
     # main()
-
     main()
