@@ -22,12 +22,12 @@ def hot_list(strings, output="np"):
     return hots
 
 
-def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
+def hot_teams_dict(teams_to_hot=["nfl", "nba", "nhl"]):
     '''
     order matters,
     '''
     team_list = []
-    sorted_sports = sorted(sports)
+    sorted_sports = sorted(teams_to_hot)
     for s in sorted_sports:
         if s == "nfl":
             team_list += sports.nfl.teams
@@ -56,7 +56,7 @@ def hot_statuses():
 
 
 def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
-    teams_dict = hot_teams_dict(sports=sports)
+    teams_dict = hot_teams_dict(teams_to_hot=sports)
     statuses_dict = hot_statuses()
     return teams_dict, statuses_dict
 
