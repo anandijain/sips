@@ -10,28 +10,12 @@ import matplotlib.pyplot as plt
 from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.lines.bov import bov
+from sips.h import fileio as fio
 from sips.h import helpers as h
 from sips.h import serialize as s
+from sips.h import hot
 from sips.h import viz
 
-COLS = [
-    # "num_markets",
-    # "live",
-    'a_team',
-    'h_team',
-    "quarter",
-    "secs",
-    "a_pts",
-    "h_pts",
-    "status",
-    "a_ps",
-    "h_ps",
-    "a_hcap",
-    "h_hcap",
-    "a_ml",
-    "h_ml",
-    # "game_start_time",
-]
 
 
 class TfLSTM(tf.keras.Model):
@@ -69,21 +53,6 @@ def make_model():
     return model
 
 
-def get_tf_dataset(fn, verbose=False):
-    data = bov.prep_game_dataset(fn)
-    if not data:
-        return
-    X, y = data
-    if verbose:
-        print(f"X: {X}, X[0].shape: {X[0].shape}")
-        print(f"y: {y}")
-    # tf_X = tf.convert_to_tensor(X)
-    # tf_y = tf.convert_to_tensor(y)
-    X = tf.keras.utils.normalize(X)
-
-    dataset = tf.data.Dataset.from_tensor_slices((np.array(X), np.array(y)))
-
-    return dataset
 
 
 train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
@@ -144,15 +113,6 @@ def model_core():
     return model, loss_object, optimizer
 
 
-def get_directional_datasets():
-    folder = m.PROJ_DIR + "ml/lines/"
-    fns = h.get_fns(folder)
-    train_fns, test_fns = h.train_test_split_dir(fns)
-    datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
-    test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
-    return datasets, test_datasets
-
-
 def train_directional_predictor(datasets, test_datasets):
     # EPOCHS = 10
     BATCH_SIZE = 1
@@ -211,62 +171,10 @@ def train_directional_predictor(datasets, test_datasets):
     tf.saved_model.save(model, "./logs/models/1/")
 
 
-def get_pred_df(df, cols=COLS, to_numpy=True):
-
-    raw = df[cols]
-    test_cols = ['a_team', 'h_team', 'status']  # order matters
-    teams_map, statuses_map = h.dicts_for_one_hotting(
-        sports=['nba', 'nfl', 'nhl'])
-    hot_df = s.hot(raw, columns=test_cols, hot_maps=[
-                   teams_map, teams_map, statuses_map])
-    vals = {'EVEN': 100, 'None': -1, None: -1}
-    full_df = hot_df.replace(vals)
-    serialized = full_df.astype(np.float32)
-    if to_numpy:
-        serialized = serialized.values
-    return serialized
-
-
-def prep_pred_df(dataset):
-    BATCH_SIZE = 1
-    BUFFER_SIZE = 1
-    past_history = 2
-    future_target = 1
-    STEP = 1
-    EVALUATION_INTERVAL = 200
-    EPOCHS = 10
-    X, y = h.multivariate_data(dataset, dataset[:, 8:10], 0,
-                               len(dataset) -
-                               1, past_history,
-                               future_target, STEP,
-                               single_step=True)
-    # X = tf.keras.utils.normalize(X)
-    X = tf.data.Dataset.from_tensor_slices((X, y))
-    # X = X.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
-    return X
-
-
-def df_to_tf_dataset(df):
-    serialized = get_pred_df(df)
-    X = prep_pred_df(serialized)
-    return X
-
-
-def get_dfs():
-    folder = m.PROJ_DIR + "ml/lines/"
-    fns = h.get_fns(folder)
-    dfs = [pd.read_csv(folder + fn) for fn in fns]
-    return dfs
-
-
-def get_datasets():
-    dfs = get_dfs()
-    datasets = [df_to_tf_dataset(df) for df in dfs]
-    return datasets
-
 
 def main():
-    datasets = get_datasets()
+    folder = m.PROJ_DIR + "ml/lines/"
+    datasets = get_pred_datasets(folder)
     loss_object = tf.losses.MeanAbsoluteError()
     for d in datasets:
         print(d)

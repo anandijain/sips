@@ -6,60 +6,17 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 import sips.h as h
-from sips.macros import nfl
-from sips.macros import nba
-from sips.macros import nhl
+from sips.h import fileio as fio
+
+from sips.macros.sports import nfl
+from sips.macros.sports import nba
+from sips.macros.sports import nhl
 
 
-def hot_list(strings, output="np"):
-    """
-    given a list of strings it will return a dict
-    string : one hotted np array 
-    """
-    str_set = set(strings)
-    length = len(str_set)
-    hots = {}
-    for i, s in enumerate(str_set):
-        hot_arr = np.zeros(length)
-        hot_arr[i] = 1
-        if hots.get(s) is None:
-            if output == "list":
-                hot_arr = list(hot_arr)
-            hots[s] = hot_arr
-    return hots
-
-
-def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
-    team_list = []
-    for s in sports:
-        if s == "nfl":
-            team_list += nfl.teams
-        elif s == "nba":
-            team_list += nba.teams
-        elif s == "nhl":
-            team_list += nhl.teams
-
-    teams_dict = hot_list(team_list, output="list")
-    return teams_dict
-
-
-def hot_statuses():
-    statuses = [
-        "GAME_END",
-        "HALF_TIME",
-        "INTERRUPTED",
-        "IN_PROGRESS",
-        "None",
-        "PRE_GAME",
-    ]
-    statuses_dict = hot_list(statuses, output="list")
-    return statuses_dict
-
-
-def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
-    teams_dict = hot_teams_dict(sports=sports)
-    statuses_dict = hot_statuses()
-    return teams_dict, statuses_dict
+def get_dfs(folder):
+    fns = fio.get_fns(folder)
+    dfs = [pd.read_csv(folder + fn) for fn in fns]
+    return dfs
 
 
 def multivariate_data(
@@ -92,32 +49,6 @@ def multivariate_data(
             labels.append(target[i: i + target_size])
 
     return np.array(data), np.array(labels)
-
-
-def get_fns(dir):
-    fns = os.listdir(dir)
-    try:
-        fns.remove("LOG.csv")
-    except ValueError:
-        pass
-
-    return fns
-
-
-def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
-    """
-
-    """
-    num_files = len(fns)
-    split_idx = round(0.7 * num_files)
-
-    if shuffle:
-        random.shuffle(fns)
-
-    train_fns = fns[0:split_idx]
-    test_fns = fns[split_idx:]
-
-    return train_fns, test_fns
 
 
 def remove_string_cols(df):

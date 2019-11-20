@@ -79,37 +79,6 @@ def teams(row, teams_dict):
     return ret
 
 
-def hot(df, columns=['status'], hot_maps=None):
-    '''
-    let m == len(hot_maps)
-
-    m == len(columns)
-    or hot_maps == None
-    first try:
-        - grab columns to hot
-        - create m many dfs of the hotted data 
-        - concat onto df
-    '''
-    if not hot_maps:
-        return pd.get_dummies(df, columns=columns)
-
-    to_hot = df[columns]
-    hot_dfs = []
-    for col, hot_map in zip(to_hot.iteritems(), hot_maps):
-        hot_dfs.append(hot_col(col, hot_map))
-    ret = pd.concat([df] + hot_dfs, axis=1)
-    ret = ret.drop(columns, axis=1)
-    return ret
-
-
-def hot_col(col, hot_map):
-    hot_cols = hot_map.keys()
-    hot_rows = []
-    for i, elt in col[1].items():
-        hot_rows.append(hot_map[elt])
-    hotted_col = pd.DataFrame(hot_rows, columns=hot_cols)
-    return hotted_col
-
 
 if __name__ == "__main__":
     fn = m.PROJ_DIR + 'ml/lines/'

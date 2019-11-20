@@ -6,9 +6,7 @@ import pandas as pd
 import numpy as np
 
 import sips.h.grab as g
-import sips.h.serialize as s
 import sips.h.helpers as h
-import sips.h.analyze as analyze
 
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
@@ -68,45 +66,7 @@ def single_game_line(
     return row
 
 
-def prep_game_dataset(fn, sports=["nba"]):  # , zip_data=True, verbose=False):
-    teams_dict, statuses_dict = h.dicts_for_one_hotting()
-
-    df = pd.read_csv(fn)
-    prev = [None, None]
-    prev_row = [None for _ in range(25)]
-    X = []
-    y = []
-    for i, row in df.iterrows():
-
-        cur_row = row.values
-        cur_ml = list(row[["a_ml", "h_ml"]])
-        if i == 0:
-            prev_ml = cur_ml
-            prev_row = cur_row
-            continue
-        transition_class = analyze.classify_transition(prev_ml, cur_ml)
-        if bm.TRANSITION_CLASS_STRINGS[np.argmax(transition_class)] == "stays same":
-            continue
-
-        x = s.serialize_row(prev_row, teams_dict, statuses_dict)
-        y.append(transition_class)
-        X.append(x)
-        prev_ml = cur_ml
-        prev_row = cur_row
-
-    len_game = len(y)
-    if not X:
-        return
-    X = np.reshape(np.concatenate(X, axis=0), (len_game, 1, -1))
-
-    return X, y
-
-
 def main():
-    # data = lines(["nba"], output='dict')
-    # print(data)
-    # print(len(data))
-    # return data
     row = single_game_line()
     print(row)
     return row
