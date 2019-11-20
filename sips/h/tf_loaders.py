@@ -31,6 +31,8 @@ COLS = [
     # "game_start_time",
 ]
 
+FOLDER = m.PROJ_DIR + "ml/lines/"
+
 
 def get_tf_dataset(fn, verbose=False):
     data = prep_game_dataset(fn)
@@ -83,16 +85,35 @@ def prep_game_dataset(fn, sports=["nba"]):  # , zip_data=True, verbose=False):
     return X, y
 
 
-def get_directional_datasets():
-    folder = m.PROJ_DIR + "ml/lines/"
-    fns = fio.get_fns(folder)
-    train_fns, test_fns = fio.train_test_split_dir(fns)
-    datasets = [get_tf_dataset(folder + fn) for fn in train_fns]
-    test_datasets = [get_tf_dataset(folder + fn) for fn in test_fns]
+def get_directional_datasets(train_frac=0.7):
+    fns = fio.get_fns(FOLDER)
+    train_fns, test_fns = h.train_test_split_list(fns, train_frac=train_frac)
+    datasets = [get_tf_dataset(FOLDER + fn) for fn in train_fns]
+    test_datasets = [get_tf_dataset(FOLDER + fn) for fn in test_fns]
     return datasets, test_datasets
 
 
+def datasets_from_dir(get_dataset_fxn, folder=FOLDER, train_frac=0.7):
+    '''
+    trying to generalize usage so that i can apply a function that prepares
+    a folder
+
+    not working yet
+    '''
+    fns = fio.get_fns(folder)
+    print(fns)
+    dfs = h.get_dfs(fns)
+    train_fns, test_fns = h.train_test_split_list(dfs, train_frac=train_frac)
+    datasets = [get_dataset_fxn(folder + fn) for fn in train_fns]
+    test_datasets = [get_dataset_fxn(folder + fn) for fn in test_fns]
+    return datasets, test_datasets
+
+
+
 def get_pred_df(df, cols=COLS, to_numpy=True):
+    """
+
+    """
     raw = df[cols]
     test_cols = ['a_team', 'h_team', 'status']  # order matters
     teams_map, statuses_map = hot.dicts_for_one_hotting(
@@ -107,22 +128,19 @@ def get_pred_df(df, cols=COLS, to_numpy=True):
     return serialized
 
 
-def prep_pred_df(dataset):  #, batch_size, buffer_size, history_size, pred_size, step_size):
-    BATCH_SIZE = 1
-    BUFFER_SIZE = 1
-    past_history = 2
-    future_target = 1
-    STEP = 1
+def prep_pred_df(dataset, batch_size=1, buffer_size=1, history_size=10, pred_size=1, step_size=1, norm=True):
     X, y = h.multivariate_data(dataset, dataset[:, 8:10], 0,
                                len(dataset) -
-                               1, past_history,
-                               future_target, STEP,
+                               1, history_size,
+                               pred_size, step_size,
                                single_step=True)
-    # X = tf.keras.utils.normalize(X)
+    if norm:
+        X = tf.keras.utils.normalize(X)
+
     X = tf.data.Dataset.from_tensor_slices((X, y))
-    # X = X.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
-    X = X.batch(BATCH_SIZE)
-    # X = X.take(BATCH_SIZE).shuffle(BUFFER_SIZE).cache().repeat()
+    # X = X.cache().shuffle(buffer_size).batch(batch_size)
+    X = X.batch(batch_size)
+    # X = X.take(batch_size).shuffle(buffer_size).cache().repeat()
     return X
 
 
@@ -136,3 +154,15 @@ def get_pred_datasets(folder, label_cols):
     dfs = h.get_dfs(folder)
     datasets = [df_to_tf_dataset(df) for df in dfs]
     return datasets
+
+
+def test_datasets_from_dir():
+    """
+    attempts to read folder and convert to train/test tf datasets lists 
+    """
+    datasets = datasets_from_dir(df_to_tf_dataset)
+    return datasets
+
+
+if __name__ == "__main__":
+    datasets = get_pred_datasets(FOLDER, COLS)

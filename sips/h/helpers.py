@@ -9,9 +9,18 @@ import sips.h as h
 from sips.h import fileio as fio
 
 
-def get_dfs(folder):
-    fns = fio.get_fns(folder)
-    dfs = [pd.read_csv(folder + fn) for fn in fns]
+def get_dfs(to_read):
+    """
+    to_read is one of:
+        - list of *full* file names 
+        - path to folder 
+    """
+    if isinstance(to_read, list):
+        dfs = [pd.read_csv(fn) for fn in to_read]
+    elif isinstance(to_read, str):
+        # assuming str is folder path
+        fns = fio.get_fns(to_read)
+        dfs = [pd.read_csv(fn) for fn in fns]
     return dfs
 
 
@@ -45,6 +54,22 @@ def multivariate_data(
             labels.append(target[i: i + target_size])
 
     return np.array(data), np.array(labels)
+
+
+def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
+    """
+
+    """
+    length = len(to_split)
+    split_idx = round(train_frac * length)
+
+    if shuffle:
+        random.shuffle(to_split)
+
+    train_fns = to_split[0:split_idx]
+    test_fns = to_split[split_idx:]
+
+    return train_fns, test_fns
 
 
 def remove_string_cols(df):

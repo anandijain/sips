@@ -1,5 +1,8 @@
+import glob
 import os
 import random
+from pathlib import Path
+
 
 
 def init_csv(fn, header, close=True):
@@ -26,27 +29,17 @@ def write_list(file, list):
             file.write(",")
 
 
-def get_fns(dir):
-    fns = os.listdir(dir)
+def absolute_file_paths(directory):
+   for dirpath, _, filenames in os.walk(directory):
+       for f in filenames:
+           yield os.path.abspath(os.path.join(dirpath, f))
+
+
+def get_fns(directory):
+    fns = list(absolute_file_paths(directory))
     try:
-        fns.remove("LOG.csv")
+        fns.remove(directory + "LOG.csv")
     except ValueError:
         pass
-
     return fns
 
-
-def train_test_split_dir(fns, train_frac=0.7, shuffle=False):
-    """
-
-    """
-    num_files = len(fns)
-    split_idx = round(0.7 * num_files)
-
-    if shuffle:
-        random.shuffle(fns)
-
-    train_fns = fns[0:split_idx]
-    test_fns = fns[split_idx:]
-
-    return train_fns, test_fns
