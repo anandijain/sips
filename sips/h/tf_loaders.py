@@ -133,7 +133,7 @@ def prep_pred_df(dataset, batch_size=1, buffer_size=1, history_size=10, pred_siz
                                len(dataset) -
                                1, history_size,
                                pred_size, step_size,
-                               single_step=True)
+                               single_step=False)
     if norm:
         X = tf.keras.utils.normalize(X)
 
@@ -144,15 +144,17 @@ def prep_pred_df(dataset, batch_size=1, buffer_size=1, history_size=10, pred_siz
     return X
 
 
-def df_to_tf_dataset(df):
+def df_to_tf_dataset(df, batch_size=1, buffer_size=1, history_size=10, pred_size=1, step_size=1, norm=True):
     serialized = get_pred_df(df)
-    X = prep_pred_df(serialized)
+    X = prep_pred_df(serialized, batch_size, buffer_size,
+                     history_size, pred_size, step_size, norm)
     return X
 
 
-def get_pred_datasets(folder, label_cols):
+def get_pred_datasets(folder, label_cols, batch_size=1, buffer_size=1, history_size=10, pred_size=1, step_size=1, norm=True):
     dfs = h.get_dfs(folder)
-    datasets = [df_to_tf_dataset(df) for df in dfs]
+    datasets = [df_to_tf_dataset(df, batch_size=1, buffer_size=1,
+                                 history_size=10, pred_size=1, step_size=1, norm=True) for df in dfs]
     return datasets
 
 

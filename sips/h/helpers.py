@@ -27,11 +27,11 @@ def get_dfs(to_read):
 def multivariate_data(
     dataset,
     target,
-    start_index,
-    end_index,
-    history_size,
-    target_size,
-    step,
+    start_index=0,
+    end_index=None,
+    history_size=1,
+    target_size=1,
+    step=1,
     single_step=False,
 ):
     '''
@@ -41,6 +41,7 @@ def multivariate_data(
     labels = []
 
     start_index = start_index + history_size
+
     if end_index is None:
         end_index = len(dataset) - target_size
 

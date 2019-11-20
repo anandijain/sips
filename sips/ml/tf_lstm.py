@@ -44,7 +44,8 @@ def make_model():
 
     model = tf.keras.models.Sequential(
         [
-            tf.keras.layers.LSTM(100, input_shape = (None, 202), return_sequences=True, activation='relu'),
+            tf.keras.layers.LSTM(100, input_shape=(
+                None, 202), return_sequences=True, activation='relu'),
             # tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(256, activation="relu"),
             tf.keras.layers.Dense(128, activation="relu"),
@@ -53,6 +54,7 @@ def make_model():
         ]
     )
     return model
+
 
 def make_model_functional(in_shape_tup):
     inputs = tf.keras.Input(shape=in_shape_tup, batch_size=1)
@@ -127,7 +129,7 @@ def test_step(model, loss_object, x_test, y_test, test_loss, test_accuracy=None)
         return te_loss, tea
     else:
         return te_loss
-    
+
 
 def init_summary_writers():
     """
@@ -160,7 +162,8 @@ def train_directional_predictor(datasets, test_datasets):
         if not dataset:
             continue
         for (xtr, ytr) in dataset:
-            tl, ta, correct = train_step_classify(model, optim, loss_fxn, xtr, ytr, train_loss, train_accuracy)
+            tl, ta, correct = train_step_classify(
+                model, optim, loss_fxn, xtr, ytr, train_loss, train_accuracy)
 
             if correct.any():
                 print("guessed correctly")
@@ -177,7 +180,8 @@ def train_directional_predictor(datasets, test_datasets):
         if not test_dataset:
             continue
         for (xte, yte) in test_dataset:
-            tel, tea = test_step(model, loss_fxn, xte, yte, test_loss, test_accuracy)
+            tel, tea = test_step(model, loss_fxn, xte, yte,
+                                 test_loss, test_accuracy)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
@@ -225,9 +229,11 @@ def main():
 
     '''
     folder = m.PROJ_DIR + "ml/lines/"
-    all_datasets = tfls.get_pred_datasets(folder, label_cols=['a_ml', 'h_ml'])
+    all_datasets = tfls.get_pred_datasets(folder, label_cols=[
+                                          'a_ml', 'h_ml'], batch_size=1, buffer_size=10, history_size=100, pred_size=1, step_size=1, norm=True)
     datasets, test_datasets = h.train_test_split_list(all_datasets)
     x, y = get_example(datasets)
+
     loss_fxn = tf.losses.MeanAbsoluteError()
     optimizer = tf.keras.optimizers.RMSprop(clipvalue=1.0)
     model = make_model_functional(x.shape[-2:])
@@ -238,34 +244,35 @@ def main():
     for epoch, dataset in enumerate(datasets):
         if not dataset:
             continue
-        
+
         for (x_train, y_train) in dataset:
             tl = train_step_regress(
                 model, optimizer, loss_fxn, x_train, y_train, train_loss)
 
         with train_summary_writer.as_default():
-
             tf.summary.scalar("loss", tl.numpy(), step=epoch)
 
         test_dataset = random.choice(test_datasets)
-
+        
         if not test_dataset:
             continue
+
         for (xte, yte) in test_dataset:
             tel = test_step(model, loss_fxn, xte, yte,
-                                 test_loss)
+                            test_loss)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
 
-        template = "Epoch {}, Loss: {}, Test Loss: {}"
-        print(
-            template.format(
-                epoch + 1,
-                train_loss.result(),
-                test_loss.result(),
+        if epoch % 2000:
+            template = "Epoch {}, Loss: {}, Test Loss: {}"
+            print(
+                template.format(
+                    epoch + 1,
+                    train_loss.result(),
+                    test_loss.result(),
+                )
             )
-        )
 
         # Reset metrics every epoch
         train_loss.reset_states()

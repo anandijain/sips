@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 
 from sips.macros import macros as m
+from sips.h import hot
 
 
 def serialize_row(row, teams_dict, statuses_dict, include_teams=False):
@@ -29,8 +30,14 @@ def serialize_row(row, teams_dict, statuses_dict, include_teams=False):
     final = np.array(ret, dtype=np.float32)
     return final
 
-# def serialize_df(df, obj_cols, maps):
-    
+
+def serialize_df(df):
+    teams_dict, statuses_dict = hot.dicts_for_one_hotting()
+    df = df.replace({'EVEN': 100})
+    df = hot.hot(df)
+    df = df.replace({'None': -1})
+    ret = np.array(df, dtype=np.float32)
+    return ret
 
 
 def mkt_live(row):
@@ -79,8 +86,15 @@ def teams(row, teams_dict):
     return ret
 
 
+def test_serialize_df():
+    fn = m.PROJ_DIR + 'ml/lines/6006215.csv'
+    df = pd.read_csv(fn)
+    df = df.drop(['a_ou', 'h_ou'], axis=1)
+    numbers = serialize_df(df)
+    print(numbers)
+    return numbers
+
 
 if __name__ == "__main__":
-    fn = m.PROJ_DIR + 'ml/lines/'
-
+    test_serialize_df()
     # pd.read_csv('')

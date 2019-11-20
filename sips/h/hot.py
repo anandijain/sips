@@ -42,7 +42,7 @@ def hot_teams_dict(teams_to_hot=["nfl", "nba", "nhl"]):
     return teams_dict
 
 
-def hot_statuses():
+def hot_statuses_dict():
     statuses = [
         "GAME_END",
         "HALF_TIME",
@@ -55,13 +55,25 @@ def hot_statuses():
     return statuses_dict
 
 
+def hot_sports_dict():
+    statuses = [
+        "BASK",
+        "FOOT",
+        "HCKY",
+        "BASE",
+        "None",
+    ]
+    statuses_dict = hot_list(statuses, output="list")
+    return statuses_dict
+
+
 def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
     teams_dict = hot_teams_dict(teams_to_hot=sports)
-    statuses_dict = hot_statuses()
+    statuses_dict = hot_statuses_dict()
     return teams_dict, statuses_dict
 
 
-def hot(df, columns=['status'], hot_maps=None):
+def hot(df, columns=['sport', 'a_team', 'h_team', 'status'], hot_maps=[hot_sports_dict(), hot_teams_dict(), hot_teams_dict(), hot_statuses_dict()]):
     '''
     let m == len(hot_maps)
 
@@ -72,9 +84,6 @@ def hot(df, columns=['status'], hot_maps=None):
         - create m many dfs of the hotted data 
         - concat onto df
     '''
-    if not hot_maps:
-        return pd.get_dummies(df, columns=columns)
-
     to_hot = df[columns]
     hot_dfs = []
     for col, hot_map in zip(to_hot.iteritems(), hot_maps):
