@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from sips.macros.sports import nfl
-from sips.macros.sports import nba
-from sips.macros.sports import nhl
+from sips.macros import sports
 
 
 def hot_list(strings, output="np"):
@@ -25,14 +23,20 @@ def hot_list(strings, output="np"):
 
 
 def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
+    '''
+    order matters,
+    '''
     team_list = []
-    for s in sports:
+    sorted_sports = sorted(sports)
+    for s in sorted_sports:
         if s == "nfl":
-            team_list += nfl.teams
+            team_list += sports.nfl.teams
         elif s == "nba":
-            team_list += nba.teams
+            team_list += sports.nba.teams
         elif s == "nhl":
-            team_list += nhl.teams
+            team_list += sports.nhl.teams
+        elif s == 'mlb':
+            team_list += sports.mlb.teams
 
     teams_dict = hot_list(team_list, output="list")
     return teams_dict

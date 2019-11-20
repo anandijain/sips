@@ -95,7 +95,7 @@ def get_directional_datasets():
 def get_pred_df(df, cols=COLS, to_numpy=True):
     raw = df[cols]
     test_cols = ['a_team', 'h_team', 'status']  # order matters
-    teams_map, statuses_map = h.dicts_for_one_hotting(
+    teams_map, statuses_map = hot.dicts_for_one_hotting(
         sports=['nba', 'nfl', 'nhl'])
     hot_df = hot.hot(raw, columns=test_cols, hot_maps=[
         teams_map, teams_map, statuses_map])

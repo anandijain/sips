@@ -8,10 +8,6 @@ from sklearn.preprocessing import StandardScaler
 import sips.h as h
 from sips.h import fileio as fio
 
-from sips.macros.sports import nfl
-from sips.macros.sports import nba
-from sips.macros.sports import nhl
-
 
 def get_dfs(folder):
     fns = fio.get_fns(folder)

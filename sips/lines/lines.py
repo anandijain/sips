@@ -9,6 +9,10 @@ import argparse
 import time
 import json
 
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from requests_futures.sessions import FuturesSession
+
 import sips
 import sips.h.fileio as io
 import sips.h.helpers as h
@@ -22,15 +26,8 @@ from sips.lines import collate
 from sips.lines.bov import bov
 
 from sips.macros import macros as m
-from sips.macros.sports import nfl
-from sips.macros.sports import nba
-from sips.macros.sports import nhl
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as utils
-
-import concurrent.futures
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from requests_futures.sessions import FuturesSession
 
 
 LINES_DATA_PATH = m.PARENT_DIR + "/data/lines/"

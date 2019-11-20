@@ -15,7 +15,7 @@ from sips.h import helpers as h
 from sips.h import serialize as s
 from sips.h import hot
 from sips.h import viz
-
+from sips.h import tf_loaders as tfls
 
 
 class TfLSTM(tf.keras.Model):
@@ -51,8 +51,6 @@ def make_model():
         ]
     )
     return model
-
-
 
 
 train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
@@ -118,7 +116,7 @@ def train_directional_predictor(datasets, test_datasets):
     BATCH_SIZE = 1
     BUFFER_SIZE = 100
 
-    datasets, test_datasets = get_directional_datasets()
+    datasets, test_datasets = tfls.get_directional_datasets()
 
     model, loss_object, optimizer = model_core()
 
@@ -171,10 +169,9 @@ def train_directional_predictor(datasets, test_datasets):
     tf.saved_model.save(model, "./logs/models/1/")
 
 
-
 def main():
     folder = m.PROJ_DIR + "ml/lines/"
-    datasets = get_pred_datasets(folder)
+    datasets = tfls.get_pred_datasets(folder)
     loss_object = tf.losses.MeanAbsoluteError()
     for d in datasets:
         print(d)
