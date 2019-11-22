@@ -11,6 +11,8 @@ import sips.h.helpers as h
 
 from sips.macros import bov as bm
 from sips.macros import macros as m
+import sips.h.calc as c
+
 
 # COLS = [
 #     # "num_markets",
@@ -130,6 +132,36 @@ def get_pred_df(df, cols=COLS, to_numpy=True):
         serialized = serialized.values
     return serialized
 
+def attach_prof(df):
+
+    h_mls = df.h_ml
+    a_mls = df.a_ml
+    status = df.status
+    h_profs =[]
+    a_profs = []
+    for i in range(len(status)):
+        if status[i] == 'IN_PROGRESS':
+            line = i
+
+            break
+
+    h_init = h_mls[i]
+    a_init = a_mls[i]
+    for i in range(len(h_mls)):
+        h_ml = h_mls[i]
+        a_ml = a_ml[i]
+        if h_ml or a_ml == 'None':
+            h_profs.append('na')
+            a_profs.append('na')
+        else:
+            h_prof = c.prof_amt(h_init, a_ml)
+            a_prof = c.prof_amt(a_int, h_ml)
+            h_profs.append(h_prof)
+            a_profs.append(a_prof)
+
+    df['h_profs'] = h_profs
+    df['a_profs'] = a_profs
+    return df
 
 def prep_prediction_data(dataset, targets, batch_size=1, buffer_size=1, history_size=10, pred_size=1, step_size=1, norm=True):
     """
