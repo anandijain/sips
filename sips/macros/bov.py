@@ -26,6 +26,24 @@ LINE_COLUMNS = [
     "game_start_time",
 ]
 
+TO_SERIALIZE = [
+    "sport",
+    "a_team",
+    "h_team",
+    "last_mod",
+    "num_markets",
+    "live",
+    "quarter",
+    "secs",
+    "a_pts",
+    "h_pts",
+    "status",
+    "a_ml",
+    "h_ml",
+    "a_tot",
+]
+
+
 BOV_ROOT = "https://www.bovada.lv/"
 
 BOV_URL = BOV_ROOT + "services/sports/event/v2/events/A/description/"

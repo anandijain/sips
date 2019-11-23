@@ -12,7 +12,7 @@ from sips.h import fileio as fio
 import sips.macros.macros as m
 
 
-def get_dfs(to_read=m.PARENT_DIR + 'data/lines/lines/'):
+def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/"):
     """
     to_read is one of:
         - list of *full* file names 
@@ -37,15 +37,14 @@ def multivariate_data(
     step=1,
     single_step=False,
 ):
-    '''
+    """
     create sliding window tuples for training nns on multivar timeseries
-    '''
+    """
     data = []
     labels = []
     start_index = start_index + history_size
 
     # assuming step=1
-    
 
     if end_index is None:
         end_index = len(dataset) - target_size
@@ -58,7 +57,7 @@ def multivariate_data(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i:i+target_size]
+            label = target[i : i + target_size]
             # label = np.array(label)
             # print(label.dtype)
 
@@ -66,8 +65,8 @@ def multivariate_data(
             # print(f'{i} : input {X.shape}')
             # print(f'{i} : label: {label.shape}')
             # print(f'{i} : label: {label}')
-        print(f'size(X) : {np.size(X)}')
-        print(f'size(label) : {np.size(label)}')
+        print(f"size(X) : {np.size(X)}")
+        print(f"size(label) : {np.size(label)}")
         labels.append(label)
 
     return np.array(data), np.array(labels)
@@ -202,7 +201,7 @@ def attach_prof(df):
     h_profs = []
     a_profs = []
     for i in range(len(status)):
-        if status[i] == 'IN_PROGRESS':
+        if status[i] == "IN_PROGRESS":
             line = i
 
             break
@@ -212,28 +211,33 @@ def attach_prof(df):
     for i in range(len(h_mls)):
         h_ml = h_mls[i]
         a_ml = a_ml[i]
-        if h_ml or a_ml == 'None':
-            h_profs.append('na')
-            a_profs.append('na')
+        if h_ml or a_ml == "None":
+            h_profs.append("na")
+            a_profs.append("na")
         else:
             h_prof = c.prof_amt(h_init, a_ml)
             a_prof = c.prof_amt(a_init, h_ml)
             h_profs.append(h_prof)
             a_profs.append(a_prof)
 
-    df['h_profs'] = h_profs
-    df['a_profs'] = a_profs
+    df["h_profs"] = h_profs
+    df["a_profs"] = a_profs
     return df
 
 
 if __name__ == "__main__":
-    columns = ['a_pts', 'h_pts', 'quarter', 'secs']
-    dfs = get_dfs(m.PARENT_DIR + 'data/lines/lines/')
+    columns = ["a_pts", "h_pts", "quarter", "secs"]
+    dfs = get_dfs(m.PARENT_DIR + "data/lines/lines/")
 
-    sets = [multivariate_data(df.values, df[columns].values, history_size=10, target_size=10) for df in dfs] 
+    sets = [
+        multivariate_data(
+            df.values, df[columns].values, history_size=10, target_size=10
+        )
+        for df in dfs
+    ]
     first = sets[0]
     X, y = first
     # print(f'X : {X}')
     # print(f'y : {y}')
-    print(f'X.shape : {X.shape}')
-    print(f'y.shape : {y.shape}')
+    print(f"X.shape : {X.shape}")
+    print(f"y.shape : {y.shape}")

@@ -97,73 +97,47 @@ def get_directional_datasets(train_frac=0.7):
     return datasets, test_datasets
 
 
-def datasets_from_dir(get_dataset_fxn, folder=FOLDER, train_frac=0.7):
-    '''
-    trying to generalize usage so that i can apply a function that prepares
-    a folder
-
-    not working yet
-    '''
-    fns = fio.get_fns(folder)
-    print(fns)
-    dfs = h.get_dfs(fns)
-    train_fns, test_fns = h.train_test_split_list(dfs, train_frac=train_frac)
-    datasets = [get_dataset_fxn(folder + fn) for fn in train_fns]
-    test_datasets = [get_dataset_fxn(folder + fn) for fn in test_fns]
-    return datasets, test_datasets
-
-
-def get_pred_df(df, cols=COLS, to_numpy=True):
+def prediction_data_from_folder(
+    folder=FOLDER,
+    in_cols=None,
+    label_cols=["a_ml", "h_ml"],
+    batch_size=1,
+    buffer_size=1,
+    history_size=10,
+    pred_size=2,
+    step_size=1,
+    norm=True,
+):
     """
 
     """
-    raw = df[cols]
-    test_cols = ['a_team', 'h_team', 'status']  # order matters
-    teams_map, statuses_map = hot.dicts_for_one_hotting(
-        sports=['nba', 'nfl', 'nhl'])
-
-    hot_df = hot.hot(raw, cols_to_hot=test_cols, hot_maps=[
-        teams_map, teams_map, statuses_map])
-
-    vals = {'EVEN': 100, 'None': -1, None: -1}
-    full_df = hot_df.replace(vals)
-    serialized = full_df.astype(np.float32)
-    if to_numpy:
-        serialized = serialized.values
-    return serialized
-
-
-def clean_dfs(dfs, label_cols):
-    sXs = []
-    sYs = []
-    for df in dfs:
-        y = df[label_cols]
-        df = df[df.a_ml != 'None']
-        df = df[df.h_ml != 'None']
-        X = df.drop(y, errors='ignore')
-        sX = s.serialize_df(
-            X, cols_to_hot=['sport', 'a_team', 'h_team', 'status'])
-        sY = s.serialize_df(y)
-        sXs.append(sX)
-        sYs.append(sY)
-    return sXs, sYs
-
-
-def get_pred_datasets(folder=FOLDER, label_cols=['a_ml', 'h_ml'], batch_size=1, buffer_size=1, history_size=10, pred_size=2, step_size=1, norm=True):
+    replace_data_map = {"None": np.nan, "EVEN": 100}
+    hot_maps = hot.all_hot_maps(output="dict")
     dfs = h.get_dfs(folder)
-    sXs, sYs = clean_dfs(dfs, label_cols)
+
+    train_df_vals, train_df_labs = s.serialize_dfs(
+        dfs,
+        in_cols,
+        label_cols,
+        replace_dict=replace_data_map,
+        hot_maps=hot_maps,
+        norm=norm,
+    )
+
     datasets = []
-    for i in range(len(sXs)):
-        data = sXs[i].astype(np.float32)
+    for i in range(len(train_df_vals)):
+        data = train_df_vals[i].astype(np.float32)
         length = len(data)
-        targets = sYs[i]
-        X_windows, y_windows = h.multivariate_data(data, targets,
-                                    history_size=history_size, 
-                                    target_size=pred_size)
+        if length < history_size + pred_size:
+            continue
+        targets = train_df_labs[i]
+        X_windows, y_windows = h.multivariate_data(
+            data, targets, history_size=history_size, target_size=pred_size
+        )
 
         x_dataset = tf.data.Dataset.from_tensor_slices(X_windows)
         y_dataset = tf.data.Dataset.from_tensor_slices(y_windows)
-        prepped = tf.data.Dataset.zip((x_dataset, y_dataset))
+        prepped = tf.data.Dataset.zip((x_dataset, y_dataset)).batch(batch_size)
         datasets.append(prepped)
     return datasets
 
@@ -177,5 +151,5 @@ def get_pred_datasets(folder=FOLDER, label_cols=['a_ml', 'h_ml'], batch_size=1, 
 
 
 if __name__ == "__main__":
-    datasets = get_pred_datasets(FOLDER)
+    datasets = prediction_data_from_folder(FOLDER)
     print(len(datasets))

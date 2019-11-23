@@ -127,8 +127,10 @@ def bet_amt(money):
     # return 0.05 * money + 100  # 100 is arbitrary
     return 100
 
+
 def prof_amt(init_odds, cur_odds):
     return eq(init_odds) - (eq(init_odds) + 1) / (eq(cur_odds) + 1)
+
 
 def hedge_amt(bet, cur_odds):
     # takes in Bet 1 and calculates the

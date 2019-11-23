@@ -39,16 +39,16 @@ def show_plot(plot_data, delta, title):
 
 
 def plot_train_history(history, title):
-    '''
+    """
     simple tf loss plotter
-    '''
-    loss = history.history['loss']
+    """
+    loss = history.history["loss"]
 
     epochs = range(len(loss))
 
     plt.figure()
 
-    plt.plot(epochs, loss, 'b', label='Training loss')
+    plt.plot(epochs, loss, "b", label="Training loss")
     plt.title(title)
     plt.legend()
 

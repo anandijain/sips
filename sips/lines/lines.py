@@ -35,8 +35,7 @@ CONFIG_PATH = m.PROJ_DIR + "lines/config/lines.json"
 
 
 parser = argparse.ArgumentParser(description="configure lines.py")
-parser.add_argument("-d", "--dir", type=str,
-                    help="folder name of run", default="run3")
+parser.add_argument("-d", "--dir", type=str, help="folder name of run", default="run3")
 group = parser.add_mutually_exclusive_group()
 group.add_argument(
     "-s",
@@ -54,8 +53,7 @@ parser.add_argument("-n", "--new_only", type=bool, help="", default=True)
 parser.add_argument(
     "-w", "--wait", type=float, help="how long to wait after each step", default=0.25
 )
-parser.add_argument("-v", "--verbose", type=bool,
-                    help="print more", default=False)
+parser.add_argument("-v", "--verbose", type=bool, help="print more", default=False)
 parser.add_argument(
     "-c", "--grab_espn", type=bool, help="collate with espn data", default=False
 )
@@ -202,8 +200,7 @@ class Lines:
         if os.path.isfile(self.log_path):
             self.log_file = open(self.log_path, "a")
         else:
-            log_header = ["index", "time", "time_diff",
-                          "num_events", "num_changes"]
+            log_header = ["index", "time", "time_diff", "num_events", "num_changes"]
             self.log_file = open(self.log_path, "a")
             io.write_list(self.log_file, log_header)
 
@@ -213,8 +210,7 @@ class Lines:
     def init_model(self):
         self.model = lstm.LSTM()
         self.loss_fxn = nn.CrossEntropyLoss()
-        self.optimizer = optim.SGD(
-            self.model.parameters(), lr=0.001, momentum=0.9)
+        self.optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
         self.teams_dict, self.statuses_dict = hot.dicts_for_one_hotting()
         self.running_loss = 0.0
         self.correct = 0
@@ -251,8 +247,7 @@ class Lines:
         self.prev_time = self.new_time
 
         if self.keep_open:
-            self.files = write_opened(
-                self.dir, self.files, to_write, verbose=self.verb)
+            self.files = write_opened(self.dir, self.files, to_write, verbose=self.verb)
         else:
             self.files = open_and_write(
                 self.dir, self.files, to_write, verbose=self.verb

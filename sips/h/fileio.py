@@ -4,7 +4,6 @@ import random
 from pathlib import Path
 
 
-
 def init_csv(fn, header, close=True):
     """
 
@@ -30,9 +29,9 @@ def write_list(file, list):
 
 
 def absolute_file_paths(directory):
-   for dirpath, _, filenames in os.walk(directory):
-       for f in filenames:
-           yield os.path.abspath(os.path.join(dirpath, f))
+    for dirpath, _, filenames in os.walk(directory):
+        for f in filenames:
+            yield os.path.abspath(os.path.join(dirpath, f))
 
 
 def get_fns(directory):
@@ -42,4 +41,3 @@ def get_fns(directory):
     except ValueError:
         pass
     return fns
-
