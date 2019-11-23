@@ -35,7 +35,7 @@ import sips.h.calc as c
 
 COLS = None
 
-FOLDER = m.PROJ_DIR + "ml/lines/"
+FOLDER = m.PARENT_DIR + "data/lines/lines"
 
 
 def get_tf_dataset(fn, verbose=False):
@@ -132,99 +132,39 @@ def get_pred_df(df, cols=COLS, to_numpy=True):
         serialized = serialized.values
     return serialized
 
-def attach_prof(df):
 
-    h_mls = df.h_ml
-    a_mls = df.a_ml
-    status = df.status
-    h_profs =[]
-    a_profs = []
-    for i in range(len(status)):
-        if status[i] == 'IN_PROGRESS':
-            line = i
-
-            break
-
-    h_init = h_mls[i]
-    a_init = a_mls[i]
-    for i in range(len(h_mls)):
-        h_ml = h_mls[i]
-        a_ml = a_ml[i]
-        if h_ml or a_ml == 'None':
-            h_profs.append('na')
-            a_profs.append('na')
-        else:
-            h_prof = c.prof_amt(h_init, a_ml)
-            a_prof = c.prof_amt(a_int, h_ml)
-            h_profs.append(h_prof)
-            a_profs.append(a_prof)
-
-    df['h_profs'] = h_profs
-    df['a_profs'] = a_profs
-    return df
-
-def prep_prediction_data(dataset, targets, batch_size=1, buffer_size=1, history_size=10, pred_size=1, step_size=1, norm=True):
-    """
-
-    """
-    # print(f'dataset.dtype : {dataset.dtype}')
-    # print(f'targets.dtype : {targets.dtype}')
-    # print(f'dataset.shape : {dataset.shape}')
-    # print(f'targets.shape : {targets.shape}')
-    
-    X, y = h.multivariate_data(dataset, targets, 0,
-                               len(dataset) -
-                               1, history_size,
-                               pred_size, step_size,
-                               single_step=False)
-
-    if norm:
-        X = tf.keras.utils.normalize(X)
-    # print(f'X.dtype : {X.dtype}')
-    # print(f'y.dtype : {y.dtype}')
-    # print(f'X.shape : {X.shape}')
-    # print(f'y.shape : {y.shape}')
-    # print(f'y[0].shape : {y[0].shape}')
-    # print(f'y[0]: {y[0]}')
-    # y = y.astype(np.float32)
-    prepped = tf.data.Dataset.from_tensor_slices((X, y))
-
-    # X = X.cache().shuffle(buffer_size).batch(batch_size)
-    print(X)
-    prepped = prepped.batch(batch_size)
-    # X = X.take(batch_size).shuffle(buffer_size).cache().repeat()
-    return prepped
-
-
-def get_pred_datasets(folder=FOLDER, label_cols=['a_ml', 'h_ml'], batch_size=1, buffer_size=1, history_size=2, pred_size=2, step_size=1, norm=True):
-    dfs = h.get_dfs(folder)
+def clean_dfs(dfs, label_cols):
     sXs = []
     sYs = []
     for df in dfs:
         y = df[label_cols]
+        df = df[df.a_ml != 'None']
+        df = df[df.h_ml != 'None']
         X = df.drop(y, errors='ignore')
-
         sX = s.serialize_df(
             X, cols_to_hot=['sport', 'a_team', 'h_team', 'status'])
         sY = s.serialize_df(y)
-        # print(f'yo: {sY}')
         sXs.append(sX)
         sYs.append(sY)
+    return sXs, sYs
 
-    print(f'len(sXs): {len(sXs)}')
-    print(f'len(sYs): {len(sYs)}')
 
-    # return [sXs, sYs]
+def get_pred_datasets(folder=FOLDER, label_cols=['a_ml', 'h_ml'], batch_size=1, buffer_size=1, history_size=10, pred_size=2, step_size=1, norm=True):
+    dfs = h.get_dfs(folder)
+    sXs, sYs = clean_dfs(dfs, label_cols)
     datasets = []
     for i in range(len(sXs)):
-        data = sXs[i]
+        data = sXs[i].astype(np.float32)
+        length = len(data)
         targets = sYs[i]
-        prepped = prep_prediction_data(
-            data, targets, batch_size, buffer_size, history_size, pred_size, step_size, norm)
+        X_windows, y_windows = h.multivariate_data(data, targets,
+                                    history_size=history_size, 
+                                    target_size=pred_size)
+
+        x_dataset = tf.data.Dataset.from_tensor_slices(X_windows)
+        y_dataset = tf.data.Dataset.from_tensor_slices(y_windows)
+        prepped = tf.data.Dataset.zip((x_dataset, y_dataset))
         datasets.append(prepped)
-    # for elt in zip([sXs, sYs]):
-    #     print(len(elt[0]))
-    #     print(len(elt[1]))
     return datasets
 
 
@@ -238,3 +178,4 @@ def get_pred_datasets(folder=FOLDER, label_cols=['a_ml', 'h_ml'], batch_size=1, 
 
 if __name__ == "__main__":
     datasets = get_pred_datasets(FOLDER)
+    print(len(datasets))

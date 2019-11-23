@@ -42,6 +42,7 @@ def serialize_df(df, cols_to_hot=None):
         df = hot.hot(df, cols_to_hot=cols_to_hot)
     df = df.replace('None', -1)
     ret = np.array(df, dtype=np.float32)
+    print(ret.shape)
     return ret
 
 

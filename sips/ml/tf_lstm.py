@@ -19,7 +19,7 @@ from sips.h import tf_loaders as tfls
 
 
 WRITE_TO = m.PROJ_DIR + "ml/logs/"
-READ_FROM = m.PROJ_DIR + "ml/lines/"
+READ_FROM = m.PARENT_DIR + "data/lines/lines/"
 
 
 class TfLSTM(tf.keras.Model):
@@ -60,9 +60,11 @@ def make_model():
     return model
 
 
-def make_model_functional(in_shape_tup):
+def make_model_functional(in_shape_tup, out_shape):
     inputs = tf.keras.Input(shape=in_shape_tup, batch_size=1)
-    x = tf.keras.layers.LSTM(64, activation='relu')(inputs)
+    x = tf.keras.layers.LSTM(200, activation='relu')(inputs)
+    x = tf.keras.layers.LSTM(128, activation='relu')(inputs)
+    outputs = tf.keras.layers.Dense(100)(x)
     outputs = tf.keras.layers.Dense(2)(x)
     model = tf.keras.Model(inputs, outputs)
     return model
@@ -115,7 +117,7 @@ def train_step_regress(model, optimizer, loss_object, x_train, y_train, train_lo
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
         print(
-            f'preds: {predictions}, actuals: {y_train}, loss: {loss.numpy()}')
+            f'preds: {tf.reshape(predictions, (-1, 2))}, actuals: {tf.reshape(y_train, (-1, 2))}, loss: {loss.numpy()}')
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
@@ -212,12 +214,19 @@ def train_directional_predictor(datasets, test_datasets):
 
 
 def get_example(datasets):
-    for epoch, dataset in enumerate(datasets):
+    x_train, y_train = None, None
+    len_datasets = len(datasets)
+    print(f'len_datasets: {len_datasets}')
+    for i, dataset in enumerate(datasets):
+
+        print(f'spec: {dataset.element_spec}')
 
         if not dataset:
+            print(f'skipped: {i}')
             continue
-        # data = dataset.batch(1)
+            
 
+        # data = dataset.batch(1)
         for example in dataset:
             x_train, y_train = example[0], example[1]
             print(f'x_train: {x_train}')
@@ -225,7 +234,6 @@ def get_example(datasets):
             print(f'y_train: {y_train}')
             print(f'y_train.shape: {y_train.shape}')
             break
-        break
     return x_train, y_train
 
 
@@ -234,13 +242,15 @@ def main():
 
     '''
     all_datasets = tfls.get_pred_datasets(READ_FROM, label_cols=[
-                                          'a_ml', 'h_ml'], batch_size=1, buffer_size=10, history_size=100, pred_size=1, step_size=1, norm=True)
+                                          'a_ml', 'h_ml'], batch_size=1, buffer_size=1, history_size=2, pred_size=5, step_size=1, norm=True)
+    print(len(all_datasets))
+    print()
     datasets, test_datasets = h.train_test_split_list(all_datasets)
     x, y = get_example(datasets)
 
     loss_fxn = tf.losses.MeanAbsoluteError()
     optimizer = tf.keras.optimizers.RMSprop(clipvalue=1.0)
-    model = make_model_functional(x.shape[-2:])
+    model = make_model_functional(x.shape[-2:], tf.size(y[0]))
     train_loss, test_loss = get_loss_metrics()
 
     train_summary_writer, test_summary_writer = init_summary_writers()
@@ -249,8 +259,7 @@ def main():
         if not dataset:
             continue
 
-        for example in dataset:
-            x_train, y_train = example[0], example[1]
+        for x_train, y_train in dataset:
             tl = train_step_regress(
                 model, optimizer, loss_fxn, x_train, y_train, train_loss)
 
@@ -262,7 +271,7 @@ def main():
         if not test_dataset:
             continue
 
-        for (xte, yte) in test_dataset:
+        for xte, yte in test_dataset:
             tel = test_step(model, loss_fxn, xte, yte,
                             test_loss)
 
