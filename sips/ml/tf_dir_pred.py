@@ -26,12 +26,14 @@ def train_directional_predictor(datasets, test_datasets):
     print(f"log_dir: {log_dir}")
 
     train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
+
     (
         train_loss,
         train_accuracy,
         test_loss,
         test_accuracy,
     ) = tfu.get_classification_metrics()
+    
     for epoch, dataset in enumerate(datasets):
         if not dataset:
             continue

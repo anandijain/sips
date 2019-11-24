@@ -77,8 +77,8 @@ def serialize_dfs(
         if to_numpy:
             X = np.array(X, dtype=np.float32)
             y = np.array(y, dtype=np.float32)
-            if norm:
-                X = tf.keras.utils.normalize(X)
+        if norm:
+            X = tf.keras.utils.normalize(X)
         sXs.append(X)
         sYs.append(y)
 

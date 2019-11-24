@@ -41,13 +41,30 @@ def make_model_seq(in_shape, out_dim):
     return model
 
 
-def make_model_functional(in_shape_tup, out_dim):
+def make_lstm_functional(in_shape_tup, out_dim, classify=False):
     inputs = tf.keras.Input(shape=in_shape_tup, batch_size=1)
     x = tf.keras.layers.LSTM(200, activation="relu")(inputs)
     x = tf.keras.layers.LSTM(128, activation="relu")(inputs)
     outputs = tf.keras.layers.Dense(100)(x)
     outputs = tf.keras.layers.Dense(out_dim)(x)
+    if classify:
+        outputs = tf.keras.layers.Softmax()(outputs)
     model = tf.keras.Model(inputs, outputs)
+    return model
+
+
+def make_mlp_functional(in_dim, out_dim, classify=False, verbose=True):
+    inputs = tf.keras.Input(shape=in_dim, batch_size=1)
+
+    x = tf.keras.layers.Dense(200, activation="relu")(inputs)
+    x = tf.keras.layers.Dense(128, activation="relu")(x)
+    outputs = tf.keras.layers.Dense(100, activation="relu")(x)
+    outputs = tf.keras.layers.Dense(out_dim, activation="relu")(x)
+    if classify:
+        outputs = tf.keras.layers.Softmax()(outputs)
+    model = tf.keras.Model(inputs, outputs)
+    if verbose:
+        print(model.summary())
     return model
 
 
@@ -55,11 +72,10 @@ def main():
     """
 
     """
-    model = make_model_functional((30, 200), (1, 60))
+    model = make_mlp_functional(200, 2)
     return model
 
 
 if __name__ == "__main__":
     # main()
     model = main()
-    print(model)

@@ -22,8 +22,8 @@ def ml_direction_predict():
     cols = bm.TO_SERIALIZE
 
     PRINT_INTERVAL = 30
-    HISTORY_SIZE = 30
-    PRED_SIZE = 30
+    HISTORY_SIZE = 10
+    PRED_SIZE = 10
 
     all_datasets = tfls.prediction_data_from_folder(
         tfm.READ_FROM,
@@ -34,7 +34,7 @@ def ml_direction_predict():
         history_size=HISTORY_SIZE,
         pred_size=PRED_SIZE,
         step_size=1,
-        norm=True,
+        norm=False
     )
 
     print(len(all_datasets))
@@ -42,8 +42,8 @@ def ml_direction_predict():
     x, y = tfu.get_example(datasets)
 
     loss_fxn = tf.losses.MeanAbsoluteError()
-    optimizer = tf.keras.optimizers.RMSprop(clipvalue=1.0)
-    model = lstm.make_model_functional(x.shape[-2:], tf.size(y[0]))
+    optimizer = tf.keras.optimizers.Adadelta()
+    model = lstm.make_lstm_functional(x.shape[-2:], tf.size(y[0]))
 
     train_loss, test_loss = tfu.get_loss_metrics()
 
@@ -72,12 +72,12 @@ def ml_direction_predict():
 
             if i % PRINT_INTERVAL == 0:
                 print(
-                    f"{i}: x_train: {x_train[-1][0:20]} \
-                        preds:\
-                        {tf.reshape(predictions, (-1, 2))}\
-                        actuals:\
-                        {tf.reshape(y_train, (-1, 2))}\
-                        loss: {loss.numpy()}"
+                    f"{i}\n "
+                       "preds:\n"
+                        f"{tf.reshape(predictions, (-1, 2))}\n"
+                        f"actuals:\n"
+                        f"{tf.reshape(y_train, (-1, 2))}"
+                        f"loss: {loss.numpy()}"
                 )
 
         test_dataset = random.choice(test_datasets)
