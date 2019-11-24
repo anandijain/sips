@@ -1,5 +1,4 @@
 # get a season of boxlinks
-import sips.h.fileio as io
 import sips.h.grab as g
 import sips.h.parse as p
 

@@ -35,6 +35,7 @@ def serialize_dfs(
     norm=True,
     dropna=True,
     dont_hot=False,
+    drop_labs=True
 ):
     """
     label_cols is a subset of incols
@@ -55,15 +56,19 @@ def serialize_dfs(
             subset = df[in_cols].copy()
         except KeyError:
             continue
+        except TypeError:
+            continue
 
         sdf = serialize_df(
-            subset, replace_dict=replace_dict, hot_maps=hot_maps, dropna=dropna
+            df, replace_dict=replace_dict, hot_maps=hot_maps, dropna=dropna
         )
         # typed_df = sdf.astype(np.float32)
 
         y = sdf[label_cols].copy()
         X = sdf.copy()
-        # X = sdf.drop(label_cols, axis=1)
+        
+        if drop_labs:
+            X = sdf.drop(label_cols, axis=1)
 
         if to_numpy:
             X = np.array(X, dtype=np.float32)

@@ -126,7 +126,7 @@ def profit(df):
 
 
 def attach_all(df):
-    fxns = [wins, ml_transitions, profit]
+    fxns = [wins] # , ml_transitions, profit]
     for fxn in fxns:
         if df is None:
             return
@@ -152,8 +152,10 @@ def test_attach_all():
 if __name__ == "__main__":
     in_cols = bm.TO_SERIALIZE
     dfs = test_attach_all()
+    print(dfs[0].columns)
+    print(dfs[0])
     sXs, sYs = s.serialize_dfs(
-        dfs, in_cols=in_cols, label_cols=["a_ml", "h_ml"], dont_hot=True, to_numpy=False
+        dfs, in_cols=in_cols, label_cols=["a_win", "h_win"], dont_hot=True, to_numpy=False
     )
     df = dfs[0]
     print(df)

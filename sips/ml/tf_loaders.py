@@ -123,6 +123,16 @@ def prediction_data_from_folder(
         hot_maps=hot_maps,
         norm=norm,
     )
+    datasets = serialized_to_datasets(
+        train_df_vals, train_df_vals, history_size=history_size, pred_size=pred_size, batch_size=batch_size)
+
+    return datasets
+
+
+def serialized_to_datasets(train_df_vals, train_df_labs, history_size=1, pred_size=1, batch_size=1):
+    """
+
+    """
 
     datasets = []
     for i in range(len(train_df_vals)):
