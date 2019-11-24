@@ -60,5 +60,3 @@ def directional_transitions(a1, a2, h1, h2):
         (a1 > a2 and h1 < h2),
     ]
     return propositions
-
-

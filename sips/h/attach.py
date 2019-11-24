@@ -27,7 +27,7 @@ def ml_transitions(game, attach=True, verbose=False):
 
     if attach:
         trans_df = pd.DataFrame(transition_classes)
-        trans_df = trans_df.add_prefix('trans_class_')
+        trans_df = trans_df.add_prefix("trans_class_")
         ret = pd.concat([game, trans_df], axis=1)
     else:
         ret = transition_classes
@@ -86,15 +86,15 @@ def profit(df):
     a_init = None
     for i in range(len(status)):
         if status[i] == "IN_PROGRESS":
-            if df.a_ml.iloc[i] != 'None':
+            if df.a_ml.iloc[i] != "None":
                 a_init = df.a_ml.iloc[i]
-                if a_init == 'EVEN':
+                if a_init == "EVEN":
                     a_init = 100
                 else:
                     a_init = int(a_init)
-            if df.h_ml.iloc[i] != 'None':
+            if df.h_ml.iloc[i] != "None":
                 h_init = df.h_ml.iloc[i]
-                if h_init == 'EVEN':
+                if h_init == "EVEN":
                     h_init = 100
                 else:
                     h_init = int(h_init)
@@ -112,9 +112,9 @@ def profit(df):
             h_profs.append("na")
             a_profs.append("na")
         else:
-            if a_ml == 'EVEN':
+            if a_ml == "EVEN":
                 a_ml = 100
-            if h_ml == 'EVEN':
+            if h_ml == "EVEN":
                 h_ml = 100
             h_prof = calc.prof_amt(h_init, int(a_ml))
             a_prof = calc.prof_amt(a_init, int(h_ml))
@@ -132,7 +132,7 @@ def attach_all(df):
         if df is None:
             return
         df = fxn(df)
-    
+
     return df
 
 
@@ -142,7 +142,7 @@ def test_attach_all():
     for df in dfs:
         if df.empty:
             continue
-        attached_df = attach_all(df) 
+        attached_df = attach_all(df)
         if attached_df is not None:
             all_attached.append(attached_df)
 
@@ -153,7 +153,9 @@ def test_attach_all():
 if __name__ == "__main__":
     in_cols = bm.TO_SERIALIZE
     dfs = test_attach_all()
-    sXs, sYs = s.serialize_dfs(dfs, in_cols=in_cols, label_cols=['a_ml', 'h_ml'], dont_hot=True, to_numpy=False)
+    sXs, sYs = s.serialize_dfs(
+        dfs, in_cols=in_cols, label_cols=["a_ml", "h_ml"], dont_hot=True, to_numpy=False
+    )
     df = dfs[0]
     print(df)
     print(df.dtypes)

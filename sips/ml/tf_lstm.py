@@ -79,8 +79,7 @@ def get_loss_metrics():
 
 
 def get_acc_metrics():
-    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
-        "train_accuracy")
+    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("train_accuracy")
     test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("test_accuracy")
     return train_accuracy, test_accuracy
 
@@ -190,8 +189,7 @@ def train_directional_predictor(datasets, test_datasets):
         if not test_dataset:
             continue
         for (xte, yte) in test_dataset:
-            tel, tea = test_step(model, loss_fxn, xte, yte,
-                                 test_loss, test_accuracy)
+            tel, tea = test_step(model, loss_fxn, xte, yte, test_loss, test_accuracy)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
@@ -297,23 +295,21 @@ def main():
             continue
 
         for xte, yte in test_dataset:
-            tel = test_step(model, loss_fxn, xte,
-                            tf.reshape(yte, (1, -1)), test_loss)
+            tel = test_step(model, loss_fxn, xte, tf.reshape(yte, (1, -1)), test_loss)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
 
         if epoch % 2000:
             template = "Epoch {}, Loss: {}, Test Loss: {}"
-            print(template.format(
-                epoch + 1, train_loss.result(), test_loss.result(),))
+            print(template.format(epoch + 1, train_loss.result(), test_loss.result(),))
 
         # Reset metrics every epoch
         train_loss.reset_states()
         test_loss.reset_states()
-    model_fn = WRITE_TO + "models/ml_pred/" + str(history_size) + '_' + str(target)
+    model_fn = WRITE_TO + "models/ml_pred/" + str(history_size) + "_" + str(target)
 
-    tf.saved_model.save(model, )
+    tf.saved_model.save(model,)
 
 
 if __name__ == "__main__":

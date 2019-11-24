@@ -87,7 +87,7 @@ def all_hot_maps(output="dict"):
     if output == "dict":
         keys = ["sport", "a_team", "h_team", "status", "live"]
         hot_maps = {keys[i]: hot_maps[i] for i in range(len(keys) - 1)}
-        
+
     return hot_maps
 
 

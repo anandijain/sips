@@ -37,8 +37,15 @@ def serialize_row(row, hot_maps=None, to_numpy=True, include_teams=False):
 
 
 def serialize_dfs(
-    dfs, in_cols, label_cols, replace_dict=None, hot_maps=None, to_numpy=True, norm=True, dropna=True,
-    dont_hot=False
+    dfs,
+    in_cols,
+    label_cols,
+    replace_dict=None,
+    hot_maps=None,
+    to_numpy=True,
+    norm=True,
+    dropna=True,
+    dont_hot=False,
 ):
     """
     label_cols is a subset of incols
@@ -46,11 +53,11 @@ def serialize_dfs(
     sXs = []
     sYs = []
     if dont_hot:
-        hot_maps=None
+        hot_maps = None
     else:
         if not hot_maps:
             hot_maps = hot.all_hot_maps(output="dict")
-    
+
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
 
@@ -61,13 +68,10 @@ def serialize_dfs(
             continue
 
         sdf = serialize_df(
-            subset,
-            replace_dict=replace_dict,
-            hot_maps=hot_maps,
-            dropna=dropna
+            subset, replace_dict=replace_dict, hot_maps=hot_maps, dropna=dropna
         )
         # typed_df = sdf.astype(np.float32)
-        
+
         y = sdf[label_cols].copy()
         X = sdf.copy()
         # X = sdf.drop(label_cols, axis=1)
@@ -98,7 +102,7 @@ def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
 
     if dropna:
         df.dropna(inplace=True)
-        
+
     ret = df
     return ret
 
@@ -150,7 +154,9 @@ def test_sdfs():
     cols = bm.TO_SERIALIZE
     maps = hot.all_hot_maps()
 
-    numbers = serialize_dfs(dfs, in_cols=cols, label_cols=['a_ml', 'h_ml'], hot_maps=maps)
+    numbers = serialize_dfs(
+        dfs, in_cols=cols, label_cols=["a_ml", "h_ml"], hot_maps=maps
+    )
 
     print(numbers)
     return numbers

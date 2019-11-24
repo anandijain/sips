@@ -44,8 +44,6 @@ def multivariate_data(
     labels = []
     start_index = start_index + history_size
 
-    # assuming step=1
-
     if end_index is None:
         end_index = len(dataset) - target_size
 
@@ -58,15 +56,7 @@ def multivariate_data(
             label = target[i + target_size]
         else:
             label = target[i : i + target_size]
-            # label = np.array(label)
-            # print(label.dtype)
 
-            # label = label.reshape(1, -1)
-            # print(f'{i} : input {X.shape}')
-            # print(f'{i} : label: {label.shape}')
-            # print(f'{i} : label: {label}')
-        print(f"size(X) : {np.size(X)}")
-        print(f"size(label) : {np.size(label)}")
         labels.append(label)
 
     return np.array(data), np.array(labels)
@@ -165,8 +155,6 @@ def num_flat_features(x):
     return num_features
 
 
-
-
 def test_get_and_window():
     columns = ["a_pts", "h_pts", "quarter", "secs"]
     dfs = get_dfs(m.PARENT_DIR + "data/lines/lines/")
@@ -189,6 +177,7 @@ def get_wins():
     dfs = get_dfs()
     w_wins = [apply_wins(df) for df in dfs]
     return w_wins
+
 
 if __name__ == "__main__":
     wins = get_wins()
