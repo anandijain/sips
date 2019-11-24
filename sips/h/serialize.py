@@ -37,22 +37,24 @@ def serialize_row(row, hot_maps=None, to_numpy=True, include_teams=False):
 
 
 def serialize_dfs(
-    dfs, in_cols, label_cols, replace_dict=None, hot_maps=None, to_numpy=True, norm=True, dropna=True
+    dfs, in_cols, label_cols, replace_dict=None, hot_maps=None, to_numpy=True, norm=True, dropna=True,
+    dont_hot=False
 ):
     """
     label_cols is a subset of incols
     """
     sXs = []
     sYs = []
-    if not hot_maps:
-        hot_maps = hot.all_hot_maps(output="dict")
+    if dont_hot:
+        hot_maps=None
+    else:
+        if not hot_maps:
+            hot_maps = hot.all_hot_maps(output="dict")
     
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
 
-
     for df in dfs:
-
         try:
             subset = df[in_cols].copy()
         except KeyError:
@@ -64,21 +66,18 @@ def serialize_dfs(
             hot_maps=hot_maps,
             dropna=dropna
         )
-        typed_df = sdf.astype(np.float32)
-
+        # typed_df = sdf.astype(np.float32)
+        
         y = sdf[label_cols].copy()
-        X = sdf.drop(label_cols, axis=1)
+        X = sdf.copy()
+        # X = sdf.drop(label_cols, axis=1)
 
         if to_numpy:
             X = np.array(X, dtype=np.float32)
             y = np.array(y, dtype=np.float32)
-
-        if norm:
-            normed_x = tf.keras.utils.normalize(X)
-            # normed_y = tf.keras.utils.normalize(y)
-
-
-        sXs.append(normed_x)
+            if norm:
+                X = tf.keras.utils.normalize(X)
+        sXs.append(X)
         sYs.append(y)
 
     return sXs, sYs
@@ -94,7 +93,6 @@ def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
     if replace_dict:
         df.replace(replace_dict, inplace=True)
 
-
     if hot_maps:
         df = hot.hot(df, hot_maps=hot_maps)
 
@@ -102,9 +100,6 @@ def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
         df.dropna(inplace=True)
         
     ret = df
-
-
-
     return ret
 
 

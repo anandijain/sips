@@ -165,67 +165,9 @@ def num_flat_features(x):
     return num_features
 
 
-def apply_wins(game_df):
-    """
-    given a dataframe for a single game, takes the last row 
-    checks if the status is 'GAME_END' 
-    then adds new columns for the winner of the game based on the score
-    """
-    last_row = game_df.iloc[-1]
-    status = last_row.status
-    if status == "GAME_END":
-        if last_row.a_pts > last_row.h_pts:
-            a_win = True
-            h_win = False
-        elif last_row.a_pts < last_row.h_pts:
-            a_win = False
-            h_win = True
-        else:
-            print("game tied at end")
-            a_win = False
-            h_win = False
-        game_df["a_win"] = a_win
-        game_df["h_win"] = h_win
-    else:
-        print("no game end status")
-    return game_df
 
 
-def attach_prof(df):
-    """
-
-    """
-    h_mls = df.h_ml
-    a_mls = df.a_ml
-    status = df.status
-    h_profs = []
-    a_profs = []
-    for i in range(len(status)):
-        if status[i] == "IN_PROGRESS":
-            line = i
-
-            break
-
-    h_init = h_mls[i]
-    a_init = a_mls[i]
-    for i in range(len(h_mls)):
-        h_ml = h_mls[i]
-        a_ml = a_ml[i]
-        if h_ml or a_ml == "None":
-            h_profs.append("na")
-            a_profs.append("na")
-        else:
-            h_prof = c.prof_amt(h_init, a_ml)
-            a_prof = c.prof_amt(a_init, h_ml)
-            h_profs.append(h_prof)
-            a_profs.append(a_prof)
-
-    df["h_profs"] = h_profs
-    df["a_profs"] = a_profs
-    return df
-
-
-if __name__ == "__main__":
+def test_get_and_window():
     columns = ["a_pts", "h_pts", "quarter", "secs"]
     dfs = get_dfs(m.PARENT_DIR + "data/lines/lines/")
 
@@ -241,3 +183,13 @@ if __name__ == "__main__":
     # print(f'y : {y}')
     print(f"X.shape : {X.shape}")
     print(f"y.shape : {y.shape}")
+
+
+def get_wins():
+    dfs = get_dfs()
+    w_wins = [apply_wins(df) for df in dfs]
+    return w_wins
+
+if __name__ == "__main__":
+    wins = get_wins()
+    print(wins)

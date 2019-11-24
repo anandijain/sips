@@ -79,7 +79,8 @@ def get_loss_metrics():
 
 
 def get_acc_metrics():
-    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("train_accuracy")
+    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
+        "train_accuracy")
     test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("test_accuracy")
     return train_accuracy, test_accuracy
 
@@ -119,14 +120,12 @@ def train_step_regress(model, optimizer, loss_object, x_train, y_train, train_lo
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
-        print(
-            f"preds: {tf.reshape(predictions, (-1, 2))}\n actuals: {tf.reshape(y_train, (-1, 2))}, loss: {loss.numpy()}"
-        )
+
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
     tl = train_loss(loss)
-    return tl
+    return tl, loss, predictions
 
 
 def test_step(model, loss_object, x_test, y_test, test_loss, test_accuracy=None):
@@ -191,7 +190,8 @@ def train_directional_predictor(datasets, test_datasets):
         if not test_dataset:
             continue
         for (xte, yte) in test_dataset:
-            tel, tea = test_step(model, loss_fxn, xte, yte, test_loss, test_accuracy)
+            tel, tea = test_step(model, loss_fxn, xte, yte,
+                                 test_loss, test_accuracy)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
@@ -244,6 +244,7 @@ def main():
     """
 
     """
+    PRINT_INTERVAL = 25
     cols = bm.TO_SERIALIZE
 
     all_datasets = tfls.prediction_data_from_folder(
@@ -252,8 +253,8 @@ def main():
         label_cols=["a_ml", "h_ml"],
         batch_size=1,
         buffer_size=1,
-        history_size=10,
-        pred_size=3,
+        history_size=30,
+        pred_size=30,
         step_size=1,
         norm=True,
     )
@@ -273,8 +274,8 @@ def main():
         if not dataset:
             continue
 
-        for x_train, y_train in dataset:
-            tl = train_step_regress(
+        for i, (x_train, y_train) in enumerate(dataset):
+            tl, loss, predictions = train_step_regress(
                 model,
                 optimizer,
                 loss_fxn,
@@ -282,6 +283,10 @@ def main():
                 tf.reshape(y_train, (1, -1)),
                 train_loss,
             )
+            if i % PRINT_INTERVAL == 0:
+                print(
+                    f"{i}: x_train: {x_train[-1][0:20]}\n preds:\n {tf.reshape(predictions, (-1, 2))}\n actuals:\n {tf.reshape(y_train, (-1, 2))}\n loss: {loss.numpy()}"
+                )
 
         with train_summary_writer.as_default():
             tf.summary.scalar("loss", tl.numpy(), step=epoch)
@@ -292,20 +297,23 @@ def main():
             continue
 
         for xte, yte in test_dataset:
-            tel = test_step(model, loss_fxn, xte, tf.reshape(yte, (1, -1)), test_loss)
+            tel = test_step(model, loss_fxn, xte,
+                            tf.reshape(yte, (1, -1)), test_loss)
 
         with test_summary_writer.as_default():
             tf.summary.scalar("loss", tel.numpy(), step=epoch)
 
         if epoch % 2000:
             template = "Epoch {}, Loss: {}, Test Loss: {}"
-            print(template.format(epoch + 1, train_loss.result(), test_loss.result(),))
+            print(template.format(
+                epoch + 1, train_loss.result(), test_loss.result(),))
 
         # Reset metrics every epoch
         train_loss.reset_states()
         test_loss.reset_states()
+    model_fn = WRITE_TO + "models/ml_pred/" + str(history_size) + '_' + str(target)
 
-    tf.saved_model.save(model, WRITE_TO + "models/ml_pred/")
+    tf.saved_model.save(model, )
 
 
 if __name__ == "__main__":
