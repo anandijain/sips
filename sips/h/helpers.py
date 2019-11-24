@@ -55,7 +55,7 @@ def multivariate_data(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 
@@ -103,7 +103,7 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_min_game_len(games, min_lines=500):
+def apply_min_game_len(games, min_lines=200):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines
