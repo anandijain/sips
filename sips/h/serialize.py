@@ -8,7 +8,7 @@ from sips.h import hot
 import sips.h.helpers as h
 
 
-def serialize_row(row, hot_maps=None, to_numpy=True, include_teams=False):
+def serialize_row(row, hot_maps=None, to_numpy=False, include_teams=False):
     """
 
     """
@@ -16,6 +16,9 @@ def serialize_row(row, hot_maps=None, to_numpy=True, include_teams=False):
         pass
     elif isinstance(row, list):
         row = pd.DataFrame(row, columns=bm.LINE_COLUMNS)
+
+    if not hot_maps:
+        hot_maps = hot.all_hot_maps(output="dict")
 
     ret = serialize_df(row, hot_maps=hot_maps)
 
@@ -35,7 +38,8 @@ def serialize_dfs(
     norm=True,
     dropna=True,
     dont_hot=False,
-    drop_labs=True
+    drop_labs=True,
+    drop_extra_cols=["a_ou", "h_ou"],
 ):
     """
     label_cols is a subset of incols
@@ -52,11 +56,7 @@ def serialize_dfs(
         replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
 
     for df in dfs:
-        try:
-            subset = df[in_cols].copy()
-        except KeyError:
-            continue
-        except TypeError:
+        if df is None:
             continue
 
         sdf = serialize_df(
@@ -66,9 +66,13 @@ def serialize_dfs(
 
         y = sdf[label_cols].copy()
         X = sdf.copy()
-        
+
         if drop_labs:
             X = sdf.drop(label_cols, axis=1)
+            try:
+                X = X.drop(drop_extra_cols, axis=1)
+            except KeyError:
+                pass
 
         if to_numpy:
             X = np.array(X, dtype=np.float32)
@@ -88,8 +92,10 @@ def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
     replace_dict: dict replaces values like 'None', and 'E
     """
 
-    if replace_dict:
-        df.replace(replace_dict, inplace=True)
+    if not replace_dict:
+        replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
+
+    df.replace(replace_dict, inplace=True)
 
     if hot_maps:
         df = hot.hot(df, hot_maps=hot_maps)
@@ -98,47 +104,6 @@ def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
         df.dropna(inplace=True)
 
     ret = df
-    return ret
-
-
-def row_ml(ml):
-    """
-    given a list of unparsed moneylines (eg can be 'EVEN' and None)
-    edit the values such that 'EVEN' -> 100 and None -> -1
-    typical order of list is [a0, h0, a1, h1]
-    """
-    if ml == "EVEN":
-        ret = 100
-    elif ml == None:
-        ret = -1
-    else:
-        try:
-            ret = float(ml)
-        except:
-            ret = -1
-    return ret
-
-
-def teams(row, teams_dict):
-    """
-    row is one of:
-        row of type list (with schema specified in serialize row)
-        pandas row
-    teams_dict is:
-        team_name: hotted vector
-    """
-    ret = []
-
-    if isinstance(row, pd.core.series.Series):
-        a_team = row.a_team
-        h_team = row.h_team
-    else:
-        a_team, h_team = row[2:4]
-
-    for t in [a_team, h_team]:
-        hot_team = teams_dict[t]
-        ret += hot_team
-
     return ret
 
 

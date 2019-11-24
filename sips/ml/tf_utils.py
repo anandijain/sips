@@ -52,8 +52,7 @@ def get_loss_metrics():
 
 
 def get_acc_metrics():
-    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(
-        "train_accuracy")
+    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("train_accuracy")
     test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("test_accuracy")
     return train_accuracy, test_accuracy
 

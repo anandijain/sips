@@ -47,9 +47,8 @@ def ml_direction_predict():
 
     train_loss, test_loss = tfu.get_loss_metrics()
 
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
-        log_dir)
-    print(f'log_dir: {log_dir}')
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
+    print(f"log_dir: {log_dir}")
 
     train_step_num = 0
     test_step_num = 0
@@ -87,8 +86,9 @@ def ml_direction_predict():
             continue
 
         for xte, yte in test_dataset:
-            tel = tf_fwd.test_step(model, loss_fxn, xte,
-                                   tf.reshape(yte, (1, -1)), test_loss)
+            tel = tf_fwd.test_step(
+                model, loss_fxn, xte, tf.reshape(yte, (1, -1)), test_loss
+            )
             test_step_num += 1
 
             with test_summary_writer.as_default():
@@ -96,14 +96,18 @@ def ml_direction_predict():
 
         if epoch % 2000:
             template = "Epoch {}, Loss: {}, Test Loss: {}"
-            print(template.format(
-                epoch + 1, train_loss.result(), test_loss.result(),))
+            print(template.format(epoch + 1, train_loss.result(), test_loss.result(),))
 
         # Reset metrics every epoch
         train_loss.reset_states()
         test_loss.reset_states()
 
-    model_fn = tfm.WRITE_TO + "models/ml_pred/" + \
-        str(HISTORY_SIZE) + "_" + str(PRED_SIZE)
+    model_fn = (
+        tfm.WRITE_TO + "models/ml_pred/" + str(HISTORY_SIZE) + "_" + str(PRED_SIZE)
+    )
 
     tf.saved_model.save(model, model_fn)
+
+
+if __name__ == "__main__":
+    ml_direction_predict()
