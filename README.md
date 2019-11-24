@@ -1,13 +1,27 @@
-sips
+# sips 0.14
 
-install with clone + `pip install -e . [--user]`
+setup:
 
-in v0.12 all of the neural networks and machine learning code has been removed.
+- install
+- navigate to dir
+- local pip install
 
-the main functionality, `lines.py` allows one to grab data from bovada and espn simultaneously.
+```bash
+git clone https://github.com/anandijain/sips.git
+cd sips
+pip install -e . [--user]
+```
 
-rebuilding and improving the ml stack is the top priority for v0.2.
+usages:
 
-currently, i am still working on deleting old code and refining the working parts to be intuitive, well-organized, and reliable.
+1. gather data
 
-after that, i'll be writing gym environments and other ml code
+    ```python
+    from sips.lines import lines
+    lines.Lines()
+    ```
+
+2. train on data
+
+    - place lines.py CSVs in sips/data/lines
+    - go to sips/ml/ and `python tf_lstm.py`
