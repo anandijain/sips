@@ -1,10 +1,6 @@
-import bs4
-
 import pandas as pd
-import requests as r
 
 import sips.h.parse as p
-import sips.h.fileio as io
 import sips.h.grab as g
 
 
@@ -14,16 +10,16 @@ def main(years=(2000, 2019)):
     dfs = []
     for year in year_list:
         dfs.append(get_df(year))
-    print(f'Done: {len(dfs)} dataframes written')
+    print(f"Done: {len(dfs)} dataframes written")
 
 
 def get_df(year, write=True):
-    '''
+    """
 
-    '''
+    """
     url = get_url(year=year)
     page = g.get_page(url)
-    table = p.get_table(page, 'combine')
+    table = p.get_table(page, "combine")
     cols = p.columns_from_table(table)
     player_ids = get_ids(table)
     raw_df = pd.read_html(table.prettify())[0]
@@ -42,14 +38,14 @@ def get_url(year=2019):
 
 
 def get_ids(table):
-    '''
+    """
 
-    '''
+    """
     ids = []
-    players = table.tbody.find_all('th', {'data-stat': 'player'})
+    players = table.tbody.find_all("th", {"data-stat": "player"})
     for player in players:
         try:
-            player_url = player.a['href']
+            player_url = player.a["href"]
             player_id = parse_id(player_url)
             ids.append(player_id)
         except TypeError:
@@ -57,8 +53,8 @@ def get_ids(table):
     return ids
 
 
-def parse_id(player_url='/players/W/WoodZe00.htm'):
-    ID = player_url.split("/")[3].split('.')[0]
+def parse_id(player_url="/players/W/WoodZe00.htm"):
+    ID = player_url.split("/")[3].split(".")[0]
     return ID
 
 

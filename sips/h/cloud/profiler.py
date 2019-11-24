@@ -6,8 +6,8 @@ def main():
     # collects and uploads profiles. Best done as early as possible.
     try:
         googlecloudprofiler.start(
-            service='hello-profiler',
-            service_version='1.0.1',
+            service="hello-profiler",
+            service_version="1.0.1",
             # verbose is the logging level. 0-error, 1-warning, 2-info,
             # 3-debug. It defaults to 0 (error) if not set.
             verbose=3,

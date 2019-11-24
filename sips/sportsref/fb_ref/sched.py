@@ -9,5 +9,5 @@ def season_boxlinks():
     p = g.get_page(root + ext)
     td_links = p.find_all("td", {"data-stat": "boxscore_word"})
 
-    links = [td_link.a['href'] for td_link in td_links]
+    links = [td_link.a["href"] for td_link in td_links]
     return links
