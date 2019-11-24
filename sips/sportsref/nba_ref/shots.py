@@ -1,13 +1,7 @@
-import bs4
-import requests as r
-
-
 import pandas as pd
-import numpy as np
 
 import sips.h.fileio as io
 import sips.h.grab as g
-import sips.h.parse as p
 
 
 root = "https://www.basketball-reference.com"

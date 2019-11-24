@@ -1,9 +1,6 @@
 import numpy as np
 
 import sips.h.serialize as s
-from sips.macros import bov as bm
-from sips.h import helpers as h
-from sips.h import hot
 
 
 def classify_transition(prev_mls, cur_mls):

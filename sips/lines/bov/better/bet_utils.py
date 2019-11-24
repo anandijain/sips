@@ -336,7 +336,7 @@ def delete_bets(driver, indices):
     if isinstance(indices, int):
         indices = [indices]
 
-    top_lines = driver.find_elements_by_class_name(u.TOP_LINE_CLASS)
+    top_lines = driver.find_elements_by_class_name(TOP_LINE_CLASS)
 
     for i in indices:
         top_line = top_lines[i]

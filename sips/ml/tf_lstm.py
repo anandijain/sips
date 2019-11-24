@@ -1,20 +1,12 @@
-import os
 import datetime
 import random
 
-import pandas as pd
-import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.lines.bov import bov
-from sips.h import fileio as fio
 from sips.h import helpers as h
-from sips.h import serialize as s
-from sips.h import hot
-from sips.h import viz
 from sips.h import tf_loaders as tfls
 
 
@@ -245,14 +237,17 @@ def main():
     PRINT_INTERVAL = 25
     cols = bm.TO_SERIALIZE
 
+    HISTORY_SIZE = 30
+    PRED_SIZE = 30
+
     all_datasets = tfls.prediction_data_from_folder(
         READ_FROM,
         in_cols=cols,
         label_cols=["a_ml", "h_ml"],
         batch_size=1,
         buffer_size=1,
-        history_size=30,
-        pred_size=30,
+        history_size=HISTORY_SIZE,
+        pred_size=PRED_SIZE,
         step_size=1,
         norm=True,
     )
@@ -283,7 +278,12 @@ def main():
             )
             if i % PRINT_INTERVAL == 0:
                 print(
-                    f"{i}: x_train: {x_train[-1][0:20]}\n preds:\n {tf.reshape(predictions, (-1, 2))}\n actuals:\n {tf.reshape(y_train, (-1, 2))}\n loss: {loss.numpy()}"
+                    f"{i}: x_train: {x_train[-1][0:20]} \
+                        preds:\
+                        {tf.reshape(predictions, (-1, 2))}\
+                        actuals:\
+                        {tf.reshape(y_train, (-1, 2))}\
+                        loss: {loss.numpy()}"
                 )
 
         with train_summary_writer.as_default():
@@ -307,9 +307,9 @@ def main():
         # Reset metrics every epoch
         train_loss.reset_states()
         test_loss.reset_states()
-    model_fn = WRITE_TO + "models/ml_pred/" + str(history_size) + "_" + str(target)
+    model_fn = WRITE_TO + "models/ml_pred/" + str(HISTORY_SIZE) + "_" + str(PRED_SIZE)
 
-    tf.saved_model.save(model,)
+    tf.saved_model.save(model, model_fn)
 
 
 if __name__ == "__main__":

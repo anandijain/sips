@@ -10,7 +10,7 @@ def divy_games(events):
     3. compute distance to game to each of the 3 servers (LA, Chi, NY)
     4. log the games for each location
     5. 
-    
+
     need a way to prevent requests to all_events 
 
     # testing
@@ -20,5 +20,5 @@ def divy_games(events):
     3. if the bulk of time is spent on requests, it might be faster to req 
         all events every time (even just as a new-game check)
 
-    
+
     """

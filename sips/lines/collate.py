@@ -1,7 +1,4 @@
 import time
-import json
-
-import requests as r
 
 from sips.lines.bov import bov
 from sips.lines.espn import espn_box as eb

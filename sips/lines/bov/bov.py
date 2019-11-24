@@ -2,11 +2,8 @@
 uses the bovada api to get json data for odds and scores
 """
 import requests as r
-import pandas as pd
-import numpy as np
 
 import sips.h.grab as g
-import sips.h.helpers as h
 
 from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u

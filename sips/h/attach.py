@@ -44,8 +44,8 @@ def ml_transitions(game, attach=True, verbose=False):
 
 def wins(game_df):
     """
-    given a dataframe for a single game, takes the last row 
-    checks if the status is 'GAME_END' 
+    given a dataframe for a single game, takes the last row
+    checks if the status is 'GAME_END'
     then adds new columns for the winner of the game based on the score
     """
     try:
@@ -98,7 +98,6 @@ def profit(df):
                     h_init = 100
                 else:
                     h_init = int(h_init)
-            line = i
 
             if h_init and a_init:
                 break

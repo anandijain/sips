@@ -1,10 +1,6 @@
-import bs4
-
 import pandas as pd
-import requests as r
 
 import sips.h.parse as p
-import sips.h.fileio as io
 import sips.h.grab as g
 
 

@@ -1,10 +1,8 @@
-import os
 import pandas as pd
 import numpy as np
 
 import tensorflow as tf
 
-from sips.macros import macros as m
 from sips.macros import bov as bm
 from sips.h import hot
 import sips.h.helpers as h
@@ -12,16 +10,7 @@ import sips.h.helpers as h
 
 def serialize_row(row, hot_maps=None, to_numpy=True, include_teams=False):
     """
-    going to take in something like this:
-    ['FOOT', 5741304, 'Pittsburgh Steelers', 'Cleveland Browns', 1573540736617, 28,
-    False, '0', '-1', '0', '0', 'PRE_GAME', '2.5', '-2.5', '-105', '-115', '+125',
-    '-145', '40.0', '40.0', '-110', '-110', 'O', 'U', 1573780800000]
-    and return a np array
 
-    # note:
-    serialize row needs to be refactored, i'm thinking that it should take in 
-    a dataframe row and maybe have the option of what columns we want.
-    so it can maximally serialize or, given a subset of columns, only serialize those 
     """
     if isinstance(row, pd.core.series.Series):
         pass

@@ -1,4 +1,3 @@
-import os
 import random
 
 import pandas as pd
@@ -6,8 +5,6 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
-import sips.h as h
-import sips.h.calc as c
 from sips.h import fileio as fio
 import sips.macros.macros as m
 
@@ -55,7 +52,7 @@ def multivariate_data(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i: i + target_size]
+            label = target[i : i + target_size]
 
         labels.append(label)
 

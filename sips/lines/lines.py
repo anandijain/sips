@@ -9,13 +9,10 @@ import argparse
 import time
 import json
 
-import concurrent.futures
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from requests_futures.sessions import FuturesSession
 
-import sips
 import sips.h.fileio as io
-import sips.h.helpers as h
 import sips.h.serialize as s
 
 from sips.h.cloud import profiler
@@ -27,7 +24,6 @@ from sips.lines.bov import bov
 
 from sips.macros import macros as m
 from sips.macros import bov as bm
-from sips.lines.bov.utils import bov_utils as utils
 
 
 LINES_DATA_PATH = m.PARENT_DIR + "/data/lines/"
@@ -46,9 +42,9 @@ group.add_argument(
 )
 group.add_argument("-A", "--all", type=bool, help="run on all sports")
 parser.add_argument(
-    "-m", "--all_mkts", type=bool, help="true grabs extra markets", default=False
+    "-m", "--all_mkts", type=bool, help="grabs extra markets", default=False
 )
-parser.add_argument("-l", "--log", type=bool, help="add the gcloud profiler")
+parser.add_argument("-l", "--log", type=bool, help="add gcloud profiler")
 parser.add_argument("-n", "--new_only", type=bool, help="", default=True)
 parser.add_argument(
     "-w", "--wait", type=float, help="how long to wait after each step", default=0.25

@@ -100,7 +100,6 @@ def hot(df, hot_maps, drop_cold=True, ret_hots_only=False):
             value: one_hot vector for unique row value
     ---
     returns dataframe 
-
     """
     ret = []
     for i, (col_name, hot_map) in enumerate(hot_maps.items()):
@@ -163,7 +162,7 @@ def freeze(df: pd.DataFrame, cold_map: list):
 
     for a series with n unique values, the hot vector will be n columns 
         ## - how to deal with set_zero?
-    
+
     freeze assumes that there is this bijection from hot values to cold keys
     """
     pass

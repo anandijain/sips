@@ -2,13 +2,6 @@
  mainly bs4 utilities for grabbing data from sites:
 """
 import bs4
-import pandas as pd
-
-import numpy as np
-
-
-def read_html_with_links(html_table):
-    thead = html_table.thead
 
 
 def parse_json(json, keys, output="dict"):

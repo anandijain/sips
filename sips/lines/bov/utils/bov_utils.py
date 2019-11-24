@@ -2,10 +2,8 @@
 utils functions for bov.py
 """
 
-import time
 import requests as r
 
-import sips.h.fileio as io
 import sips.h.grab as g
 import sips.h.parse as p
 from sips.macros import bov as bm
@@ -394,7 +392,7 @@ def mkt_period_info(market):
 
 def clean_desc(desc):
     """
-    
+
     """
     to_replace = [("-", ""), ("  ", " "), (" ", "_")]
     ret = desc.lower()
