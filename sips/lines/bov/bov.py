@@ -15,7 +15,7 @@ def lines(sports, output="df", parse=True, all_mkts=False, verbose=False):
     returns either a dictionary or list
     dictionary - (game_id, row)
     """
-    events = u.sports_to_events(sports, all_mkts)
+    events = u.sports_to_events(sports, all_mkts=all_mkts)
 
     if output == "dict":
         data = u.dict_from_events(events, key="id", rows=parse)
@@ -71,7 +71,7 @@ def single_game_line(
 
 
 def main():
-    df = lines(['nba', 'nfl', 'nhl'], output='df', verbose=True)
+    df = lines(['volleyball'], output='df', verbose=True)
     return df
 
 

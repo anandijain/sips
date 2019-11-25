@@ -533,7 +533,10 @@ def events_from_json(json_dict):
     """
     if not json_dict:
         return []
-    events = json_dict[0]["events"]
+    events = []
+    for group in json_dict:
+        group_events = group['events']
+        events += group_events
     return events
 
 
