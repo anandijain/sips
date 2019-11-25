@@ -39,8 +39,8 @@ def hello_world():
     return to_plot.to_html(header="true", table_id="table")
 
 
-@app.route("/games")
-def plot_game():
+@app.route("/<game_id>")
+def plot_game(df, game_id):
     game_id, t, a_ml, h_ml = ml_ts(to_plot)
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
