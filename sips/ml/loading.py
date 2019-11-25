@@ -19,9 +19,10 @@ import sips.h.calc as c
 def transition_datasets_from_folder(
     folder=tfm.READ_FROM,
     hot_maps=None,
-    history_size=30,
+    history_size=1,
     pred_size=1,
-    batch_size=1
+    batch_size=1,
+    single_step=False
 ):
     """
 
@@ -39,7 +40,7 @@ def transition_datasets_from_folder(
         sYs.append(y)
 
     datasets = serialized_to_datasets(
-        sXs, sYs, history_size=history_size, pred_size=pred_size, batch_size=batch_size
+        sXs, sYs, history_size=history_size, pred_size=pred_size, batch_size=batch_size, single_step=single_step
     )
 
     return datasets

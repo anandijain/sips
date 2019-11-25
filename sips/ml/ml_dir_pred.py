@@ -14,20 +14,13 @@ from sips.ml import lstm
 
 
 def train_directional_predictor(datasets, test_datasets):
-    # EPOCHS = 10
-    BATCH_SIZE = 1
-    BUFFER_SIZE = 1
-    
-
     x, y = tfu.get_example(datasets)
+    model, loss_fxn, optim = tfu.classify_model_core(
+        x.shape[-2:], tf.size(y[0]))
+    log_dir = tfu.get_logdir()
 
-    model, loss_fxn, optim = tfu.classify_model_core(x.shape[-2:], tf.size(y[0]))
-
-    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_dir = tfm.WRITE_TO + "gradient_tape/" + current_time
-    print(f"log_dir: {log_dir}")
-
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
+        log_dir)
 
     (
         train_loss,
@@ -35,7 +28,10 @@ def train_directional_predictor(datasets, test_datasets):
         test_loss,
         test_accuracy,
     ) = tfu.get_classification_metrics()
-    
+
+    train_step = 0
+    test_step = 0
+
     for epoch, dataset in enumerate(datasets):
         if not dataset:
             continue
@@ -43,16 +39,17 @@ def train_directional_predictor(datasets, test_datasets):
             tl, ta, preds = fwd.train_step_classify(
                 model, optim, loss_fxn, xtr, ytr, train_loss, train_accuracy
             )
+            train_step += 1
 
             # if correct.any():
             #     print("guessed correctly")
             # else:
             #     print("guessed wrong")
 
-        with train_summary_writer.as_default():
+            with train_summary_writer.as_default():
 
-            tf.summary.scalar("loss", tl.numpy(), step=epoch)
-            tf.summary.scalar("accuracy", ta.numpy(), step=epoch)
+                tf.summary.scalar("loss", tl.numpy(), step=train_step)
+                tf.summary.scalar("accuracy", ta.numpy(), step=train_step)
 
         model.reset_states()
         test_dataset = random.choice(test_datasets)
@@ -63,12 +60,13 @@ def train_directional_predictor(datasets, test_datasets):
             tel, tea = fwd.test_step(
                 model, loss_fxn, xte, yte, test_loss, test_accuracy
             )
+            test_step += 1
 
-        with test_summary_writer.as_default():
-            tf.summary.scalar("loss", tel.numpy(), step=epoch)
-            tf.summary.scalar("accuracy", tea.numpy(), step=epoch)
+            with test_summary_writer.as_default():
+                tf.summary.scalar("loss", tel.numpy(), step=test_step)
+                tf.summary.scalar("accuracy", tea.numpy(), step=test_step)
 
-        template = "Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}, Preds: {}, Actuals: {}"
+        template = "Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {},\n Preds: {}\n Actuals: {}\n"
         print(
             template.format(
                 epoch + 1,
@@ -92,11 +90,13 @@ def train_directional_predictor(datasets, test_datasets):
 
 
 def main():
+
     hot_maps = hot.all_hot_maps()
     all_datasets = tfls.transition_datasets_from_folder(
-        tfm.READ_FROM, hot_maps=hot_maps
+        tfm.READ_FROM, hot_maps=hot_maps, single_step=True
     )
-    datasets, test_datasets = h.train_test_split_list(all_datasets, shuffle=True)
+    datasets, test_datasets = h.train_test_split_list(
+        all_datasets, shuffle=True)
     train_directional_predictor(datasets, test_datasets)
 
 
