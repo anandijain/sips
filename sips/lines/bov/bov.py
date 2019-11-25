@@ -71,7 +71,7 @@ def single_game_line(
 
 
 def main():
-    df = lines(['volleyball'], output='df', verbose=True)
+    df = lines(['volleyball'], output='df', all_mkts=True, verbose=True)
     return df
 
 
