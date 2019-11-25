@@ -2,6 +2,7 @@
 uses the bovada api to get json data for odds and scores
 """
 import requests as r
+import pandas as pd
 
 import sips.h.grab as g
 
@@ -18,6 +19,9 @@ def lines(sports, output="list", parse=True, all_mkts=False, verbose=False):
 
     if output == "dict":
         data = u.dict_from_events(events, key="id", rows=parse)
+    elif output == 'df' or output.lower() == 'dataframe':
+        data = [u.parse_event(e) for e in events]
+        data = pd.DataFrame(data, columns=bm.LINE_COLUMNS)
     else:
         data = [u.parse_event(e) for e in events]
 
@@ -64,9 +68,9 @@ def single_game_line(
 
 
 def main():
-    row = single_game_line()
-    print(row)
-    return row
+    df = lines(['nba'], output='df')
+    print(df)
+    return df
 
 
 if __name__ == "__main__":

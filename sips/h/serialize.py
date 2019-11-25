@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from sips.macros import bov as bm
 from sips.h import hot
-import sips.h.helpers as h
+from sips.h import helpers as h
 
 
 def serialize_row(row, hot_maps=None, to_numpy=False, include_teams=False):
@@ -30,8 +30,8 @@ def serialize_row(row, hot_maps=None, to_numpy=False, include_teams=False):
 
 def serialize_dfs(
     dfs,
-    in_cols,
-    label_cols,
+    in_cols=None,
+    label_cols=None,
     replace_dict=None,
     hot_maps=None,
     to_numpy=True,
@@ -69,7 +69,7 @@ def serialize_dfs(
             sYs.append(y)
         else:
             X = sdf
-            
+
         sXs.append(X)
 
     if label_cols is not None:
@@ -82,8 +82,8 @@ def serialize_dfs(
 
 def serialize_df(
     df,
-    in_cols,
-    label_cols,
+    in_cols=None,
+    label_cols=None,
     replace_dict=None,
     hot_maps=None,
     to_numpy=True,
@@ -100,6 +100,7 @@ def serialize_df(
     --
     returns: pd.DataFrame or np array
 
+    norm is only applied if to_numpy is True
     """
     if drop_extra_cols is not None:
         df.drop(drop_extra_cols, axis=1, inplace=True)
@@ -128,8 +129,9 @@ def serialize_df(
         if label_cols is not None:
             y = np.array(y, dtype=np.float32)
 
-    if norm:
-        X = tf.keras.utils.normalize(X)
+        if norm:
+            X = tf.keras.utils.normalize(X)
+
     if label_cols is not None:
         ret = (X, y)
     else:
@@ -139,13 +141,12 @@ def serialize_df(
 
 
 def test_sdfs():
-
     dfs = h.get_dfs()
     cols = bm.TO_SERIALIZE
     maps = hot.all_hot_maps()
 
     numbers = serialize_dfs(
-        dfs, in_cols=cols, label_cols=["a_ml", "h_ml"], hot_maps=maps
+        dfs, in_cols=None, label_cols=None, hot_maps=maps, to_numpy=False
     )
 
     print(numbers)
@@ -154,4 +155,3 @@ def test_sdfs():
 
 if __name__ == "__main__":
     test_sdfs()
-    # pd.read_csv('')

@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 
 from sips.h import fileio as fio
 import sips.macros.macros as m
+from sips.h import attach
 
 
 def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/"):
@@ -24,7 +25,7 @@ def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/"):
     return dfs
 
 
-def multivariate_data(
+def window_multivariate(
     dataset,
     target,
     start_index=0,
@@ -152,27 +153,11 @@ def num_flat_features(x):
     return num_features
 
 
-def test_get_and_window():
-    columns = ["a_pts", "h_pts", "quarter", "secs"]
-    dfs = get_dfs(m.PARENT_DIR + "data/lines/lines/")
-
-    sets = [
-        multivariate_data(
-            df.values, df[columns].values, history_size=10, target_size=10
-        )
-        for df in dfs
-    ]
-    first = sets[0]
-    X, y = first
-    # print(f'X : {X}')
-    # print(f'y : {y}')
-    print(f"X.shape : {X.shape}")
-    print(f"y.shape : {y.shape}")
 
 
 def get_wins():
     dfs = get_dfs()
-    w_wins = [apply_wins(df) for df in dfs]
+    w_wins = [attach.wins(df) for df in dfs]
     return w_wins
 
 

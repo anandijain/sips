@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-import sips.h.helpers as h
+from sips.h import helpers as h
 from sips.h import calc
 from sips.h import hot
 from sips.h import serialize as s
@@ -15,8 +15,6 @@ def ml_transitions(game, attach=True, verbose=False):
     returns a list of classifications for the line movement
     """
     transition_classes = []
-    teams_dict, statuses_dict = hot.dicts_for_one_hotting()
-
     prev = [None, None]
 
     for i, row in game.iterrows():

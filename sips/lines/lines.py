@@ -79,10 +79,6 @@ if args.log:
     profiler.main()
 
 if args.predict:
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    import torch.optim as optim
     from sips.ml import lstm
 
 
@@ -110,6 +106,7 @@ class Lines:
             self.conf_from_file()
         else:
             self.conf_from_args()
+
         self.init_fileio()
         print(f"sports: {self.sports}")
 
@@ -127,7 +124,9 @@ class Lines:
             self.current = None
 
         if args.predict:
-            self.init_model()
+            # todo
+            # self.init_model()
+            pass
 
         self.step_num = 0
         if self.start:
@@ -203,16 +202,6 @@ class Lines:
         self.files["log"] = self.log_file
         self.log_data = None
 
-    def init_model(self):
-        self.model = lstm.LSTM()
-        self.loss_fxn = nn.CrossEntropyLoss()
-        self.optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
-        self.teams_dict, self.statuses_dict = hot.dicts_for_one_hotting()
-        self.running_loss = 0.0
-        self.correct = 0
-        self.model_log_file = io.init_csv(
-            "model_log.csv", header=["i", "running_loss"], close=False
-        )
 
     def step(self):
         """
@@ -235,7 +224,8 @@ class Lines:
             num_changes = "NaN"
 
         if args.predict:
-            self.run_models()
+            # self.run_models()
+            pass
 
         self.prevs = self.current
 
@@ -280,7 +270,7 @@ class Lines:
             self.log_file.flush()
 
             if args.predict:
-                torch.save(self.model, f"live_{self.step_num}.pt")
+                pass
 
             if self.keep_open:
                 for game_file in self.files.values():
@@ -288,47 +278,9 @@ class Lines:
 
     def run_models(self):
         """
-        for each event, predict what the transition type
-        todo: async exec
+        todo: tensorflow
         """
-        for i, k, v in enumerate(self.current.items()):
-            prevs = self.prevs[k]
-            prev_mls = prevs[16:18]
-            cur_mls = v[16:18]
-
-            true_transition = analyze.classify_transition(prev_mls, cur_mls)
-
-            X = torch.tensor(
-                s.serialize_row(prevs, self.teams_dict, self.statuses_dict)
-            )
-            self.optimizer.zero_grad()
-
-            yhat = self.model(X).view(1, -1)
-            y = torch.tensor(true_transition).view(1, -1).long()
-
-            # print(f'y: {y}, pred: {yhat}')
-            # print(f'y.dtype: {y.dtype}, yhat.dtype: {yhat.dtype}')
-            # print(f'y.shape: {y.shape}, yhat.shape: {yhat.shape}')
-
-            loss = self.loss_fxn(yhat, torch.max(y, 1)[1])
-            self.optimizer.step()
-
-            class_preds = torch.argmax(yhat)
-
-            # print statistics
-            self.running_loss += loss.item()
-            self.correct += (class_preds == y).sum().item()
-            if self.step_num % self.flush_rate == 0:
-                print(
-                    f"{self.step_num}: correct: {self.correct} loss: {self.running_loss / self.flush_rate}"
-                )
-
-                io.write_list(
-                    self.model_log_file,
-                    [self.step_num, self.running_loss, self.correct],
-                )
-                self.running_loss = 0.0
-                self.correct = 0.0
+        pass
 
 
 def compare_and_filter(prevs, news):
