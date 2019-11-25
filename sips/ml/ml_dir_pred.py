@@ -39,11 +39,6 @@ def train_directional_predictor(datasets, test_datasets):
             )
             train_step += 1
 
-            # if correct.any():
-            #     print("guessed correctly")
-            # else:
-            #     print("guessed wrong")
-
             with train_summary_writer.as_default():
 
                 tf.summary.scalar("loss", tl.numpy(), step=train_step)
