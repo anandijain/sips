@@ -16,8 +16,6 @@ from sips.ml import lstm
 
 def ml_predict(datasets, test_datasets, log_dir, model_fn):
 
-
-
     x, y = tfu.get_example(datasets)
 
     loss_fxn = tf.losses.MeanAbsolutePercentageError()
@@ -26,8 +24,7 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn):
 
     train_loss, test_loss = tfu.get_loss_metrics()
 
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
-        log_dir)
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
     print(f"log_dir: {log_dir}")
 
     train_step_num = 0
@@ -77,8 +74,7 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn):
 
         if epoch % 2000:
             template = "Epoch {}, Loss: {}, Test Loss: {}"
-            print(template.format(
-                epoch + 1, train_loss.result(), test_loss.result(),))
+            print(template.format(epoch + 1, train_loss.result(), test_loss.result(),))
 
         # Reset metrics every epoch
         train_loss.reset_states()
@@ -90,7 +86,6 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn):
 
 def get_datasets(history_size, pred_size):
 
-
     all_datasets = tfls.prediction_data_from_folder(
         tfm.READ_FROM,
         in_cols=None,
@@ -100,16 +95,15 @@ def get_datasets(history_size, pred_size):
         history_size=HISTORY_SIZE,
         pred_size=PRED_SIZE,
         step_size=1,
-        norm=True
+        norm=True,
     )
 
-    print(f'num datasets: {len(all_datasets)}')
+    print(f"num datasets: {len(all_datasets)}")
     datasets, test_datasets = h.train_test_split_list(all_datasets)
     return datasets, test_datasets
 
 
 def main(history_size, pred_size):
-
 
     datasets, test_datasets = get_datasets(HISTORY_SIZE, PRED_SIZE)
     model_fn = tfu.model_save_fn(HISTORY_SIZE, PRED_SIZE)
@@ -118,11 +112,9 @@ def main(history_size, pred_size):
     ml_predict(datasets, test_datasets, log_dir, model_fn)
 
 
-
 if __name__ == "__main__":
     HISTORY_SIZE = 30
     PRED_SIZE = 30
     PRINT_INTERVAL = PRED_SIZE
-
 
     main(HISTORY_SIZE, PRED_SIZE)

@@ -22,7 +22,7 @@ def transition_datasets_from_folder(
     history_size=1,
     pred_size=1,
     batch_size=1,
-    single_step=False
+    single_step=False,
 ):
     """
 
@@ -40,7 +40,12 @@ def transition_datasets_from_folder(
         sYs.append(y)
 
     datasets = serialized_to_datasets(
-        sXs, sYs, history_size=history_size, pred_size=pred_size, batch_size=batch_size, single_step=single_step
+        sXs,
+        sYs,
+        history_size=history_size,
+        pred_size=pred_size,
+        batch_size=batch_size,
+        single_step=single_step,
     )
 
     return datasets
@@ -95,7 +100,12 @@ def prediction_data_from_folder(
 
 
 def serialized_to_datasets(
-    train_df_vals, train_df_labs, history_size=1, pred_size=1, batch_size=1, single_step=False
+    train_df_vals,
+    train_df_labs,
+    history_size=1,
+    pred_size=1,
+    batch_size=1,
+    single_step=False,
 ):
     """
 
@@ -109,8 +119,11 @@ def serialized_to_datasets(
             continue
         targets = train_df_labs[i]
         X_windows, y_windows = h.multivariate_data(
-            data, targets, history_size=history_size, target_size=pred_size,
-            single_step=single_step
+            data,
+            targets,
+            history_size=history_size,
+            target_size=pred_size,
+            single_step=single_step,
         )
 
         x_dataset = tf.data.Dataset.from_tensor_slices(X_windows)

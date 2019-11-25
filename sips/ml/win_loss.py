@@ -25,17 +25,19 @@ def get_wl_datasets():
         in_cols=bm.TO_SERIALIZE,
         label_cols=["a_win", "h_win"],
         drop_labs=True,
-        norm=True
+        norm=True,
     )
 
-    all_datasets = tfls.serialized_to_datasets(sXs, sYs, history_size=1, pred_size=1, single_step=True)
+    all_datasets = tfls.serialized_to_datasets(
+        sXs, sYs, history_size=1, pred_size=1, single_step=True
+    )
     datasets, test_datasets = h.train_test_split_list(all_datasets)
     return datasets, test_datasets
 
 
 def wl_predict(datasets, test_datasets):
 
-    log_dir = tfu.get_logdir()    
+    log_dir = tfu.get_logdir()
     datasets, test_datasets = get_wl_datasets()
 
     x, y = tfu.get_example(datasets)
@@ -44,9 +46,7 @@ def wl_predict(datasets, test_datasets):
     optim = tf.keras.optimizers.Adam()
     model = lstm.make_mlp_functional(x.shape[-2:], tf.size(y[0]), classify=True)
 
-
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
-        log_dir)
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
 
     (
         train_loss,
@@ -91,7 +91,7 @@ def wl_predict(datasets, test_datasets):
             with test_summary_writer.as_default():
                 tf.summary.scalar("loss", tel.numpy(), step=te_step)
                 tf.summary.scalar("accuracy", tea.numpy(), step=te_step)
-           
+
         template = "Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}, Preds: {}, Acts: {}"
         print(
             template.format(
@@ -101,7 +101,7 @@ def wl_predict(datasets, test_datasets):
                 test_loss.result(),
                 test_accuracy.result() * 100,
                 preds,
-                ytr
+                ytr,
             )
         )
 
@@ -113,14 +113,12 @@ def wl_predict(datasets, test_datasets):
 
     tf.saved_model.save(model, tfm.WRITE_TO + "win_loss/")
 
-
     return datasets
 
 
 def main():
     train, test = get_wl_datasets()
     wl_predict(train, test)
-
 
 
 if __name__ == "__main__":

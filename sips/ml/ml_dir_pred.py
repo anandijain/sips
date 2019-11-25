@@ -15,12 +15,10 @@ from sips.ml import lstm
 
 def train_directional_predictor(datasets, test_datasets):
     x, y = tfu.get_example(datasets)
-    model, loss_fxn, optim = tfu.classify_model_core(
-        x.shape[-2:], tf.size(y[0]))
+    model, loss_fxn, optim = tfu.classify_model_core(x.shape[-2:], tf.size(y[0]))
     log_dir = tfu.get_logdir()
 
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
-        log_dir)
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
 
     (
         train_loss,
@@ -75,7 +73,7 @@ def train_directional_predictor(datasets, test_datasets):
                 test_loss.result(),
                 test_accuracy.result() * 100,
                 preds,
-                ytr
+                ytr,
             )
         )
 
@@ -95,8 +93,7 @@ def main():
     all_datasets = tfls.transition_datasets_from_folder(
         tfm.READ_FROM, hot_maps=hot_maps, single_step=True
     )
-    datasets, test_datasets = h.train_test_split_list(
-        all_datasets, shuffle=True)
+    datasets, test_datasets = h.train_test_split_list(all_datasets, shuffle=True)
     train_directional_predictor(datasets, test_datasets)
 
 

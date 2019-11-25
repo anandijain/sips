@@ -59,12 +59,11 @@ def wins(dfs, verbose=True):
             else:
                 skipped += 1
                 continue
-    
-    if verbose:
-        print(f'num games skipped: {skipped} out of {total_games}')
-    
-    return dfs_w_wins
 
+    if verbose:
+        print(f"num games skipped: {skipped} out of {total_games}")
+
+    return dfs_w_wins
 
 
 def win(game_df, verbose=False):
@@ -73,7 +72,7 @@ def win(game_df, verbose=False):
     checks if the status is 'GAME_END'
     then adds new columns for the winner of the game based on the score
     """
-    case = ''
+    case = ""
     last_row = game_df.iloc[-1, :]
     status = last_row.status
     ret = None
@@ -82,13 +81,13 @@ def win(game_df, verbose=False):
         if last_row.a_pts > last_row.h_pts:
             a_win = True
             h_win = False
-            case = f'away {last_row.a_team} win'
+            case = f"away {last_row.a_team} win"
         elif last_row.a_pts < last_row.h_pts:
             a_win = False
             h_win = True
-            case = f'home {last_row.h_team} win'
+            case = f"home {last_row.h_team} win"
         else:
-            case = 'game tie'
+            case = "game tie"
             a_win = False
             h_win = False
 
@@ -96,7 +95,7 @@ def win(game_df, verbose=False):
         game_df["h_win"] = h_win
         ret = game_df
     else:
-        case = 'no game end status'
+        case = "no game end status"
 
     if verbose:
         print(case)

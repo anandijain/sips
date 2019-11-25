@@ -69,8 +69,13 @@ def get_classification_metrics():
 def model_save_fn(history_size, pred_size):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     fp = (
-        tfm.WRITE_TO + "models/" +
-        str(history_size) + "_" + str(pred_size) + current_time + '.pb'
+        tfm.WRITE_TO
+        + "models/"
+        + str(history_size)
+        + "_"
+        + str(pred_size)
+        + current_time
+        + ".pb"
     )
     return fp
 
@@ -78,5 +83,5 @@ def model_save_fn(history_size, pred_size):
 def get_logdir():
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     log_dir = tfm.WRITE_TO + "gradient_tape/" + current_time
-    print(f'log_dir: {log_dir}')
+    print(f"log_dir: {log_dir}")
     return log_dir
