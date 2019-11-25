@@ -103,8 +103,11 @@ def serialize_df(
     norm is only applied if to_numpy is True
     """
     if drop_extra_cols is not None:
-        df.drop(drop_extra_cols, axis=1, inplace=True)
-
+        try:
+            df.drop(drop_extra_cols, axis=1, inplace=True)
+        except KeyError:
+            pass
+        
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
 
