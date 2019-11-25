@@ -10,7 +10,7 @@ from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
 
-def lines(sports, output="list", parse=True, all_mkts=False, verbose=False):
+def lines(sports, output="df", parse=True, all_mkts=False, verbose=False):
     """
     returns either a dictionary or list
     dictionary - (game_id, row)
@@ -24,6 +24,9 @@ def lines(sports, output="list", parse=True, all_mkts=False, verbose=False):
         data = pd.DataFrame(data, columns=bm.LINE_COLUMNS)
     else:
         data = [u.parse_event(e) for e in events]
+
+    if verbose:
+        print(f'lines data: {data}')
 
     return data
 
@@ -68,8 +71,7 @@ def single_game_line(
 
 
 def main():
-    df = lines(['nba'], output='df')
-    print(df)
+    df = lines(['nba', 'nfl', 'nhl'], output='df', verbose=True)
     return df
 
 

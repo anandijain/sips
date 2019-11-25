@@ -104,7 +104,7 @@ def merge_lines_scores(lines, scores):
 
 def get_links(sports, all_mkts=True):
     if all_mkts:
-        links = [bm.BOV_URL + s for s in sports]
+        links = [bm.BOV_URL + match_sport_str(s) for s in sports]
     else:
         links = filtered_links(sports)
     return links
@@ -116,9 +116,11 @@ def sports_to_jsons(sports, all_mkts=True):
     return jsons
 
 
-def sports_to_events(sports, all_mkts=False):
+def sports_to_events(sports, all_mkts=False, verbose=False):
     jsons = sports_to_jsons(sports=sports, all_mkts=all_mkts)
     events = events_from_jsons(jsons)
+    if verbose:
+        print(f'events for sports: {sports}\n{events}')
     return events
 
 
@@ -513,7 +515,7 @@ def bov_team_ids(event):
 def filtered_links(sports, verbose=False):
     # append market filter to each url
     sfx = "?marketFilterId=def&lang=en"
-    links = [bm.BOV_URL + s + sfx for s in sports]
+    links = [bm.BOV_URL + match_sport_str(s) + sfx for s in sports]
     if verbose:
         print(f"bov_links: {links}")
     return links
@@ -543,8 +545,7 @@ def match_sport_str(sport="baseball/mlb"):
     try:
         sport = m.SPORT_TO_SUFFIX[sport]
     except KeyError:
-        print("forcing nfl")
-        sport = m.SPORT_TO_SUFFIX["football/nfl"]
+        pass
     return sport
 
 

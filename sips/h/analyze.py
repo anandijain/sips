@@ -1,6 +1,6 @@
 import numpy as np
 
-import sips.h.serialize as s
+from sips.h import serialize as s
 
 
 def row_ml(ml):
