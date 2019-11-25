@@ -46,6 +46,7 @@ def serialize_dfs(
     """
     sXs = []
     sYs = []
+
     if dont_hot:
         hot_maps = None
     else:
@@ -53,45 +54,55 @@ def serialize_dfs(
             hot_maps = hot.all_hot_maps(output="dict")
 
     if not replace_dict:
-        replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
+        replace_dict = {"None": np.nan, "EVEN": 100}
 
     for df in dfs:
         if df is None:
             continue
 
         sdf = serialize_df(
-            df, replace_dict=replace_dict, hot_maps=hot_maps, dropna=dropna
+            df, in_cols=in_cols, label_cols=label_cols, replace_dict=replace_dict, hot_maps=hot_maps, to_numpy=to_numpy, norm=norm, dropna=dropna, drop_extra_cols=drop_extra_cols, drop_labs=drop_labs,
+
         )
-        # typed_df = sdf.astype(np.float32)
-
-        y = sdf[label_cols].copy()
-        X = sdf.copy()
-
-        if drop_labs:
-            X = sdf.drop(label_cols, axis=1)
-            try:
-                X = X.drop(drop_extra_cols, axis=1)
-            except KeyError:
-                pass
-
-        if to_numpy:
-            X = np.array(X, dtype=np.float32)
-            y = np.array(y, dtype=np.float32)
-
-        if norm:
-            X = tf.keras.utils.normalize(X)
+        if label_cols is not None:
+            X, y = sdf
+            sYs.append(y)
+        else:
+            X = sdf
+            
         sXs.append(X)
-        sYs.append(y)
 
-    return sXs, sYs
+    if label_cols is not None:
+        ret = (sXs, sYs)
+    else:
+        ret = sXs
+
+    return ret
 
 
-def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
+def serialize_df(
+    df,
+    in_cols,
+    label_cols,
+    replace_dict=None,
+    hot_maps=None,
+    to_numpy=True,
+    norm=True,
+    dropna=True,
+    drop_labs=True,
+    drop_extra_cols=["a_ou", "h_ou"],
+):
     """
     built to take in dataframe from running lines.py
+    --
     df: pd.DataFrame
     replace_dict: dict replaces values like 'None', and 'E
+    --
+    returns: pd.DataFrame or np array
+
     """
+    if drop_extra_cols is not None:
+        df.drop(drop_extra_cols, axis=1, inplace=True)
 
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
@@ -104,7 +115,26 @@ def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
     if dropna:
         df.dropna(inplace=True)
 
-    ret = df
+    X = df.copy()
+
+    if label_cols is not None:
+        y = df[label_cols].copy()
+
+        if drop_labs:
+            X = df.drop(label_cols, axis=1)
+
+    if to_numpy:
+        X = np.array(X, dtype=np.float32)
+        if label_cols is not None:
+            y = np.array(y, dtype=np.float32)
+
+    if norm:
+        X = tf.keras.utils.normalize(X)
+    if label_cols is not None:
+        ret = (X, y)
+    else:
+        ret = X
+
     return ret
 
 

@@ -14,7 +14,7 @@ from sips.ml import tf_utils as tfu
 from sips.ml import lstm
 
 
-def ml_predict(datasets, test_datasets, log_dir, model_fn):
+def ml_predict(datasets, test_datasets, log_dir, model_fn, NUM_EPOCHS=1):
 
     x, y = tfu.get_example(datasets)
 
@@ -29,59 +29,62 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn):
 
     train_step_num = 0
     test_step_num = 0
-    for epoch, dataset in enumerate(datasets):
-        if not dataset:
-            continue
+    for epoch in range(NUM_EPOCHS):
+        for game_num, dataset in enumerate(datasets):
+            if not dataset:
+                continue
 
-        for i, (x_train, y_train) in enumerate(dataset):
-            tl, loss, predictions = fwd.train_step_regress(
-                model,
-                optimizer,
-                loss_fxn,
-                x_train,
-                tf.reshape(y_train, (1, -1)),
-                train_loss,
-            )
-            train_step_num += 1
-
-            with train_summary_writer.as_default():
-                tf.summary.scalar("loss", tl.numpy(), step=train_step_num)
-
-            if i % PRINT_INTERVAL == 0:
-                print(
-                    f"{i}\n "
-                    "preds:\n"
-                    f"{tf.reshape(predictions, (-1, 2))}\n"
-                    f"actuals:\n"
-                    f"{tf.reshape(y_train, (-1, 2))}"
-                    f"loss: {loss.numpy()}"
+            for i, (x_train, y_train) in enumerate(dataset):
+                tl, loss, predictions = fwd.train_step_regress(
+                    model,
+                    optimizer,
+                    loss_fxn,
+                    x_train,
+                    tf.reshape(y_train, (1, -1)),
+                    train_loss,
                 )
-        model.reset_states()
+                train_step_num += 1
 
-        test_dataset = random.choice(test_datasets)
+                with train_summary_writer.as_default():
+                    tf.summary.scalar("loss", tl.numpy(), step=train_step_num)
 
-        if not test_dataset:
-            continue
+                train_loss.reset_states()
+                
+                if i % PRINT_INTERVAL == 0:
+                    print(
+                        f"{i}\n "
+                        "preds:\n"
+                        f"{tf.reshape(predictions, (-1, 2))}\n"
+                        f"actuals:\n"
+                        f"{tf.reshape(y_train, (-1, 2))}"
+                        f"loss: {loss.numpy()}"
+                    )
+            model.reset_states()
 
-        for xte, yte in test_dataset:
-            tel = fwd.test_step(
-                model, loss_fxn, xte, tf.reshape(yte, (1, -1)), test_loss
-            )
-            test_step_num += 1
+            test_dataset = random.choice(test_datasets)
 
-            with test_summary_writer.as_default():
-                tf.summary.scalar("loss", tel.numpy(), step=test_step_num)
+            if not test_dataset:
+                continue
 
-        if epoch % 2000:
-            template = "Epoch {}, Loss: {}, Test Loss: {}"
-            print(template.format(epoch + 1, train_loss.result(), test_loss.result(),))
+            for xte, yte in test_dataset:
+                tel = fwd.test_step(
+                    model, loss_fxn, xte, tf.reshape(yte, (1, -1)), test_loss
+                )
+                test_step_num += 1
 
-        # Reset metrics every epoch
-        train_loss.reset_states()
-        test_loss.reset_states()
-        model.reset_states()
+                with test_summary_writer.as_default():
+                    tf.summary.scalar("loss", tel.numpy(), step=test_step_num)
+                
+                test_loss.reset_states()
 
-    tf.saved_model.save(model, model_fn)
+            if game_num % 2000:
+                template = "game_num {}, Loss: {}, Test Loss: {}"
+                print(template.format(game_num + 1, train_loss.result(), test_loss.result(),))
+
+            # Reset metrics every epoch
+            model.reset_states()
+
+        tf.saved_model.save(model, model_fn)
 
 
 def get_datasets(history_size, pred_size):
