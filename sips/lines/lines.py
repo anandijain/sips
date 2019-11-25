@@ -235,7 +235,7 @@ class Lines:
             num_changes = "NaN"
 
         if args.predict:
-            self.run_model()
+            self.run_models()
 
         self.prevs = self.current
 
@@ -286,7 +286,7 @@ class Lines:
                 for game_file in self.files.values():
                     game_file.flush()
 
-    def run_model(self):
+    def run_models(self):
         """
         for each event, predict what the transition type
         todo: async exec

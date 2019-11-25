@@ -9,46 +9,41 @@ import sips.h.helpers as h
 import sips.h.serialize as s
 import sips.h.attach as a
 
-from sips.ml import tf_fwd
-import sips.ml.tf_loaders as tfl
+from sips.ml import fwd
+from sips.ml import lstm
+
+import sips.ml.loading as tfls
 import sips.ml.tf_utils as tfu
-import sips.ml.tf_lstm as lstm
 
 
 def get_wl_datasets():
     dfs = h.get_dfs()
-    all_dfs_w_labels = []
-    for df in dfs:
-        if df is not None:
-            df.drop(["a_ou", "h_ou"], axis=1, inplace=True)
-            # print(df)
-            with_labels = a.wins(df)
-            all_dfs_w_labels.append(with_labels)
+    dfs_w_win = a.wins(dfs)
 
     sXs, sYs = s.serialize_dfs(
-        all_dfs_w_labels,
+        dfs_w_win,
         in_cols=bm.TO_SERIALIZE,
         label_cols=["a_win", "h_win"],
         drop_labs=True,
         norm=True
     )
 
-    datasets = tfl.serialized_to_datasets(sXs, sYs, history_size=1, pred_size=1)
-    return datasets
-
-
-def main():
-    all_datasets = get_wl_datasets()
+    all_datasets = tfls.serialized_to_datasets(sXs, sYs, history_size=1, pred_size=1, single_step=True)
     datasets, test_datasets = h.train_test_split_list(all_datasets)
+    return datasets, test_datasets
+
+
+def wl_predict(datasets, test_datasets):
+
+    log_dir = tfu.get_logdir()    
+    datasets, test_datasets = get_wl_datasets()
+
     x, y = tfu.get_example(datasets)
 
     loss_fxn = tf.losses.BinaryCrossentropy()
-    optim = tf.keras.optimizers.Adadelta()
+    optim = tf.keras.optimizers.Adam()
     model = lstm.make_mlp_functional(x.shape[-2:], tf.size(y[0]), classify=True)
 
-    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_dir = tfm.WRITE_TO + "gradient_tape/" + current_time
-    print(f"log_dir: {log_dir}")
 
     train_summary_writer, test_summary_writer = tfu.init_summary_writers(
         log_dir)
@@ -68,7 +63,7 @@ def main():
             continue
         for (xtr, ytr) in dataset:
             ytr = tf.reshape(ytr, (1, -1))
-            tl, ta, preds = tf_fwd.train_step_classify(
+            tl, ta, preds = fwd.train_step_classify(
                 model, optim, loss_fxn, xtr, ytr, train_loss, train_accuracy
             )
             tr_step += 1
@@ -88,7 +83,7 @@ def main():
         for (xte, yte) in test_dataset:
             yte = tf.reshape(yte, (1, -1))
 
-            tel, tea = tf_fwd.test_step(
+            tel, tea = fwd.test_step(
                 model, loss_fxn, xte, yte, test_loss, test_accuracy
             )
             te_step += 1
@@ -122,6 +117,11 @@ def main():
     return datasets
 
 
+def main():
+    train, test = get_wl_datasets()
+    wl_predict(train, test)
+
+
+
 if __name__ == "__main__":
-    datasets = main()
-    print(datasets[0].element_spec)
+    main()

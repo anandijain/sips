@@ -1,6 +1,9 @@
+import datetime
+
 import tensorflow as tf
 
-from sips.ml import tf_lstm as lstm
+from sips.ml import lstm
+from sips.macros import tfm
 
 
 def get_example(datasets):
@@ -52,8 +55,8 @@ def get_loss_metrics():
 
 
 def get_acc_metrics():
-    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("train_accuracy")
-    test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy("test_accuracy")
+    train_accuracy = tf.keras.metrics.CategoricalAccuracy("train_accuracy")
+    test_accuracy = tf.keras.metrics.CategoricalAccuracy("test_accuracy")
     return train_accuracy, test_accuracy
 
 
@@ -61,3 +64,19 @@ def get_classification_metrics():
     train_loss, test_loss = get_loss_metrics()
     train_accuracy, test_accuracy = get_acc_metrics()
     return train_loss, train_accuracy, test_loss, test_accuracy
+
+
+def model_save_fn(history_size, pred_size):
+    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    fp = (
+        tfm.WRITE_TO + "models/" +
+        str(history_size) + "_" + str(pred_size) + current_time + '.pb'
+    )
+    return fp
+
+
+def get_logdir():
+    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = tfm.WRITE_TO + "gradient_tape/" + current_time
+    print(f'log_dir: {log_dir}')
+    return log_dir

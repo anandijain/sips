@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 from sips.macros import bov as bm
 
 

@@ -42,35 +42,66 @@ def ml_transitions(game, attach=True, verbose=False):
     return ret
 
 
-def wins(game_df):
+def wins(dfs, verbose=True):
+    """
+
+    """
+    dfs_w_wins = []
+    total_games = len(dfs)
+    skipped = 0
+    for df in dfs:
+        if df is not None:
+            df.drop(["a_ou", "h_ou"], axis=1, inplace=True)
+            # print(df)
+            with_labels = win(df)
+            if with_labels is not None:
+                dfs_w_wins.append(with_labels)
+            else:
+                skipped += 1
+                continue
+    
+    if verbose:
+        print(f'num games skipped: {skipped} out of {total_games}')
+    
+    return dfs_w_wins
+
+
+
+def win(game_df, verbose=False):
     """
     given a dataframe for a single game, takes the last row
     checks if the status is 'GAME_END'
     then adds new columns for the winner of the game based on the score
     """
-    try:
-        last_row = game_df.iloc[-1, :]
-    except IndexError:
-        print("no game end status")
-        return
+    case = ''
+    last_row = game_df.iloc[-1, :]
     status = last_row.status
+    ret = None
+
     if status == "GAME_END":
         if last_row.a_pts > last_row.h_pts:
             a_win = True
             h_win = False
+            case = f'away {last_row.a_team} win'
         elif last_row.a_pts < last_row.h_pts:
             a_win = False
             h_win = True
+            case = f'home {last_row.h_team} win'
         else:
-            print("game tied at end")
+            case = 'game tie'
             a_win = False
             h_win = False
+
         game_df["a_win"] = a_win
         game_df["h_win"] = h_win
+        ret = game_df
     else:
-        print("no game end status")
-        return
-    return game_df
+        case = 'no game end status'
+
+    if verbose:
+        print(case)
+
+    return ret
 
 
 def profit(df):
