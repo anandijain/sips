@@ -153,8 +153,6 @@ def num_flat_features(x):
     return num_features
 
 
-
-
 def get_wins():
     dfs = get_dfs()
     w_wins = [attach.wins(df) for df in dfs]

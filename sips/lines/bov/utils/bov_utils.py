@@ -120,7 +120,7 @@ def sports_to_events(sports, all_mkts=False, verbose=False):
     jsons = sports_to_jsons(sports=sports, all_mkts=all_mkts)
     events = events_from_jsons(jsons)
     if verbose:
-        print(f'events for sports: {sports}\n{events}')
+        print(f"events for sports: {sports}\n{events}")
     return events
 
 
@@ -535,7 +535,7 @@ def events_from_json(json_dict):
         return []
     events = []
     for group in json_dict:
-        group_events = group['events']
+        group_events = group["events"]
         events += group_events
     return events
 

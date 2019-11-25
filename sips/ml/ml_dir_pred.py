@@ -43,7 +43,7 @@ def train_directional_predictor(datasets, test_datasets, NUM_EPOCHS=1):
 
                     tf.summary.scalar("loss", tl.numpy(), step=train_step)
                     tf.summary.scalar("accuracy", ta.numpy(), step=train_step)
-                
+
                 train_loss.reset_states()
                 train_accuracy.reset_states()
 
@@ -61,7 +61,7 @@ def train_directional_predictor(datasets, test_datasets, NUM_EPOCHS=1):
                 with test_summary_writer.as_default():
                     tf.summary.scalar("loss", tel.numpy(), step=test_step)
                     tf.summary.scalar("accuracy", tea.numpy(), step=test_step)
-                
+
                 test_loss.reset_states()
                 test_accuracy.reset_states()
 

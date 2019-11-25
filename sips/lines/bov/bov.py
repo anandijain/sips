@@ -19,14 +19,14 @@ def lines(sports, output="df", parse=True, all_mkts=False, verbose=False):
 
     if output == "dict":
         data = u.dict_from_events(events, key="id", rows=parse)
-    elif output == 'df' or output.lower() == 'dataframe':
+    elif output == "df" or output.lower() == "dataframe":
         data = [u.parse_event(e) for e in events]
         data = pd.DataFrame(data, columns=bm.LINE_COLUMNS)
     else:
         data = [u.parse_event(e) for e in events]
 
     if verbose:
-        print(f'lines data: {data}')
+        print(f"lines data: {data}")
 
     return data
 
@@ -71,7 +71,7 @@ def single_game_line(
 
 
 def main():
-    df = lines(['volleyball'], output='df', all_mkts=True, verbose=True)
+    df = lines(["volleyball"], output="df", all_mkts=True, verbose=True)
     return df
 
 

@@ -49,7 +49,7 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn, NUM_EPOCHS=1):
                     tf.summary.scalar("loss", tl.numpy(), step=train_step_num)
 
                 train_loss.reset_states()
-                
+
                 if i % PRINT_INTERVAL == 0:
                     print(
                         f"{i}\n "
@@ -74,12 +74,16 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn, NUM_EPOCHS=1):
 
                 with test_summary_writer.as_default():
                     tf.summary.scalar("loss", tel.numpy(), step=test_step_num)
-                
+
                 test_loss.reset_states()
 
             if game_num % 2000:
                 template = "game_num {}, Loss: {}, Test Loss: {}"
-                print(template.format(game_num + 1, train_loss.result(), test_loss.result(),))
+                print(
+                    template.format(
+                        game_num + 1, train_loss.result(), test_loss.result(),
+                    )
+                )
 
             # Reset metrics every epoch
             model.reset_states()

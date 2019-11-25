@@ -79,7 +79,7 @@ def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
     return teams_dict, statuses_dict
 
 
-def all_hot_maps(sports=['nba'], output="dict"):
+def all_hot_maps(sports=["nba"], output="dict"):
     """
 
     """

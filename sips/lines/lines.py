@@ -202,7 +202,6 @@ class Lines:
         self.files["log"] = self.log_file
         self.log_data = None
 
-
     def step(self):
         """
 
