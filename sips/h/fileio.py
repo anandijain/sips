@@ -1,5 +1,6 @@
 import os
 
+from sips.macros import tfm
 
 def init_csv(fn, header, close=True):
     """
@@ -31,7 +32,7 @@ def absolute_file_paths(directory):
             yield os.path.abspath(os.path.join(dirpath, f))
 
 
-def get_fns(directory):
+def get_fns(directory=tfm.READ_FROM):
     fns = list(absolute_file_paths(directory))
     try:
         fns.remove(directory + "LOG.csv")

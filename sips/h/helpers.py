@@ -10,18 +10,19 @@ import sips.macros.macros as m
 from sips.h import attach
 
 
-def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/"):
+def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/", output='dict'):
     """
     to_read is one of:
         - list of *full* file names 
         - path to folder 
     """
-    if isinstance(to_read, list):
+    if isinstance(to_read, str):
+        to_read = fio.get_fns(to_read)
+
+    if output == 'list':
         dfs = [pd.read_csv(fn) for fn in to_read]
-    elif isinstance(to_read, str):
-        # assuming str is folder path
-        fns = fio.get_fns(to_read)
-        dfs = [pd.read_csv(fn) for fn in fns]
+    elif output == 'dict':
+        dfs = {fn.split('/')[-1] : pd.read_csv(fn) for fn in to_read}
     return dfs
 
 
@@ -101,21 +102,30 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_min_game_len(games, min_lines=200):
+def apply_min_game_len(games, min_lines=200, output='dict', verbose=False):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines
     """
-    print("applying minimum game len of : {}".format(min_lines))
-    print("before apply: {}".format(len(games)))
+    if verbose:
+        print("applying minimum game len of : {}".format(min_lines))
+        print("before apply: {}".format(len(games)))
+
     for key, value in games.copy().items():
         game_len = len(value)
         if game_len < min_lines:
-            print("deleted game_id: {}".format(key))
-            print("had length: {}".format(game_len))
+            if verbose:
+                print("deleted game_id: {}".format(key))
+                print("had length: {}".format(game_len))
             del games[key]
+        
+    if verbose:
         print("after apply: {}".format(len(games)))
-        return games
+
+    if output == 'list':
+        games = list(games.values())
+
+    return games
 
 
 def label_split(df, col):
