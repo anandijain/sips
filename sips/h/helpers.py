@@ -115,8 +115,7 @@ def apply_min_game_len(games, min_lines=200, output='dict', verbose=False):
         game_len = len(value)
         if game_len < min_lines:
             if verbose:
-                print("deleted game_id: {}".format(key))
-                print("had length: {}".format(game_len))
+                print(f"deleted game_id: {key} with len {game_len}")
             del games[key]
         
     if verbose:

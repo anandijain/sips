@@ -436,6 +436,7 @@ def moneyline(outcomes):
 def total(outcomes):
     """
     gets the over_under
+    limited to two outcomes currently
     """
     null_ret = [None for _ in range(6)]
     if not outcomes:
@@ -448,6 +449,12 @@ def total(outcomes):
         h_outcome = outcomes[1]
     except IndexError:
         h_tot, h_hcap_tot, h_ou = [None for _ in range(3)]
+
+    if not a_outcome:
+        return null_ret
+        
+    if not h_outcome:
+        return null_ret
 
     a_outcome = outcomes[0]
     a_ou = a_outcome.get("type")
