@@ -36,6 +36,7 @@ def serialize_dfs(
     hot_maps=None,
     to_numpy=True,
     norm=True,
+    astype=None,
     dropna=True,
     dont_hot=False,
     drop_labs=True,
@@ -66,6 +67,7 @@ def serialize_dfs(
             hot_maps=hot_maps,
             to_numpy=to_numpy,
             norm=norm,
+            astype=astype,
             dropna=dropna,
             drop_extra_cols=drop_extra_cols,
             drop_labs=drop_labs,
@@ -97,6 +99,7 @@ def serialize_df(
     hot_maps=None,
     to_numpy=True,
     norm=True,
+    astype=None,
     dropna=True,
     dont_hot=False,
     drop_labs=True,
@@ -150,7 +153,12 @@ def serialize_df(
         X = np.array(X, dtype=np.float32)
         if label_cols is not None:
             y = np.array(y, dtype=np.float32)
-
+        if norm:
+            X = tf.keras.utils.normalize(X)
+    elif astype:
+        X = X.astype(astype, errors='ignore')
+        if label_cols is not None:
+            y = y.astype(astype, errors='ignore')
         if norm:
             X = tf.keras.utils.normalize(X)
 
