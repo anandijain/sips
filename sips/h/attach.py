@@ -47,10 +47,9 @@ def wins(dfs, verbose=True):
     dfs_w_wins = []
     total_games = len(dfs)
     skipped = 0
+    sdfs = s.serialize_dfs(dfs, to_numpy=False)
     for df in dfs:
-        if df is not None:
-            df.drop(["a_ou", "h_ou"], axis=1, inplace=True)
-            # print(df)
+        if not df.empty:
             with_labels = win(df)
             if with_labels is not None:
                 dfs_w_wins.append(with_labels)
@@ -66,13 +65,20 @@ def wins(dfs, verbose=True):
 
 def win(game_df, verbose=False):
     """
-    given a dataframe for a single game, takes the last row
-    checks if the status is 'GAME_END'
-    then adds new columns for the winner of the game based on the score
+    if game_df.iloc[-1].status == 'GAME_END', adds win loss label columns
+
+    Args:
+        game_df (pd.DataFrame)
+        verbose (Bool): print dataframe after 
+
+    - takes the last row
+    - checks if the status is 'GAME_END'
+    - then adds new columns for the winner of the game based on the score
     """
     case = ""
     last_row = game_df.iloc[-1, :]
     status = last_row.status
+
     ret = None
 
     if status == "GAME_END":

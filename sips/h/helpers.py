@@ -1,4 +1,5 @@
 import random
+import time
 
 import pandas as pd
 import numpy as np
@@ -12,8 +13,7 @@ from sips.h import attach
 from sips.macros import macros as m
 
 
-
-def get_dfs(to_read=None, output='dict'):
+def get_dfs(to_read=None, output='list'):
     """
     to_read is one of:
         - list of *full* file names 
@@ -28,7 +28,7 @@ def get_dfs(to_read=None, output='dict'):
     if output == 'list':
         dfs = [pd.read_csv(fn) for fn in to_read]
     elif output == 'dict':
-        dfs = {fn.split('/')[-1] : pd.read_csv(fn) for fn in to_read}
+        dfs = {fn.split('/')[-1]: pd.read_csv(fn) for fn in to_read}
 
     return dfs
 
@@ -61,7 +61,7 @@ def window_multivariate(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 
@@ -109,24 +109,27 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_min_game_len(games, min_lines=200, output='dict', verbose=False):
+def apply_min_len(games, min_lines=200, output='list', verbose=False):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines
     """
-    if verbose:
-        print("applying minimum game len of : {}".format(min_lines))
-        print("before apply: {}".format(len(games)))
+    pre_len = len(games)
+    deleted_dict = {}
+
+    if isinstance(games, list):
+        games = {i : game for i, game in enumerate(games)}
 
     for key, value in games.copy().items():
         game_len = len(value)
         if game_len < min_lines:
-            if verbose:
-                print(f"deleted game_id: {key} with len {game_len}")
+            deleted_dict[key] = game_len
             del games[key]
-        
+
     if verbose:
-        print("after apply: {}".format(len(games)))
+        print(f"applied minimum game len of : {min_lines}\n")
+        print(f"before apply: {pre_len}")
+        print(f"after apply: {len(games)}\n")
 
     if output == 'list':
         games = list(games.values())
@@ -134,11 +137,28 @@ def apply_min_game_len(games, min_lines=200, output='dict', verbose=False):
     return games
 
 
-def label_split(df, col):
-    # give column to be predicted given all others in csv
-    # df is pd, col is string
-    Y = df[col]
-    X = df.drop(col, axis=1)
+def filter_unended(dfs, verbose=False):
+    # filters dfs, removing df.iloc[-1].status != "GAME_END"
+    full_games = []
+    total_count = len(dfs)
+    skips = 0
+    for df in dfs:
+        if df.iloc[-1].status == "GAME_END":
+            full_games.append(df)
+        else:
+            skips += 1
+    if verbose:
+        print(f'filtered {skips} unended games out of {total_count}\n')
+
+    return full_games
+
+
+def labels_split(df, cols, drop=True):
+    # split df into X and Y, with option to drop Y from X
+    X = df
+    Y = X[[cols]].copy()
+    if drop:
+        X = df.drop(Y, axis=1)
     return X, Y
 
 
@@ -169,12 +189,19 @@ def num_flat_features(x):
     return num_features
 
 
-def get_wins():
-    dfs = get_dfs()
-    w_wins = [attach.wins(df) for df in dfs]
-    return w_wins
+def filter_then_apply_min(dfs, verbose=False):
+    dfs = filter_unended(dfs, verbose=verbose)
+    dfs = apply_min_len(dfs, verbose=verbose)
+    return dfs
+
+
+def apply_min_then_filter(dfs, verbose=False):
+    # faster than filter and apply
+    dfs = apply_min_len(dfs, verbose=verbose)
+    dfs = filter_unended(dfs, verbose=verbose)
+    return dfs
 
 
 if __name__ == "__main__":
-    wins = get_wins()
-    print(wins)
+    pass
+    # print(data[0])

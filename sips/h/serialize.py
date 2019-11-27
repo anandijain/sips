@@ -104,10 +104,13 @@ def serialize_df(
     verbose=False
 ):
     """
-    built to take in dataframe from running lines.py
-    --
-    df: pd.DataFrame
-    replace_dict: dict replaces values like 'None', and 'E
+    multipurpose conversion of multi-datatype DataFrames into numbers
+
+    Args:
+        df (pd.DataFrame) -- DataFrame to serialize (required)
+        in_cols (list df.column 
+        replace_dict : dict -- replace values in DataFrame
+    
     --
     returns: pd.DataFrame or np array
 
