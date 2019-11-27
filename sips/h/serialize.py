@@ -40,6 +40,7 @@ def serialize_dfs(
     dont_hot=False,
     drop_labs=True,
     drop_extra_cols=["a_ou", "h_ou"],
+    verbose=False
 ):
     """
     label_cols is a subset of incols
@@ -52,6 +53,9 @@ def serialize_dfs(
     else:
         if not hot_maps:
             hot_maps = hot.all_hot_maps(output="dict")
+
+    if isinstance(dfs, dict):  # hacky
+        dfs = list(dfs.values())
 
     for df in dfs:
         sdf = serialize_df(
@@ -79,6 +83,9 @@ def serialize_dfs(
     else:
         ret = sXs
 
+    if verbose:
+        print(f'serialized_dfs: {ret}')
+        
     return ret
 
 
@@ -91,9 +98,10 @@ def serialize_df(
     to_numpy=True,
     norm=True,
     dropna=True,
+    dont_hot=False,
     drop_labs=True,
     drop_extra_cols=["a_ou", "h_ou"],
-    dont_hot=False,
+    verbose=False
 ):
     """
     built to take in dataframe from running lines.py
@@ -148,6 +156,8 @@ def serialize_df(
     else:
         ret = X
 
+    if verbose:
+        print(f'serialized_df: {ret}')
     return ret
 
 

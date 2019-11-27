@@ -5,17 +5,23 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
+from sips.h import serialize as s
 from sips.h import fileio as fio
-import sips.macros.macros as m
 from sips.h import attach
 
+from sips.macros import macros as m
 
-def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/", output='dict'):
+
+
+def get_dfs(to_read=None, output='dict'):
     """
     to_read is one of:
         - list of *full* file names 
         - path to folder 
     """
+    if not to_read:
+        to_read = m.PARENT_DIR + "data/lines/lines/"
+
     if isinstance(to_read, str):
         to_read = fio.get_fns(to_read)
 
@@ -23,6 +29,7 @@ def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/", output='dict'):
         dfs = [pd.read_csv(fn) for fn in to_read]
     elif output == 'dict':
         dfs = {fn.split('/')[-1] : pd.read_csv(fn) for fn in to_read}
+
     return dfs
 
 
