@@ -1,3 +1,4 @@
+from decimal import Decimal
 import random
 import time
 
@@ -108,7 +109,7 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_min_len(games, min_lines=200, output="list", verbose=False):
+def apply_length_bounds(games, min_lines=200, max_lines=Decimal("Infinity"), output="list", verbose=False):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines
@@ -120,8 +121,8 @@ def apply_min_len(games, min_lines=200, output="list", verbose=False):
         games = {i: game for i, game in enumerate(games)}
 
     for key, value in games.copy().items():
-        game_len = len(value)
-        if game_len < min_lines:
+        game_len = value.shape[0]  # len(value)
+        if game_len < min_lines and game_len < max_lines:
             deleted_dict[key] = game_len
             del games[key]
 
@@ -181,13 +182,13 @@ def sk_scale(df, to_df=False):
 
 def filter_then_apply_min(dfs, verbose=False):
     dfs = filter_unended(dfs, verbose=verbose)
-    dfs = apply_min_len(dfs, verbose=verbose)
+    dfs = apply_length_bounds(dfs, verbose=verbose)
     return dfs
 
 
 def apply_min_then_filter(dfs, verbose=False):
     # faster than filter and apply
-    dfs = apply_min_len(dfs, verbose=verbose)
+    dfs = apply_length_bounds(dfs, verbose=verbose)
     dfs = filter_unended(dfs, verbose=verbose)
     return dfs
 

@@ -70,6 +70,7 @@ def serialize_dfs(
             norm=norm,
             astype=astype,
             dropna=dropna,
+            dont_hot=dont_hot,
             drop_extra_cols=drop_extra_cols,
             drop_labels=drop_labels,
             drop_cold=drop_cold,
@@ -104,7 +105,7 @@ def serialize_df(
     replace_dict=None,
     hot_maps=None,
     to_numpy=True,
-    norm=True,
+    norm=False,
     astype=None,
     dropna=True,
     dont_hot=False,
@@ -130,7 +131,7 @@ def serialize_df(
             dropna (bool): pd.dropna 
             dont_hot (bool)
             drop_labels (bool): drop labels from training data
-            drop_extra_cols (list str)
+            drop_extra_cols (list str): disjoint with union(in_cols, label) 
             drop_cold (bool): drop the categorical columns
             verbose (bool): print
     Returns: 
@@ -140,11 +141,19 @@ def serialize_df(
     if isinstance(df, str):
         print(f'dataframe: {df} is of type string for some reason')
 
+
     if drop_extra_cols is not None:
         try:
             df.drop(drop_extra_cols, axis=1, inplace=True)
         except KeyError:
             pass
+    
+    if in_cols and label_cols:
+        all_cols = list(set(in_cols + label_cols))
+        df = df[all_cols]
+
+    elif in_cols and not label_cols:
+        df = df[in_cols]
 
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}
@@ -163,7 +172,6 @@ def serialize_df(
         df.dropna(inplace=True)
 
     if df.empty:
-        # print('skip')
         return
 
     X = df.copy()

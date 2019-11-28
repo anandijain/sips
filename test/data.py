@@ -56,17 +56,22 @@ def df_filtering_commutative_time_delta():
 
     """
     all_dfs = h.get_dfs()
+    num_dfs_initial = len(all_dfs)
 
     start1 = time.time()
-    apply_then_filter = h.apply_min_then_filter(all_dfs)
+    apply_then_filter = h.apply_min_then_filter(all_dfs, verbose=True)
     end1 = time.time()
 
     start2 = time.time()
-    filter_then_apply_min = h.filter_then_apply_min(all_dfs)
+    filter_then_apply_min = h.filter_then_apply_min(all_dfs, verbose=True)
     end2 = time.time()
 
     delta1 = end1 - start1
     delta2 = end2 - start2
+    if len(filter_then_apply_min) > 0:
+        print(f'df: {filter_then_apply_min[0]}')
+        print(f'df: {filter_then_apply_min[0].status}')
+
     print(f"delta 1: {delta1}")
     print(f"delta 2: {delta2}")
     return delta1, delta2
