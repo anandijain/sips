@@ -151,29 +151,6 @@ def hot_col(col, hot_map, on_keyerror="skip"):
     return hotted_col_df
 
 
-def freeze_(df,):
-    """
-
-    df: pd.DataFrame
-
-    """
-    pass
-
-
-def freeze(df: pd.DataFrame, cold_map: list):
-    """
-    df: pd.DataFrame
-    cold_map: list(str) where len(cold_map) == df.shape[1]
-    ---
-
-    for a series with n unique values, the hot vector will be n columns 
-        ## - how to deal with set_zero?
-
-    freeze assumes that there is this bijection from hot values to cold keys
-    """
-    pass
-
-
 def test_phase_changes():
     dfs = h.get_dfs()
     df = dfs[0]
