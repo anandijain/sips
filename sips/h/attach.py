@@ -46,7 +46,7 @@ def wins(dfs, verbose=True):
     dfs_w_wins = []
     total_games = len(dfs)
     skipped = 0
-    sdfs = s.serialize_dfs(dfs, to_numpy=False)
+    sdfs = s.serialize_dfs(dfs, dont_hot=True, to_numpy=False)
     for df in dfs:
         if not df.empty:
             with_labels = win(df)

@@ -28,8 +28,9 @@ def test_get_and_window():
 
 
 def test_attach_wins():
+    # get dataframes and attach the win/losses
     dfs = h.get_dfs()
-    w_wins = [attach.wins(df) for df in dfs]
+    w_wins = attach.wins(dfs)
     return w_wins
 
 
@@ -46,7 +47,14 @@ def test_get_filter_and_serialize():
     return data, sdfs
 
 
-def commutative_time_delta():
+def df_filtering_commutative_time_delta():
+    """ 
+    Tests whether applying a min game length then filtering for wins
+    is faster than filtering the other way around.
+
+    Both are slow and the filter needs to be done in one iteration of the dfs.
+
+    """
     all_dfs = h.get_dfs()
 
     start1 = time.time()
@@ -57,8 +65,11 @@ def commutative_time_delta():
     filter_then_apply_min = h.filter_then_apply_min(all_dfs)
     end2 = time.time()
 
-    print(f"delta 1: {end1 - start1}")
-    print(f"delta 2: {end2 - start2}")
+    delta1 = end1 - start1
+    delta2 = end2 - start2
+    print(f"delta 1: {delta1}")
+    print(f"delta 2: {delta2}")
+    return delta1, delta2
 
 
 def test_sdfs():
@@ -81,3 +92,12 @@ def test_heat():
     hot_maps = hot.all_hot_maps(output="dict")
     hotted = hot.hot(df, hot_maps=hot_maps)
     return hotted
+
+
+if __name__ == "__main__":
+    X, y = test_get_and_window()
+    w_wins = test_attach_wins()
+    data, sdfs = test_get_filter_and_serialize()
+    d1, d2 = df_filtering_commutative_time_delta()
+    numbers = test_sdfs()
+    hotted = test_heat()

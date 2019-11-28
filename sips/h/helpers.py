@@ -6,7 +6,6 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
-from sips.h import serialize as s
 from sips.h import fileio as fio
 from sips.h import attach
 
@@ -162,19 +161,21 @@ def labels_split(df, cols, drop=True):
     return X, Y
 
 
-def sk_scale(df, to_pd=False):
+def sk_scale(df, to_df=False):
     """
     scales pandas or np data(frame) using StandardScaler 
-    returns numpy or dataframe (to_pd=True)
+    returns numpy or dataframe (to_df=True)
     """
     scaler = StandardScaler()
-    cols = df.columns
     if isinstance(df, pd.core.frame.DataFrame):  # pandas
+        cols = df.columns
         df = df.to_numpy()
 
     scaled = scaler.fit_transform(df)
-    if to_pd:
+    
+    if to_df:
         scaled = pd.DataFrame(scaled, columns=cols)
+
     return scaled
 
 

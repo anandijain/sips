@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 
-import tensorflow as tf
-
 from sips.macros import bov as bm
 from sips.h import hot
 from sips.h import helpers as h
@@ -15,9 +13,10 @@ def serialize_dfs(
     replace_dict=None,
     hot_maps=None,
     to_numpy=True,
-    norm=True,
+    norm=False,
     astype=None,
     dropna=True,
+    filter_empty=True,
     dont_hot=False,
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
@@ -75,6 +74,10 @@ def serialize_dfs(
             drop_labels=drop_labels,
             drop_cold=drop_cold,
         )
+        if filter_empty:
+            if sdf is None:
+                continue
+
         if label_cols is not None:
             X, y = sdf
             sYs.append(y)
@@ -134,6 +137,9 @@ def serialize_df(
         pd.DataFrame or np.array
 
     """
+    if isinstance(df, str):
+        print(f'dataframe: {df} is of type string for some reason')
+
     if drop_extra_cols is not None:
         try:
             df.drop(drop_extra_cols, axis=1, inplace=True)
@@ -156,6 +162,10 @@ def serialize_df(
     if dropna:
         df.dropna(inplace=True)
 
+    if df.empty:
+        # print('skip')
+        return
+
     X = df.copy()
 
     if label_cols is not None:
@@ -169,7 +179,8 @@ def serialize_df(
         if label_cols is not None:
             y = np.array(y, dtype=np.float32)
         if norm:
-            X = tf.keras.utils.normalize(X)
+            X = h.sk_scale(X, to_df=False)
+
     elif astype:
         X = X.astype(astype, errors="ignore")
 
@@ -177,7 +188,7 @@ def serialize_df(
             y = y.astype(astype, errors="ignore")
 
         if norm and not isinstance(X, np.object):
-            X = tf.keras.utils.normalize(X)
+            X = h.sk_scale(X, to_df=True)
 
     if label_cols is not None:
         ret = (X, y)
