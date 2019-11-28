@@ -70,15 +70,6 @@ def hot_bool_dict(row):
     return hot_mkt
 
 
-def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
-    """
-
-    """
-    teams_dict = hot_teams_dict(teams_to_hot=sports)
-    statuses_dict = hot_statuses_dict()
-    return teams_dict, statuses_dict
-
-
 def all_hot_maps(sports=["nba"], output="dict"):
     """
 
