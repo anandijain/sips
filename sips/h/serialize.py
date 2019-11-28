@@ -8,26 +8,6 @@ from sips.h import hot
 from sips.h import helpers as h
 
 
-def serialize_row(row, hot_maps=None, to_numpy=False, include_teams=False):
-    """
-
-    """
-    if isinstance(row, pd.core.series.Series):
-        pass
-    elif isinstance(row, list):
-        row = pd.DataFrame(row, columns=bm.LINE_COLUMNS)
-
-    if not hot_maps:
-        hot_maps = hot.all_hot_maps(output="dict")
-
-    ret = serialize_df(row, hot_maps=hot_maps)
-
-    if to_numpy:
-        ret = np.array(ret, dtype=np.float32)
-
-    return ret
-
-
 def serialize_dfs(
     dfs,
     in_cols=None,
@@ -39,13 +19,34 @@ def serialize_dfs(
     astype=None,
     dropna=True,
     dont_hot=False,
-    drop_labs=True,
+    drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
     verbose=False
 ):
     """
-    label_cols is a subset of incols
+    Multipurpose conversion of multi-datatype DataFrames into numbers.
+
+    Args:
+        Required:
+            dfs (list pd.DataFrame): DataFrame to serialize (required)
+        Optional:
+            in_cols (list str): training data
+            label_cols (list str): label data
+            replace_dict (dict): replace values in DataFrame
+            hot_maps (list dict): provide your own hot maps
+            to_numpy (bool): convert the dfs to np arrays 
+            norm (bool): normalize using tf.keras.utils.normalize
+            astype (numeric type): given a type to convert dfs to
+            dropna (bool): pd.dropna 
+            dont_hot (bool)
+            drop_labels (bool): drop labels from training data
+            drop_extra_cols (list str)
+            drop_cold (bool): drop the categorical columns
+            verbose (bool): print
+    Returns: 
+        pd.DataFrame or np.array
+
     """
     sXs = []
     sYs = []
@@ -71,7 +72,7 @@ def serialize_dfs(
             astype=astype,
             dropna=dropna,
             drop_extra_cols=drop_extra_cols,
-            drop_labs=drop_labs,
+            drop_labels=drop_labels,
             drop_cold=drop_cold
         )
         if label_cols is not None:
@@ -104,23 +105,34 @@ def serialize_df(
     astype=None,
     dropna=True,
     dont_hot=False,
-    drop_labs=True,
+    drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
     verbose=False
 ):
     """
-    multipurpose conversion of multi-datatype DataFrames into numbers
+    Multipurpose conversion of multi-datatype DataFrame into numbers.
 
     Args:
-        df (pd.DataFrame) -- DataFrame to serialize (required)
-        in_cols (list df.column 
-        replace_dict : dict -- replace values in DataFrame
-    
-    --
-    returns: pd.DataFrame or np array
+        Required:
+            dfs (list pd.DataFrame): DataFrame to serialize (required)
+        Optional:
+            in_cols (list str): training data
+            label_cols (list str): label data
+            replace_dict (dict): replace values in DataFrame
+            hot_maps (list dict): provide your own hot maps
+            to_numpy (bool): convert the dfs to np arrays 
+            norm (bool): normalize using tf.keras.utils.normalize
+            astype (numeric type): given a type to convert dfs to
+            dropna (bool): pd.dropna 
+            dont_hot (bool)
+            drop_labels (bool): drop labels from training data
+            drop_extra_cols (list str)
+            drop_cold (bool): drop the categorical columns
+            verbose (bool): print
+    Returns: 
+        pd.DataFrame or np.array
 
-    norm is only applied if to_numpy is True
     """
     if drop_extra_cols is not None:
         try:
@@ -149,7 +161,7 @@ def serialize_df(
     if label_cols is not None:
         y = df[label_cols].copy()
 
-        if drop_labs:
+        if drop_labels:
             X = df.drop(label_cols, axis=1)
 
     if to_numpy:
@@ -177,18 +189,5 @@ def serialize_df(
     return ret
 
 
-def test_sdfs():
-    dfs = h.get_dfs()
-    cols = bm.TO_SERIALIZE
-    maps = hot.all_hot_maps()
-
-    numbers = serialize_dfs(
-        dfs, in_cols=None, label_cols=None, hot_maps=maps, to_numpy=False
-    )
-
-    print(numbers)
-    return numbers
-
-
 if __name__ == "__main__":
-    test_sdfs()
+    pass

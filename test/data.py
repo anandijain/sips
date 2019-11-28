@@ -1,9 +1,12 @@
 import time
 
-from sips.h import helpers as h
 from sips.h import attach
+from sips.h import hot
+from sips.h import helpers as h
 from sips.h import serialize as s
+
 from sips.macros import macros as m
+from sips.macros import bov as bm
 
 
 def test_get_and_window():
@@ -55,3 +58,16 @@ def commutative_time_delta():
 
     print(f'delta 1: {end1 - start1}')
     print(f'delta 2: {end2 - start2}')
+
+
+def test_sdfs():
+    dfs = h.get_dfs()
+    cols = bm.TO_SERIALIZE
+    maps = hot.all_hot_maps()
+
+    numbers = s.serialize_dfs(
+        dfs, in_cols=None, label_cols=None, hot_maps=maps, to_numpy=False
+    )
+
+    print(numbers)
+    return numbers

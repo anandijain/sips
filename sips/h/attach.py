@@ -11,8 +11,7 @@ from sips.macros import bov as bm
 
 def ml_transitions(game, attach=True, verbose=False):
     """
-    given a dataframe of live lines for a single game,
-    returns a list of classifications for the line movement
+    dataframe to directional line movement arrays
     """
     transition_classes = []
     prev = [None, None]
@@ -149,8 +148,8 @@ def profit(df):
                 a_ml = 100
             if h_ml == "EVEN":
                 h_ml = 100
-            h_prof = calc.prof_amt(h_init, int(a_ml))
-            a_prof = calc.prof_amt(a_init, int(h_ml))
+            h_prof = calc.profit(h_init, int(a_ml))
+            a_prof = calc.profit(a_init, int(h_ml))
             h_profs.append(h_prof)
             a_profs.append(a_prof)
 
