@@ -202,6 +202,12 @@ def apply_min_then_filter(dfs, verbose=False):
     return dfs
 
 
+def get_full_games(dir=None):
+    dfs = get_dfs(dir)
+    dfs = filter_then_apply_min(dfs)
+    return dfs
+    
+
 if __name__ == "__main__":
     pass
     # print(data[0])

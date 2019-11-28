@@ -41,6 +41,7 @@ def serialize_dfs(
     dont_hot=False,
     drop_labs=True,
     drop_extra_cols=["a_ou", "h_ou"],
+    drop_cold=True,
     verbose=False
 ):
     """
@@ -71,6 +72,7 @@ def serialize_dfs(
             dropna=dropna,
             drop_extra_cols=drop_extra_cols,
             drop_labs=drop_labs,
+            drop_cold=drop_cold
         )
         if label_cols is not None:
             X, y = sdf
@@ -104,6 +106,7 @@ def serialize_df(
     dont_hot=False,
     drop_labs=True,
     drop_extra_cols=["a_ou", "h_ou"],
+    drop_cold=True,
     verbose=False
 ):
     """
@@ -136,7 +139,7 @@ def serialize_df(
         if not hot_maps:
             hot_maps = hot.all_hot_maps(output="dict")
 
-        df = hot.hot(df, hot_maps=hot_maps)
+        df = hot.hot(df, hot_maps=hot_maps, drop_cold=drop_cold)
 
     if dropna:
         df.dropna(inplace=True)
@@ -157,9 +160,11 @@ def serialize_df(
             X = tf.keras.utils.normalize(X)
     elif astype:
         X = X.astype(astype, errors='ignore')
+
         if label_cols is not None:
             y = y.astype(astype, errors='ignore')
-        if norm:
+
+        if norm and not isinstance(X, np.object):
             X = tf.keras.utils.normalize(X)
 
     if label_cols is not None:
