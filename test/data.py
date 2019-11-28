@@ -37,7 +37,8 @@ def test_get_filter_and_serialize():
     dfs = h.get_dfs()
     data = s.serialize_dfs(dfs)
     sdfs = s.serialize_dfs(
-        dfs, label_cols=['a_pts', 'h_pts', 'a_ml', 'h_ml'], to_numpy=False)
+        dfs, label_cols=["a_pts", "h_pts", "a_ml", "h_ml"], to_numpy=False
+    )
 
     zipped = list(zip(sdfs[0], sdfs[1]))
     print(len(zipped))
@@ -56,8 +57,8 @@ def commutative_time_delta():
     filter_then_apply_min = h.filter_then_apply_min(all_dfs)
     end2 = time.time()
 
-    print(f'delta 1: {end1 - start1}')
-    print(f'delta 2: {end2 - start2}')
+    print(f"delta 1: {end1 - start1}")
+    print(f"delta 2: {end2 - start2}")
 
 
 def test_sdfs():
@@ -71,3 +72,12 @@ def test_sdfs():
 
     print(numbers)
     return numbers
+
+
+def test_heat():
+    dfs = h.get_dfs()
+    df = dfs[0]
+
+    hot_maps = hot.all_hot_maps(output="dict")
+    hotted = hot.hot(df, hot_maps=hot_maps)
+    return hotted

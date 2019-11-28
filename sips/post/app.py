@@ -18,7 +18,9 @@ from flask import Flask, Response, request, render_template
 
 # df = bov.lines(["nba"])
 dfs = h.get_dfs()
-sdfs = s.serialize_dfs(dfs, in_cols=['game_id', 'last_mod', 'a_ml', 'h_ml'], norm=False, to_numpy=False)
+sdfs = s.serialize_dfs(
+    dfs, in_cols=["game_id", "last_mod", "a_ml", "h_ml"], norm=False, to_numpy=False
+)
 sdfs = [sdf for sdf in sdfs if not sdf.empty]
 to_plot = random.choice(sdfs)
 print(to_plot)
@@ -47,12 +49,13 @@ def plot_game(df, game_id):
     axis.plot(t, a_ml)
     axis.plot(t, h_ml)
     output = io.BytesIO()
-    FigureCanvasAgg(fig).print_png(output)    
+    FigureCanvasAgg(fig).print_png(output)
     return Response(output.getvalue(), mimetype="image/png")
 
 
 if __name__ == "__main__":
     import webbrowser
+
     host = "0.0.0.0"
     app.run(host=host, debug=True)
 

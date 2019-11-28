@@ -452,7 +452,7 @@ def total(outcomes):
 
     if not a_outcome:
         return null_ret
-        
+
     if not h_outcome:
         return null_ret
 

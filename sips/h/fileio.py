@@ -3,6 +3,7 @@ import os
 
 from sips.macros import tfm
 
+
 def init_csv(fn, header, close=True):
     # create a csv and write header, option to close
     f = open(fn, "a")

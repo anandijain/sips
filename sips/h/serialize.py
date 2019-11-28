@@ -22,7 +22,7 @@ def serialize_dfs(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
-    verbose=False
+    verbose=False,
 ):
     """
     Multipurpose conversion of multi-datatype DataFrames into numbers.
@@ -73,7 +73,7 @@ def serialize_dfs(
             dropna=dropna,
             drop_extra_cols=drop_extra_cols,
             drop_labels=drop_labels,
-            drop_cold=drop_cold
+            drop_cold=drop_cold,
         )
         if label_cols is not None:
             X, y = sdf
@@ -89,8 +89,8 @@ def serialize_dfs(
         ret = sXs
 
     if verbose:
-        print(f'serialized_dfs: {ret}')
-        
+        print(f"serialized_dfs: {ret}")
+
     return ret
 
 
@@ -108,7 +108,7 @@ def serialize_df(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
-    verbose=False
+    verbose=False,
 ):
     """
     Multipurpose conversion of multi-datatype DataFrame into numbers.
@@ -171,10 +171,10 @@ def serialize_df(
         if norm:
             X = tf.keras.utils.normalize(X)
     elif astype:
-        X = X.astype(astype, errors='ignore')
+        X = X.astype(astype, errors="ignore")
 
         if label_cols is not None:
-            y = y.astype(astype, errors='ignore')
+            y = y.astype(astype, errors="ignore")
 
         if norm and not isinstance(X, np.object):
             X = tf.keras.utils.normalize(X)
@@ -185,7 +185,7 @@ def serialize_df(
         ret = X
 
     if verbose:
-        print(f'serialized_df: {ret}')
+        print(f"serialized_df: {ret}")
     return ret
 
 

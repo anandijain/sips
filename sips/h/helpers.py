@@ -13,7 +13,7 @@ from sips.h import attach
 from sips.macros import macros as m
 
 
-def get_dfs(to_read=None, output='list'):
+def get_dfs(to_read=None, output="list"):
     """
     to_read is one of:
         - list of *full* file names 
@@ -25,10 +25,10 @@ def get_dfs(to_read=None, output='list'):
     if isinstance(to_read, str):
         to_read = fio.get_fns(to_read)
 
-    if output == 'list':
+    if output == "list":
         dfs = [pd.read_csv(fn) for fn in to_read]
-    elif output == 'dict':
-        dfs = {fn.split('/')[-1]: pd.read_csv(fn) for fn in to_read}
+    elif output == "dict":
+        dfs = {fn.split("/")[-1]: pd.read_csv(fn) for fn in to_read}
 
     return dfs
 
@@ -61,7 +61,7 @@ def window_multivariate(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i: i + target_size]
+            label = target[i : i + target_size]
 
         labels.append(label)
 
@@ -109,7 +109,7 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_min_len(games, min_lines=200, output='list', verbose=False):
+def apply_min_len(games, min_lines=200, output="list", verbose=False):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines
@@ -118,7 +118,7 @@ def apply_min_len(games, min_lines=200, output='list', verbose=False):
     deleted_dict = {}
 
     if isinstance(games, list):
-        games = {i : game for i, game in enumerate(games)}
+        games = {i: game for i, game in enumerate(games)}
 
     for key, value in games.copy().items():
         game_len = len(value)
@@ -131,7 +131,7 @@ def apply_min_len(games, min_lines=200, output='list', verbose=False):
         print(f"before apply: {pre_len}")
         print(f"after apply: {len(games)}\n")
 
-    if output == 'list':
+    if output == "list":
         games = list(games.values())
 
     return games
@@ -148,7 +148,7 @@ def filter_unended(dfs, verbose=False):
         else:
             skips += 1
     if verbose:
-        print(f'filtered {skips} unended games out of {total_count}\n')
+        print(f"filtered {skips} unended games out of {total_count}\n")
 
     return full_games
 
@@ -195,7 +195,7 @@ def get_full_games(dir=None):
     dfs = get_dfs(dir)
     dfs = filter_then_apply_min(dfs)
     return dfs
-    
+
 
 if __name__ == "__main__":
     pass

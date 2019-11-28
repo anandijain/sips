@@ -25,7 +25,7 @@ def eq_to_odd(equity: float) -> Number:
         odd = -100 / equity
         return odd
     elif equity == 0:
-        return 0.
+        return 0.0
 
 
 def net(bet: Bet, bet2: Bet) -> Number:

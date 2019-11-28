@@ -151,15 +151,5 @@ def hot_col(col, hot_map, on_keyerror="skip"):
     return hotted_col_df
 
 
-def test_phase_changes():
-    dfs = h.get_dfs()
-    df = dfs[0]
-
-    hot_maps = all_hot_maps(output="dict")
-    hotted = hot(df, hot_maps=hot_maps)
-    return hotted
-
-
 if __name__ == "__main__":
-    hots = test_phase_changes()
-    print(hots)
+    pass
