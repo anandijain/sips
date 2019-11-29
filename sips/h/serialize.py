@@ -150,10 +150,9 @@ def serialize_df(
     
     if in_cols and label_cols:
         all_cols = list(set(in_cols + label_cols))
-        df = df[all_cols]
-
+        df = df[all_cols].copy()
     elif in_cols and not label_cols:
-        df = df[in_cols]
+        df = df[in_cols].copy()
 
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}
