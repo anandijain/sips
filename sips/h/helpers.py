@@ -1,4 +1,3 @@
-from decimal import Decimal
 import random
 import time
 
@@ -109,7 +108,7 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_length_bounds(games, min_lines=200, max_lines=Decimal("Infinity"), output="list", verbose=False):
+def apply_length_bounds(games, min_lines=200, max_lines=5000, output="list", verbose=False):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines

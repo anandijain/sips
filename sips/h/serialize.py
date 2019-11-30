@@ -157,7 +157,10 @@ def serialize_df(
     if not replace_dict:
         replace_dict = {"None": np.nan, "EVEN": 100}
 
-    df.replace(replace_dict, inplace=True)
+    try:
+        df.replace(replace_dict, inplace=True)
+    except TypeError:
+        pass
 
     if dont_hot:
         hot_maps = None
@@ -182,9 +185,9 @@ def serialize_df(
             X = df.drop(label_cols, axis=1)
 
     if to_numpy:
-        X = np.array(X, dtype=np.float32)
+        X = np.array(X, dtype=np.float16)
         if label_cols is not None:
-            y = np.array(y, dtype=np.float32)
+            y = np.array(y, dtype=np.float16)
         if norm:
             X = h.sk_scale(X, to_df=False)
 
@@ -208,4 +211,9 @@ def serialize_df(
 
 
 if __name__ == "__main__":
-    pass
+    cols = ["last_mod", "quarter", "secs", "a_pts", "h_pts", "a_ml", "h_ml"]
+    dfs = h.get_dfs()
+    df = dfs[0]
+    print(type(df))
+    data = serialize_dfs(dfs, in_cols=cols, norm=True, dont_hot=True)
+    print(data[0])

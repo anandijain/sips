@@ -449,11 +449,6 @@ def total(outcomes):
         h_outcome = outcomes[1]
     except IndexError:
         h_tot, h_hcap_tot, h_ou = [None for _ in range(3)]
-
-    if not a_outcome:
-        return null_ret
-
-    if not h_outcome:
         return null_ret
 
     a_outcome = outcomes[0]
@@ -461,6 +456,7 @@ def total(outcomes):
     a_price = a_outcome.get("price")
     a_tot, a_hcap_tot = p.parse_json(a_price, TO_GRAB["tot"], "list")
 
+    h_outcome = outcomes[1]
     h_ou = h_outcome.get("type")
     h_price = h_outcome.get("price")
     h_tot, h_hcap_tot = p.parse_json(h_price, TO_GRAB["tot"], "list")
