@@ -74,7 +74,6 @@ def main():
         p_folder = split_url[-1] + "_" + split_url[-2]
         player_dir = path + p_folder + "/"
 
-        print(f"{i}: {p_folder}")
 
         if not os.path.isdir(player_dir):
             os.mkdir(player_dir)
@@ -89,6 +88,7 @@ def main():
             fn = player_dir + t_id + ".csv"
             df.to_csv(fn)
 
+        print(f"{i}: {p_folder} : {len(p_dfs)}")
 
 if __name__ == "__main__":
     main()

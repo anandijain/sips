@@ -29,61 +29,80 @@ comment_idxs = {
 }
 
 
-def player_links(write=False):
+def player_links(write=True):
     all_players = []
     # all_players = pd.DataFrame()
 
     links = [sref.bk_url + "players/" + letter for letter in sref.letters]
-    ps = grab.get_pages(links)
-    for p in ps:
+    ps = grab.get_pages(links, output='dict')
+
+    for i, (l, p) in enumerate(ps.items()):
         t = parse.get_table(p, "players")
-        print(len(t))
-        # df = [pd.read_html(t.prettify())[0] for e in t]
-        ths = t.find_all("th", {"data-stat": "player"})
-        print(ths)
+
+        rows = t.find_all("tr")
+        rows.pop(0)  # header
+
         p_ids = []
-        for th in ths:
-            a_tags = th.find_all("a")
-            if a_tags is not None:
-                for a_tag in a_tags:
-                    pl_id = a_tag["href"]
-                    print(pl_id)
-                    all_players.append(pl_id)
-        # df['ids'] = pd.Series(p_ids)
-        # all_players = pd.concat([all_players, df])
+        section_count = 0
+        for row in rows:
+            th = row.th
+            if not th:
+                continue
+            p_id = th.get("data-append-csv")
+            if not p_id:
+                continue
+            a_tag = th.find('a')
+            link = a_tag.get('href')
+            if not link:
+                continue
+            section_count += 1
+            all_players.append(link)
+
+        print(f'{i} : {sref.letters[i]} : {section_count}')
+
     if write:
         df = pd.DataFrame(all_players, columns=["link"])
         df.to_csv(sips.PARENT_DIR + "data/players/index.csv")
+
     return all_players
 
 
-if __name__ == "__main__":
+def main():
     # sfx = '/players/j/jamesle01.html' sfx
     table_ids = ["per_game", "totals"]
-    links = player_links()
-    path = sips.PARENT_DIR + "data/players/"
+
+    path = sips.PARENT_DIR + "data/nba/players/"
+    links_df = pd.read_csv(path + 'index.csv')
+    links = links_df.link
+
     if not os.path.isdir(path):
         os.mkdir(path)
-    # print(links)
+
     for i, link in enumerate(links):
-        # if link == "Player" or link == "From" or link == "To":
-        #     continue
         player_url = sref.bk_no_slash + link
         p_id = sru.url_to_id(player_url)
         player_path = path + p_id + "/"
-        print(f"{i}: {player_url}")
 
         if not os.path.isdir(player_path):
             os.mkdir(player_path)
 
         dfd = player.player(player_url, table_ids, comment_idxs)
 
+        df_count = 0
         for t_id, df in dfd.items():
             if not df:
                 continue
             df = df[0]
+            
             fn = p_id + "_" + t_id
             df.to_csv(player_path + fn + ".csv")
+            df_count += 1
 
-    # lebron = player(sfx)
-    # print(lebron)
+        print(f"{i}: {player_url}: {df_count}")
+
+
+if __name__ == "__main__":
+    main()
+    # players = player_links()
+    # print(df)
+    # print(len(players))
