@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="sips",
-    version="0.14",
+    version="0.15",
     description="tools for quantitative sports betting",
     author="Anand Jain",
     author_email="anandj@uchicago.edu",

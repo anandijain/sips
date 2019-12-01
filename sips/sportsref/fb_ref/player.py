@@ -39,6 +39,8 @@ def player(url):
         "_ks_intl_cup",
         "_ks_expanded",
         "_ks_collapsed",
+        "_dom_lg",
+        "_dom_cup",
     ]
     categories = ["standard", "shooting", "passing", "playing_time", "misc"]
     table_ids = []
