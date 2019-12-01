@@ -1,13 +1,11 @@
 import pandas as pd
 
-import sips
+from sips.h import grab
 from sips.macros import sports_ref as sref
 
 
 def trade_summary():
-    p = sips.get_page(sref.bk_url + "/friv/injuries.fcgi")
-    t = p.find("table", {"id": "injuries"})
-    df = pd.read_html(t.prettify())
+    df = grab.get_table(sref.bk_url + "/friv/injuries.fcgi", ["injuries"])
     return df
 
 

@@ -88,7 +88,7 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
 
 def get_table(link, table_ids, to_pd=True):
     tables = [pd.read_html(get_page(link).find("table", {"id": table_id}).prettify()) if to_pd else get_page(
-        link).find("table", {"id": table_id}).prettify() for table_id in table_ids]
+        link).find("table", {"id": table_id}) for table_id in table_ids]
 
     # handy
     if len(tables) == 1:

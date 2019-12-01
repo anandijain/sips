@@ -39,5 +39,16 @@ def get_table(page, table_id):
     return table
 
 
+def links(html, prefix=None):
+    links = []
+    a_tags = html.find_all("a")
+    for a_tag in a_tags:
+        link = a_tag['href']
+        if prefix:
+            link = prefix + link
+        links.append(link)
+    return links
+
+
 if __name__ == "__main__":
     pass
