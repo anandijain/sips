@@ -5,7 +5,6 @@ from sips.h import grab
 from sips.h import parse
 from sips.macros import sports_ref as sref
 
-
 def coaches():
     p = sips.get_page(sref.bk_url + "/coaches/")
     t = p.find("table", {"id": "coaches"})

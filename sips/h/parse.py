@@ -45,14 +45,25 @@ def comments(page, verbose=False):
     return comments
 
 
-def get_table(page, table_id, to_pd=False):
+def get_table(page, table_id, find_all=False, to_pd=False):
     # given bs4 page and table id, finds table using bs4. returns soup table
-    table = page.find("table", {"id": table_id})
-    if not table:
+    ret = []
+    if find_all:
+        table = page.find_all("table", {"id": table_id})
+    else:
+        table = page.find("table", {"id": table_id})
+
+    if table is None:
         return
+        
     if to_pd:
-        table = pd.read_html(str(table))
-    return table
+        if find_all:
+            ret = [pd.read_html(t.prettify()) for t in table]
+        else:
+            ret = pd.read_html(table.prettify())
+    else:
+        ret = table
+    return ret
 
 
 def links(html, prefix=None):

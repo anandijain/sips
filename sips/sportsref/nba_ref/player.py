@@ -1,7 +1,12 @@
+import os
+import pandas as pd
 
+import sips
 from sips.macros import sports_ref as sref
 from sips.h import grab
 from sips.h import parse
+from sips.sportsref.general import player
+from sips.sportsref import utils as sru
 
 comment_idxs = {
     25: 'per_minute',
@@ -24,23 +29,64 @@ comment_idxs = {
 }
 
 
-def player(player_sfx):
-    url = sref.bk_url + player_sfx
-    table_ids = ['per_game', 'totals']
-    dfs = []
-    p = grab.get_page(url)
-    for t_id in table_ids:
-        dfs.append(parse.get_table(p, t_id, to_pd=True))
+def player_links(write=False):
+    all_players = []
+    # all_players = pd.DataFrame()
 
-    cs = parse.comments(p)
-    for index, t_id in comment_idxs.items():
-        soup = parse.to_soup(cs[index])
-        df = parse.get_table(soup, t_id, to_pd=True)
-        dfs.append(df)
-    return dfs
+    letters = ['a', 'b', 'c', "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
+        "o",  "p", "q", "r", "s", "t", "u", 'v', 'w', 'y', 'z']  # no x
+    links = [sref.bk_url + 'players/' + letter for letter in letters]
+    ps = grab.get_pages(links)
+    for p in ps:
+        t = parse.get_table(p, 'players')
+        print(len(t))
+        # df = [pd.read_html(t.prettify())[0] for e in t]
+        ths = t.find_all('th', {'data-stat': 'player'})
+        print(ths)
+        p_ids = []
+        for th in ths:
+            a_tags = th.find_all('a')
+            if a_tags is not None:
+                for a_tag in a_tags:
+                    pl_id = a_tag['href']
+                    print(pl_id)
+                    all_players.append(pl_id)
+        # df['ids'] = pd.Series(p_ids)
+        # all_players = pd.concat([all_players, df])
+    if write:
+        df = pd.DataFrame(all_players, columns=['link'])
+        df.to_csv(sips.PARENT_DIR + 'data/players/index.csv')
+    return all_players
 
 
 if __name__ == "__main__":
-    sfx = '/players/j/jamesle01.html'
-    lebron = player(sfx)
-    print(lebron)
+    # sfx = '/players/j/jamesle01.html' sfx
+    table_ids = ['per_game', 'totals']
+    links = player_links()
+    path = sips.PARENT_DIR + 'data/players/'
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    # print(links)
+    for i, link in enumerate(links):
+        # if link == "Player" or link == "From" or link == "To":
+        #     continue
+        player_url = sref.bk_no_slash + link
+        p_id = sru.url_to_id(player_url)
+        player_path = path + p_id + '/'
+        print(f'{i}: {player_url}')
+
+        if not os.path.isdir(player_path):
+            os.mkdir(player_path)
+
+        dfd = player.player(player_url, table_ids, comment_idxs)
+
+        for t_id, df in dfd.items():
+            if not df:
+                continue
+            df = df[0]
+            fn = p_id + '_' + t_id
+            df.to_csv(player_path + fn + '.csv')
+
+
+    # lebron = player(sfx)
+    # print(lebron)
