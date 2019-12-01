@@ -36,9 +36,13 @@ def parse_json(json, keys, output="dict"):
         return None
 
 
-def comments(page, verbose=False):
+def comments(page, to_soup=False, verbose=False):
     # finds all of the bs4.Comments for a page
     comments = page.findAll(text=lambda text: isinstance(text, bs4.Comment))
+
+    if to_soup:
+        comments = bs4.BeautifulSoup(''.join(comments), 'html.parser')
+
     if verbose:
         for i, c in enumerate(comments):
             print(f"{i} : {c}")
@@ -60,7 +64,7 @@ def get_table(page, table_id, find_all=False, to_pd=False):
         if find_all:
             ret = [pd.read_html(t.prettify()) for t in table]
         else:
-            ret = pd.read_html(table.prettify())
+            ret = pd.read_html(table.prettify())[0]
     else:
         ret = table
     return ret

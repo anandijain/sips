@@ -60,12 +60,12 @@ def main():
         if not os.path.isdir(player_path):
             os.mkdir(player_path)
 
-        p = player.player(player_url, table_ids, comment_idxs)
+        p = player.player(player_url, table_ids, comment_idxs, verbose=True)
+
         ps[link] = p
-        time.sleep(0.15)
+
         for t_id, df in p.items():
-            if not df:
-                continue
+
             df = df[0]
             fn = p_id + "_" + t_id
             df.to_csv(player_path + fn + ".csv")

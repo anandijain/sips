@@ -25,7 +25,10 @@ comment_idxs = {
     41: "year-and-career-highs-po",
     42: "all_star",
     43: "sim_thru",
+    44: "all_college_stats",
     44: "sim_career",
+    47: "all_salaries",
+    48: "contracts_orl"
 }
 
 
@@ -90,10 +93,8 @@ def main():
 
         df_count = 0
         for t_id, df in dfd.items():
-            if not df:
+            if df is None:
                 continue
-            df = df[0]
-            
             fn = p_id + "_" + t_id
             df.to_csv(player_path + fn + ".csv")
             df_count += 1
