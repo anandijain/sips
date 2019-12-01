@@ -12,15 +12,7 @@ fb_no_slash = "https://fbref.com"
 nhl_no_slash = "https://www.hockey-reference.com"
 mlb_no_slash = "https://www.baseball-reference.com"
 
-urls = {
-    'mlb' : mlb_url,
-    'nba': nba_url,
-    'fb': fb_url,
-    'nfl': nfl_url,
-    'nhl': nhl_url
-}
-
-
+urls = {"mlb": mlb_url, "nba": nba_url, "fb": fb_url, "nfl": nfl_url, "nhl": nhl_url}
 
 letters = [
     "a",

@@ -74,4 +74,4 @@ def player_links(write=True):
 
 
 if __name__ == "__main__":
-    player.players('nba', table_ids)
+    player.players("nba", table_ids)

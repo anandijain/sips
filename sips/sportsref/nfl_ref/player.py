@@ -10,10 +10,18 @@ from sips.sportsref.general import player
 from sips.sportsref import utils as sru
 
 
-table_ids = ["stats", "rushing_and_receiving",
-             "detailed_rushing_and_receiving", "returns",
-             "defense", "scoring", "snap_counts", "all_pro",
-             "fantasy", "combine", ]
+table_ids = [
+    "stats",
+    "rushing_and_receiving",
+    "detailed_rushing_and_receiving",
+    "returns",
+    "defense",
+    "scoring",
+    "snap_counts",
+    "all_pro",
+    "fantasy",
+    "combine",
+]
 
 
 def player_links(output="df", write_df=False):
@@ -41,4 +49,4 @@ def player_links(output="df", write_df=False):
 
 
 if __name__ == "__main__":
-    player.players('nfl', table_ids)
+    player.players("nfl", table_ids)

@@ -30,14 +30,14 @@ def player(player_url: str, table_ids: list, output="dict", verbose=False):
     return dfs
 
 
-def players(sport:str, table_ids:list):
+def players(sport: str, table_ids: list):
 
     path = sips.PARENT_DIR + "data/" + sport + "/players/"
     links_df = pd.read_csv(path + "index.csv")
 
-    if sport == 'nba':
+    if sport == "nba":
         links = sref.nba_no_slash + links_df.link
-    elif sport == 'nfl':
+    elif sport == "nfl":
         links = sref.nfl_no_slash + links_df.link
     else:
         links = links_df.link
@@ -63,7 +63,6 @@ def players(sport:str, table_ids:list):
             df_count += 1
 
         print(f"{i}: {link}: {df_count}")
-
 
 
 if __name__ == "__main__":
