@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-import sips.h.helpers as h
+from sips.h import helpers as h
 from sips.h import calc
 from sips.h import hot
 from sips.h import serialize as s
@@ -11,12 +11,9 @@ from sips.macros import bov as bm
 
 def ml_transitions(game, attach=True, verbose=False):
     """
-    given a dataframe of live lines for a single game,
-    returns a list of classifications for the line movement
+    dataframe to directional line movement arrays
     """
     transition_classes = []
-    teams_dict, statuses_dict = hot.dicts_for_one_hotting()
-
     prev = [None, None]
 
     for i, row in game.iterrows():
@@ -42,35 +39,71 @@ def ml_transitions(game, attach=True, verbose=False):
     return ret
 
 
-def wins(game_df):
+def wins(dfs, verbose=True):
     """
-    given a dataframe for a single game, takes the last row
-    checks if the status is 'GAME_END'
-    then adds new columns for the winner of the game based on the score
+
     """
-    try:
-        last_row = game_df.iloc[-1, :]
-    except IndexError:
-        print("no game end status")
-        return
+    dfs_w_wins = []
+    total_games = len(dfs)
+    skipped = 0
+    sdfs = s.serialize_dfs(dfs, dont_hot=True, to_numpy=False)
+    for df in dfs:
+        if not df.empty:
+            with_labels = win(df)
+            if with_labels is not None:
+                dfs_w_wins.append(with_labels)
+            else:
+                skipped += 1
+                continue
+
+    if verbose:
+        print(f"num games skipped: {skipped} out of {total_games}")
+
+    return dfs_w_wins
+
+
+def win(game_df, verbose=False):
+    """
+    if game_df.iloc[-1].status == 'GAME_END', adds win loss label columns
+
+    Args:
+        game_df (pd.DataFrame)
+        verbose (Bool): print dataframe after 
+
+    - takes the last row
+    - checks if the status is 'GAME_END'
+    - then adds new columns for the winner of the game based on the score
+    """
+    case = ""
+    last_row = game_df.iloc[-1, :]
     status = last_row.status
+
+    ret = None
+
     if status == "GAME_END":
         if last_row.a_pts > last_row.h_pts:
             a_win = True
             h_win = False
+            case = f"away {last_row.a_team} win"
         elif last_row.a_pts < last_row.h_pts:
             a_win = False
             h_win = True
+            case = f"home {last_row.h_team} win"
         else:
-            print("game tied at end")
+            case = "game tie"
             a_win = False
             h_win = False
+
         game_df["a_win"] = a_win
         game_df["h_win"] = h_win
+        ret = game_df
     else:
-        print("no game end status")
-        return
-    return game_df
+        case = "no game end status"
+
+    if verbose:
+        print(case)
+
+    return ret
 
 
 def profit(df):
@@ -115,8 +148,8 @@ def profit(df):
                 a_ml = 100
             if h_ml == "EVEN":
                 h_ml = 100
-            h_prof = calc.prof_amt(h_init, int(a_ml))
-            a_prof = calc.prof_amt(a_init, int(h_ml))
+            h_prof = calc.profit(h_init, int(a_ml))
+            a_prof = calc.profit(a_init, int(h_ml))
             h_profs.append(h_prof)
             a_profs.append(a_prof)
 
@@ -126,7 +159,7 @@ def profit(df):
 
 
 def attach_all(df):
-    fxns = [wins, ml_transitions, profit]
+    fxns = [wins]  # , ml_transitions, profit]
     for fxn in fxns:
         if df is None:
             return
@@ -152,8 +185,14 @@ def test_attach_all():
 if __name__ == "__main__":
     in_cols = bm.TO_SERIALIZE
     dfs = test_attach_all()
+    print(dfs[0].columns)
+    print(dfs[0])
     sXs, sYs = s.serialize_dfs(
-        dfs, in_cols=in_cols, label_cols=["a_ml", "h_ml"], dont_hot=True, to_numpy=False
+        dfs,
+        in_cols=in_cols,
+        label_cols=["a_win", "h_win"],
+        dont_hot=True,
+        to_numpy=False,
     )
     df = dfs[0]
     print(df)

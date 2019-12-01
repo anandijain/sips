@@ -46,8 +46,10 @@ TO_SERIALIZE = [
 
 BOV_ROOT = "https://www.bovada.lv/"
 
+# https://www.bovada.lv/services/sports/event/v2/events/A/description/
 BOV_URL = BOV_ROOT + "services/sports/event/v2/events/A/description/"
 
+# https://www.bovada.lv/services/sports/results/api/v1/scores/
 BOV_SCORES_URL = BOV_ROOT + "services/sports/results/api/v1/scores/"
 
 BOV_EVENT_SFX = "services/sports/event/coupon/events/A/description/"

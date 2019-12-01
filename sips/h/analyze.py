@@ -1,20 +1,16 @@
 import numpy as np
 
-import sips.h.serialize as s
+from sips.h import serialize as s
 
 
 def classify_transition(prev_mls, cur_mls):
     """
     uses the propositions described in directional_transitions() to return a numpy array
     with the class of transition corresponding to the input moneylines
+
     """
-
-    mls = [s.row_ml(ml) for ml in prev_mls + cur_mls]
-
-    a_prev = mls[0]
-    h_prev = mls[1]
-    a_cur = mls[2]
-    h_cur = mls[3]
+    a_prev, h_prev = prev_mls
+    a_cur, h_cur = cur_mls
 
     propositions = directional_transitions(a_prev, a_cur, h_prev, h_cur)
     ret = np.zeros(len(propositions))

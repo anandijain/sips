@@ -104,7 +104,7 @@ def merge_lines_scores(lines, scores):
 
 def get_links(sports, all_mkts=True):
     if all_mkts:
-        links = [bm.BOV_URL + s for s in sports]
+        links = [bm.BOV_URL + match_sport_str(s) for s in sports]
     else:
         links = filtered_links(sports)
     return links
@@ -116,9 +116,11 @@ def sports_to_jsons(sports, all_mkts=True):
     return jsons
 
 
-def sports_to_events(sports, all_mkts=False):
+def sports_to_events(sports, all_mkts=False, verbose=False):
     jsons = sports_to_jsons(sports=sports, all_mkts=all_mkts)
     events = events_from_jsons(jsons)
+    if verbose:
+        print(f"events for sports: {sports}\n{events}")
     return events
 
 
@@ -434,6 +436,7 @@ def moneyline(outcomes):
 def total(outcomes):
     """
     gets the over_under
+    limited to two outcomes currently
     """
     null_ret = [None for _ in range(6)]
     if not outcomes:
@@ -446,12 +449,14 @@ def total(outcomes):
         h_outcome = outcomes[1]
     except IndexError:
         h_tot, h_hcap_tot, h_ou = [None for _ in range(3)]
+        return null_ret
 
     a_outcome = outcomes[0]
     a_ou = a_outcome.get("type")
     a_price = a_outcome.get("price")
     a_tot, a_hcap_tot = p.parse_json(a_price, TO_GRAB["tot"], "list")
 
+    h_outcome = outcomes[1]
     h_ou = h_outcome.get("type")
     h_price = h_outcome.get("price")
     h_tot, h_hcap_tot = p.parse_json(h_price, TO_GRAB["tot"], "list")
@@ -513,7 +518,7 @@ def bov_team_ids(event):
 def filtered_links(sports, verbose=False):
     # append market filter to each url
     sfx = "?marketFilterId=def&lang=en"
-    links = [bm.BOV_URL + s + sfx for s in sports]
+    links = [bm.BOV_URL + match_sport_str(s) + sfx for s in sports]
     if verbose:
         print(f"bov_links: {links}")
     return links
@@ -531,7 +536,10 @@ def events_from_json(json_dict):
     """
     if not json_dict:
         return []
-    events = json_dict[0]["events"]
+    events = []
+    for group in json_dict:
+        group_events = group["events"]
+        events += group_events
     return events
 
 
@@ -543,8 +551,7 @@ def match_sport_str(sport="baseball/mlb"):
     try:
         sport = m.SPORT_TO_SUFFIX[sport]
     except KeyError:
-        print("forcing nfl")
-        sport = m.SPORT_TO_SUFFIX["football/nfl"]
+        pass
     return sport
 
 

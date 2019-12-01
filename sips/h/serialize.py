@@ -1,156 +1,218 @@
 import pandas as pd
 import numpy as np
 
-import tensorflow as tf
-
 from sips.macros import bov as bm
 from sips.h import hot
-import sips.h.helpers as h
-
-
-def serialize_row(row, hot_maps=None, to_numpy=True, include_teams=False):
-    """
-
-    """
-    if isinstance(row, pd.core.series.Series):
-        pass
-    elif isinstance(row, list):
-        row = pd.DataFrame(row, columns=bm.LINE_COLUMNS)
-
-    ret = serialize_df(row, hot_maps=hot_maps)
-
-    if to_numpy:
-        ret = np.array(ret, dtype=np.float32)
-
-    return ret
+from sips.h import helpers as h
 
 
 def serialize_dfs(
     dfs,
-    in_cols,
-    label_cols,
+    in_cols=None,
+    label_cols=None,
     replace_dict=None,
     hot_maps=None,
     to_numpy=True,
-    norm=True,
+    norm=False,
+    astype=None,
     dropna=True,
+    filter_empty=True,
     dont_hot=False,
+    drop_labels=True,
+    drop_extra_cols=["a_ou", "h_ou"],
+    drop_cold=True,
+    verbose=False,
 ):
     """
-    label_cols is a subset of incols
+    Multipurpose conversion of multi-datatype DataFrames into numbers.
+
+    Args:
+        Required:
+            dfs (list pd.DataFrame): DataFrame to serialize (required)
+        Optional:
+            in_cols (list str): training data
+            label_cols (list str): label data
+            replace_dict (dict): replace values in DataFrame
+            hot_maps (list dict): provide your own hot maps
+            to_numpy (bool): convert the dfs to np arrays 
+            norm (bool): normalize using tf.keras.utils.normalize
+            astype (numeric type): given a type to convert dfs to
+            dropna (bool): pd.dropna 
+            dont_hot (bool)
+            drop_labels (bool): drop labels from training data
+            drop_extra_cols (list str)
+            drop_cold (bool): drop the categorical columns
+            verbose (bool): print
+    Returns: 
+        pd.DataFrame or np.array
+
     """
     sXs = []
     sYs = []
+
     if dont_hot:
         hot_maps = None
     else:
         if not hot_maps:
             hot_maps = hot.all_hot_maps(output="dict")
 
-    if not replace_dict:
-        replace_dict = {"None": np.nan, "EVEN": 100}  # hacky
+    if isinstance(dfs, dict):  # hacky
+        dfs = list(dfs.values())
 
     for df in dfs:
-        try:
-            subset = df[in_cols].copy()
-        except KeyError:
-            continue
-
         sdf = serialize_df(
-            subset, replace_dict=replace_dict, hot_maps=hot_maps, dropna=dropna
+            df,
+            in_cols=in_cols,
+            label_cols=label_cols,
+            replace_dict=replace_dict,
+            hot_maps=hot_maps,
+            to_numpy=to_numpy,
+            norm=norm,
+            astype=astype,
+            dropna=dropna,
+            dont_hot=dont_hot,
+            drop_extra_cols=drop_extra_cols,
+            drop_labels=drop_labels,
+            drop_cold=drop_cold,
         )
-        # typed_df = sdf.astype(np.float32)
+        if filter_empty:
+            if sdf is None:
+                continue
 
-        y = sdf[label_cols].copy()
-        X = sdf.copy()
-        # X = sdf.drop(label_cols, axis=1)
+        if label_cols is not None:
+            X, y = sdf
+            sYs.append(y)
+        else:
+            X = sdf
 
-        if to_numpy:
-            X = np.array(X, dtype=np.float32)
-            y = np.array(y, dtype=np.float32)
-            if norm:
-                X = tf.keras.utils.normalize(X)
         sXs.append(X)
-        sYs.append(y)
 
-    return sXs, sYs
+    if label_cols is not None:
+        ret = (sXs, sYs)
+    else:
+        ret = sXs
+
+    if verbose:
+        print(f"serialized_dfs: {ret}")
+
+    return ret
 
 
-def serialize_df(df, replace_dict=None, hot_maps=None, dropna=True):
+def serialize_df(
+    df,
+    in_cols=None,
+    label_cols=None,
+    replace_dict=None,
+    hot_maps=None,
+    to_numpy=True,
+    norm=False,
+    astype=None,
+    dropna=True,
+    dont_hot=False,
+    drop_labels=True,
+    drop_extra_cols=["a_ou", "h_ou"],
+    drop_cold=True,
+    verbose=False,
+):
     """
-    built to take in dataframe from running lines.py
-    df: pd.DataFrame
-    replace_dict: dict replaces values like 'None', and 'E
-    """
+    Multipurpose conversion of multi-datatype DataFrame into numbers.
 
-    if replace_dict:
+    Args:
+        Required:
+            dfs (list pd.DataFrame): DataFrame to serialize (required)
+        Optional:
+            in_cols (list str): training data
+            label_cols (list str): label data
+            replace_dict (dict): replace values in DataFrame
+            hot_maps (list dict): provide your own hot maps
+            to_numpy (bool): convert the dfs to np arrays 
+            norm (bool): normalize using tf.keras.utils.normalize
+            astype (numeric type): given a type to convert dfs to
+            dropna (bool): pd.dropna 
+            dont_hot (bool)
+            drop_labels (bool): drop labels from training data
+            drop_extra_cols (list str): disjoint with union(in_cols, label) 
+            drop_cold (bool): drop the categorical columns
+            verbose (bool): print
+    Returns: 
+        pd.DataFrame or np.array
+
+    """
+    if isinstance(df, str):
+        print(f"dataframe: {df} is of type string for some reason")
+
+    if drop_extra_cols is not None:
+        try:
+            df.drop(drop_extra_cols, axis=1, inplace=True)
+        except KeyError:
+            pass
+
+    if in_cols and label_cols:
+        all_cols = list(set(in_cols + label_cols))
+        df = df[all_cols].copy()
+    elif in_cols and not label_cols:
+        df = df[in_cols].copy()
+
+    if not replace_dict:
+        replace_dict = {"None": np.nan, "EVEN": 100}
+
+    try:
         df.replace(replace_dict, inplace=True)
+    except TypeError:
+        pass
 
-    if hot_maps:
-        df = hot.hot(df, hot_maps=hot_maps)
+    if dont_hot:
+        hot_maps = None
+    else:
+        if not hot_maps:
+            hot_maps = hot.all_hot_maps(output="dict")
+
+        df = hot.hot(df, hot_maps=hot_maps, drop_cold=drop_cold)
 
     if dropna:
         df.dropna(inplace=True)
 
-    ret = df
-    return ret
+    if df.empty:
+        return
 
+    X = df.copy()
 
-def row_ml(ml):
-    """
-    given a list of unparsed moneylines (eg can be 'EVEN' and None)
-    edit the values such that 'EVEN' -> 100 and None -> -1
-    typical order of list is [a0, h0, a1, h1]
-    """
-    if ml == "EVEN":
-        ret = 100
-    elif ml == None:
-        ret = -1
+    if label_cols is not None:
+        y = df[label_cols].copy()
+
+        if drop_labels:
+            X = df.drop(label_cols, axis=1)
+
+    if to_numpy:
+        X = np.array(X, dtype=np.float16)
+        if label_cols is not None:
+            y = np.array(y, dtype=np.float16)
+        if norm:
+            X = h.sk_scale(X, to_df=False)
+
+    elif astype:
+        X = X.astype(astype, errors="ignore")
+
+        if label_cols is not None:
+            y = y.astype(astype, errors="ignore")
+
+        if norm and not isinstance(X, np.object):
+            X = h.sk_scale(X, to_df=True)
+
+    if label_cols is not None:
+        ret = (X, y)
     else:
-        try:
-            ret = float(ml)
-        except:
-            ret = -1
+        ret = X
+
+    if verbose:
+        print(f"serialized_df: {ret}")
     return ret
-
-
-def teams(row, teams_dict):
-    """
-    row is one of:
-        row of type list (with schema specified in serialize row)
-        pandas row
-    teams_dict is:
-        team_name: hotted vector
-    """
-    ret = []
-
-    if isinstance(row, pd.core.series.Series):
-        a_team = row.a_team
-        h_team = row.h_team
-    else:
-        a_team, h_team = row[2:4]
-
-    for t in [a_team, h_team]:
-        hot_team = teams_dict[t]
-        ret += hot_team
-
-    return ret
-
-
-def test_sdfs():
-
-    dfs = h.get_dfs()
-    cols = bm.TO_SERIALIZE
-    maps = hot.all_hot_maps()
-
-    numbers = serialize_dfs(
-        dfs, in_cols=cols, label_cols=["a_ml", "h_ml"], hot_maps=maps
-    )
-
-    print(numbers)
-    return numbers
 
 
 if __name__ == "__main__":
-    test_sdfs()
-    # pd.read_csv('')
+    cols = ["last_mod", "quarter", "secs", "a_pts", "h_pts", "a_ml", "h_ml"]
+    dfs = h.get_dfs()
+    df = dfs[0]
+    print(type(df))
+    data = serialize_dfs(dfs, in_cols=cols, norm=True, dont_hot=True)
+    print(data[0])

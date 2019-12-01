@@ -1,39 +1,81 @@
-"""
-we want a way to easily instantiate a bunch of different models and call them
-functionally and asyncronously.
-
-need to support eval and train modes, where eval doesn't backprop
+import tensorflow as tf
 
 
-"""
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+class TfLSTM(tf.keras.Model):
+    """
+    subclassing model type
+    """
 
-
-class LSTM(nn.Module):
-    def __init__(self, input_size=1, hidden_layer_size=100, output_size=19):
-        """
-
-        """
-        super().__init__()
-        self.hidden_layer_size = hidden_layer_size
-
-        self.lstm = nn.LSTM(input_size, hidden_layer_size)
-
-        self.linear = nn.Linear(hidden_layer_size, output_size)
-
-        self.hidden_cell = (
-            torch.zeros(1, 1, self.hidden_layer_size),
-            torch.zeros(1, 1, self.hidden_layer_size),
+    def __init__(self, in_dim):
+        super(TfLSTM, self).__init__()
+        # self.e1 = tf.keras.layers.Embedding(input_dim=in_shape, output_dim=64)
+        self.l1 = tf.keras.layers.LSTM(
+            100, activation="relu", input_shape=(None, in_dim), return_sequences=True
         )
+        self.l2 = tf.keras.layers.LSTM(128, activation="relu")
+        self.l3 = tf.keras.layers.Dense(19, activation="softmax")
 
-        # self.sm = nn.Softmax(dim=1)
+    def call(self, x):
+        print(x.shape)
+        x = self.l1(x)
+        x = self.l2(x)
+        x = self.l3(x)
+        return x
 
-    def forward(self, input_seq):
-        lstm_out, self.hidden_cell = self.lstm(
-            input_seq.view(len(input_seq), 1, -1), self.hidden_cell
-        )
-        predictions = self.linear(lstm_out.view(len(input_seq), -1))
-        # out = self.sm(predictions[-1])
-        return predictions[-1]
+
+def make_model_seq(in_shape, out_dim):
+    # sequential model
+
+    model = tf.keras.models.Sequential(
+        [
+            tf.keras.layers.LSTM(
+                100, input_shape=in_shape, return_sequences=True, activation="relu"
+            ),
+            # tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(256, activation="relu"),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(50, activation="relu"),
+            tf.keras.layers.Dense(out_dim, activation="softmax"),
+        ]
+    )
+    return model
+
+
+def make_lstm_functional(in_shape_tup, out_dim, classify=False):
+    inputs = tf.keras.Input(shape=in_shape_tup, batch_size=1)
+    x = tf.keras.layers.LSTM(200, activation="relu")(inputs)
+    x = tf.keras.layers.LSTM(128, activation="relu")(inputs)
+    outputs = tf.keras.layers.Dense(100)(x)
+    outputs = tf.keras.layers.Dense(out_dim)(x)
+    if classify:
+        outputs = tf.keras.layers.Softmax()(outputs)
+    model = tf.keras.Model(inputs, outputs)
+    return model
+
+
+def make_mlp_functional(in_dim, out_dim, classify=False, verbose=True):
+    inputs = tf.keras.Input(shape=in_dim, batch_size=1)
+
+    x = tf.keras.layers.Dense(200, activation="relu")(inputs)
+    x = tf.keras.layers.Dense(128, activation="relu")(x)
+    outputs = tf.keras.layers.Dense(100, activation="relu")(x)
+    outputs = tf.keras.layers.Dense(out_dim, activation="relu")(x)
+    if classify:
+        outputs = tf.keras.layers.Softmax()(outputs)
+    model = tf.keras.Model(inputs, outputs)
+    if verbose:
+        print(model.summary())
+    return model
+
+
+def main():
+    """
+
+    """
+    model = make_mlp_functional(200, 2)
+    return model
+
+
+if __name__ == "__main__":
+    # main()
+    model = main()

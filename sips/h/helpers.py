@@ -1,4 +1,5 @@
 import random
+import time
 
 import pandas as pd
 import numpy as np
@@ -6,25 +7,32 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from sips.h import fileio as fio
-import sips.macros.macros as m
+from sips.h import attach
+
+from sips.macros import macros as m
 
 
-def get_dfs(to_read=m.PARENT_DIR + "data/lines/lines/"):
+def get_dfs(to_read=None, output="list"):
     """
     to_read is one of:
         - list of *full* file names 
         - path to folder 
     """
-    if isinstance(to_read, list):
+    if not to_read:
+        to_read = m.PARENT_DIR + "data/lines/lines/"
+
+    if isinstance(to_read, str):
+        to_read = fio.get_fns(to_read)
+
+    if output == "list":
         dfs = [pd.read_csv(fn) for fn in to_read]
-    elif isinstance(to_read, str):
-        # assuming str is folder path
-        fns = fio.get_fns(to_read)
-        dfs = [pd.read_csv(fn) for fn in fns]
+    elif output == "dict":
+        dfs = {fn.split("/")[-1]: pd.read_csv(fn) for fn in to_read}
+
     return dfs
 
 
-def multivariate_data(
+def window_multivariate(
     dataset,
     target,
     start_index=0,
@@ -100,82 +108,98 @@ def chunk(df, cols=["game_id"], output="list"):
     return games
 
 
-def apply_min_game_len(games, min_lines=200):
+def apply_length_bounds(
+    games, min_lines=200, max_lines=5000, output="list", verbose=False
+):
     """
     given dict of game dataframes 
     and an integer > 0 for the minimum length of a game in csv lines
     """
-    print("applying minimum game len of : {}".format(min_lines))
-    print("before apply: {}".format(len(games)))
+    pre_len = len(games)
+    deleted_dict = {}
+
+    if isinstance(games, list):
+        games = {i: game for i, game in enumerate(games)}
+
     for key, value in games.copy().items():
-        game_len = len(value)
-        if game_len < min_lines:
-            print("deleted game_id: {}".format(key))
-            print("had length: {}".format(game_len))
+        game_len = value.shape[0]  # len(value)
+        if game_len < min_lines and game_len < max_lines:
+            deleted_dict[key] = game_len
             del games[key]
-        print("after apply: {}".format(len(games)))
-        return games
+
+    if verbose:
+        print(f"applied minimum game len of : {min_lines}\n")
+        print(f"before apply: {pre_len}")
+        print(f"after apply: {len(games)}\n")
+
+    if output == "list":
+        games = list(games.values())
+
+    return games
 
 
-def label_split(df, col):
-    # give column to be predicted given all others in csv
-    # df is pd, col is string
-    Y = df[col]
-    X = df.drop(col, axis=1)
+def filter_unended(dfs, verbose=False):
+    # filters dfs, removing df.iloc[-1].status != "GAME_END"
+    full_games = []
+    total_count = len(dfs)
+    skips = 0
+    for df in dfs:
+        if df.iloc[-1].status == "GAME_END":
+            full_games.append(df)
+        else:
+            skips += 1
+    if verbose:
+        print(f"filtered {skips} unended games out of {total_count}\n")
+
+    return full_games
+
+
+def labels_split(df, cols, drop=True):
+    # split df into X and Y, with option to drop Y from X
+    X = df
+    Y = X[[cols]].copy()
+    if drop:
+        X = df.drop(Y, axis=1)
     return X, Y
 
 
-def sk_scale(df, to_pd=False):
+def sk_scale(df, to_df=False):
     """
     scales pandas or np data(frame) using StandardScaler 
-    returns numpy or dataframe (to_pd=True)
+    returns numpy or dataframe (to_df=True)
     """
     scaler = StandardScaler()
-    cols = df.columns
     if isinstance(df, pd.core.frame.DataFrame):  # pandas
+        cols = df.columns
         df = df.to_numpy()
 
     scaled = scaler.fit_transform(df)
-    if to_pd:
+
+    if to_df:
         scaled = pd.DataFrame(scaled, columns=cols)
+
     return scaled
 
 
-def num_flat_features(x):
-    """
-
-    """
-    size = x.size()[1:]  # all dimensions except the batch dimension
-    num_features = 1
-    for s in size:
-        num_features *= s
-    return num_features
+def filter_then_apply_min(dfs, verbose=False):
+    dfs = filter_unended(dfs, verbose=verbose)
+    dfs = apply_length_bounds(dfs, verbose=verbose)
+    return dfs
 
 
-def test_get_and_window():
-    columns = ["a_pts", "h_pts", "quarter", "secs"]
-    dfs = get_dfs(m.PARENT_DIR + "data/lines/lines/")
-
-    sets = [
-        multivariate_data(
-            df.values, df[columns].values, history_size=10, target_size=10
-        )
-        for df in dfs
-    ]
-    first = sets[0]
-    X, y = first
-    # print(f'X : {X}')
-    # print(f'y : {y}')
-    print(f"X.shape : {X.shape}")
-    print(f"y.shape : {y.shape}")
+def apply_min_then_filter(dfs, verbose=False):
+    # faster than filter and apply
+    dfs = apply_length_bounds(dfs, verbose=verbose)
+    dfs = filter_unended(dfs, verbose=verbose)
+    return dfs
 
 
-def get_wins():
-    dfs = get_dfs()
-    w_wins = [apply_wins(df) for df in dfs]
-    return w_wins
+def get_full_games(dir=None):
+    dfs = get_dfs(dir)
+    dfs = filter_then_apply_min(dfs)
+    return dfs
 
 
 if __name__ == "__main__":
-    wins = get_wins()
-    print(wins)
+    pass
+    # print(data[0])

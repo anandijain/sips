@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
-from sips.macros import sports
-import sips.h.helpers as h
+from sips.macros import sports as sps
+from sips.h import helpers as h
 
 
 def hot_list(strings, output="np"):
@@ -23,21 +23,21 @@ def hot_list(strings, output="np"):
     return hots
 
 
-def hot_teams_dict(teams_to_hot=["nfl", "nba", "nhl"]):
+def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
     """
-    order matters,
+
     """
     team_list = []
-    sorted_sports = sorted(teams_to_hot)
+    sorted_sports = sorted(sports)
     for s in sorted_sports:
         if s == "nfl":
-            team_list += sports.nfl.teams
+            team_list += sps.nfl.teams
         elif s == "nba":
-            team_list += sports.nba.teams
+            team_list += sps.nba.teams
         elif s == "nhl":
-            team_list += sports.nhl.teams
+            team_list += sps.nhl.teams
         elif s == "mlb":
-            team_list += sports.mlb.teams
+            team_list += sps.mlb.teams
 
     teams_dict = hot_list(team_list, output="list")
     return teams_dict
@@ -70,17 +70,14 @@ def hot_bool_dict(row):
     return hot_mkt
 
 
-def dicts_for_one_hotting(sports=["nfl", "nba", "nhl"]):
-    teams_dict = hot_teams_dict(teams_to_hot=sports)
-    statuses_dict = hot_statuses_dict()
-    return teams_dict, statuses_dict
+def all_hot_maps(sports=["nba"], output="dict"):
+    """
 
-
-def all_hot_maps(output="dict"):
+    """
     hot_maps = [
         hot_sports_dict(),
-        hot_teams_dict(),
-        hot_teams_dict(),
+        hot_teams_dict(sports=sports),
+        hot_teams_dict(sports=sports),
         hot_statuses_dict(),
     ]
 
@@ -145,38 +142,5 @@ def hot_col(col, hot_map, on_keyerror="skip"):
     return hotted_col_df
 
 
-def freeze_(df,):
-    """
-
-    df: pd.DataFrame
-
-    """
-    pass
-
-
-def freeze(df: pd.DataFrame, cold_map: list):
-    """
-    df: pd.DataFrame
-    cold_map: list(str) where len(cold_map) == df.shape[1]
-    ---
-
-    for a series with n unique values, the hot vector will be n columns 
-        ## - how to deal with set_zero?
-
-    freeze assumes that there is this bijection from hot values to cold keys
-    """
-    pass
-
-
-def test_phase_changes():
-    dfs = h.get_dfs()
-    df = dfs[0]
-
-    hot_maps = all_hot_maps(output="dict")
-    hotted = hot(df, hot_maps=hot_maps)
-    return hotted
-
-
 if __name__ == "__main__":
-    hots = test_phase_changes()
-    print(hots)
+    pass
