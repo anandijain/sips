@@ -39,7 +39,7 @@ def player_links(write=True):
     all_players = []
     # all_players = pd.DataFrame()
 
-    links = [sref.bk_url + "players/" + letter for letter in sref.letters]
+    links = [sref.nba_url + "players/" + letter for letter in sref.letters]
     ps = grab.pages(links, output="dict")
 
     for i, (l, p) in enumerate(ps.items()):
@@ -73,39 +73,5 @@ def player_links(write=True):
     return all_players
 
 
-def main():
-    # sfx = '/players/j/jamesle01.html' sfx
-
-    path = sips.PARENT_DIR + "data/nba/players/"
-    links_df = pd.read_csv(path + "index.csv")
-    links = links_df.link
-
-    if not os.path.isdir(path):
-        os.mkdir(path)
-
-    for i, link in enumerate(links):
-        player_url = sref.bk_no_slash + link
-        p_id = sru.url_to_id(player_url)
-        player_path = path + p_id + "/"
-
-        if not os.path.isdir(player_path):
-            os.mkdir(player_path)
-
-        dfd = player.player(player_url, table_ids)
-
-        df_count = 0
-        for t_id, df in dfd.items():
-            if df is None:
-                continue
-            fn = p_id + "_" + t_id
-            df.to_csv(player_path + fn + ".csv")
-            df_count += 1
-
-        print(f"{i}: {player_url}: {df_count}")
-
-
 if __name__ == "__main__":
-    main()
-    # players = player_links()
-    # print(df)
-    # print(len(players))
+    player.players('nba', table_ids)

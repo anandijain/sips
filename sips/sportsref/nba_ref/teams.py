@@ -6,8 +6,8 @@ from sips.h import parse
 
 
 def get_links():
-    t = grab.get_table(sref.bk_url + "/teams/", ["teams_active"], to_pd=False)
-    links = [sref.bk_url + link["href"] for link in t.find_all("a")]
+    t = grab.get_table(sref.nba_url + "/teams/", ["teams_active"], to_pd=False)
+    links = [sref.nba_url + link["href"] for link in t.find_all("a")]
     return links
 
 

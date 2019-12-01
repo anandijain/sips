@@ -25,7 +25,7 @@ def player_links(output="df", write_df=False):
     all_links = []
 
     section_links = [
-        sref.pfb_url + "players/" + letter.upper()
+        sref.nfl_url + "players/" + letter.upper()
         for letter in sref.letters.append("X")
     ]
 
@@ -54,7 +54,7 @@ def main():
 
     ps = {}
     for i, link in enumerate(df.link):
-        player_url = sref.pfb_no_slash + link
+        player_url = sref.nfl_no_slash + link
         p_id = sru.url_to_id(player_url)
 
         player_path = path + p_id + "/"

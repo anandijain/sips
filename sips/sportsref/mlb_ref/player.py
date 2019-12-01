@@ -9,6 +9,21 @@ from sips.sportsref.general import player
 from sips.sportsref import utils as sru
 
 
+table_ids = [
+    'batting_proj',
+    'pitching_proj',
+    'pitching_standard',
+    'pitching_value',
+    'pitching_postseason',
+    'batting_standard',
+    'batting_value',
+    'batting_postseason',
+    'standard_fielding',
+    'appearances',
+    'br-salaries',
+]
+
+
 def player_links():
     all_players = []
 
@@ -31,4 +46,4 @@ def player_links():
 
 
 if __name__ == "__main__":
-    player_links()
+    player.players('mlb', table_ids)
