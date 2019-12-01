@@ -15,5 +15,6 @@ setup(
         "scikit-learn",
         "requests-futures",
         "google-cloud-profiler",
+        "lxml"
     ],  # external packages as dependencies
 )
