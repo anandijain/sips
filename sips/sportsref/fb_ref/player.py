@@ -78,9 +78,11 @@ def main():
             continue
 
         for t_id, df in p_dfs.items():
+            if df is None:
+                continue
+            df = df[0]
             fn = player_dir + t_id + '.csv'
             df.to_csv(fn)
 
 if __name__ == "__main__":
-    p_dfs = player('https://fbref.com/en/players/d70ce98e/Lionel-Messi')
-    print(p_dfs)
+    main()
