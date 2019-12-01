@@ -7,7 +7,7 @@ from sips.macros import sports_ref as sref
 
 
 def coaches():
-    p = sips.get_page(sref.bk_url + "/coaches/")
+    p = sips.page(sref.bk_url + "/coaches/")
     t = p.find("table", {"id": "coaches"})
     ctags = t.find_all("th", {"data-stat": "coach"})
     links = []
@@ -28,7 +28,7 @@ def coach_stats():
 # jank cuz comments
 def coach_awards():
     links = coaches()
-    pages = grab.get_pages(links)
+    pages = grab.pages(links)
     dfs = []
     for p in pages:
         t = parse.comments(p)[28]  # hack

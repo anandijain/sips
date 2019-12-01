@@ -36,16 +36,21 @@ def parse_json(json, keys, output="dict"):
         return None
 
 
-def comments(page, to_soup=False, verbose=False):
+def comments(page, join=False, to_soup=False, verbose=False):
     # finds all of the bs4.Comments for a page
     comments = page.findAll(text=lambda text: isinstance(text, bs4.Comment))
 
-    if to_soup:
-        comments = bs4.BeautifulSoup(''.join(comments), 'html.parser')
+    if join:
+        comments = "".join(comments)
+        if to_soup:
+            comments = bs4.BeautifulSoup(comments, "html.parser")
+    else:
+        if to_soup:
+            comments = [bs4.BeautifulSoup(c, "html.parser") for c in comments]
 
     if verbose:
         for i, c in enumerate(comments):
-            print(f"{i} : {c}")
+            print(f"$CS$: {i} : {c}")
     return comments
 
 

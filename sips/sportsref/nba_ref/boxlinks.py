@@ -19,7 +19,7 @@ def month_of_boxlinks(link):
     given a link to a particular month in a season schedule 
     returns a list of the games' boxlinks 
     """
-    t = p.get_table(g.get_page(link), "schedule")
+    t = p.get_table(g.page(link), "schedule")
     columns = p.columns_from_table(t, attr="data-stat")
     trs = t.tbody.find_all("tr")
     ths = [tr.th for tr in trs]
@@ -31,7 +31,7 @@ def main():
     root = "https://www.basketball-reference.com"
     url = "/leagues/NBA_2020_games.html"
 
-    page = g.get_page(root + url)
+    page = g.page(root + url)
 
     links_to_months = get_links_to_months(page)
     all_boxlinks = []

@@ -15,6 +15,8 @@ comment_idxs = {
     25: "defense",
     29: "scoring",
     30: "snap_counts",
+    31: "all_pro",
+    32: "fantasy",
     33: "combine",
 }
 
@@ -23,10 +25,11 @@ def player_links(output="df", write_df=False):
     all_links = []
 
     section_links = [
-        sref.pfb_url + "players/" + letter.upper() for letter in sref.letters.append(x)
+        sref.pfb_url + "players/" + letter.upper()
+        for letter in sref.letters.append("X")
     ]
 
-    ps = {l: grab.get_page(l) for l in section_links}
+    ps = {l: grab.page(l) for l in section_links}
     for l, p in ps.items():
         div = p.find("div", {"id": "div_players"})
         if not div:
@@ -65,8 +68,8 @@ def main():
         ps[link] = p
 
         for t_id, df in p.items():
-
-            df = df[0]
+            if df is None:
+                continue
             fn = p_id + "_" + t_id
             df.to_csv(player_path + fn + ".csv")
 

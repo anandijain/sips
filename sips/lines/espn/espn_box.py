@@ -64,14 +64,14 @@ def schedules(sports=["football/nfl"]):
     pages = []
     for sport in sports:
         espn_id_link = "/" + sport + "/schedule"
-        p = g.get_page(espn_id_link)
+        p = g.page(espn_id_link)
         pages.append(p)
     return pages
 
 
 def schedule(sport="football/nfl"):
     espn_id_link = ESPN_ROOT + sport + "/schedule"
-    p = g.get_page(espn_id_link)
+    p = g.page(espn_id_link)
     return p
 
 
@@ -95,7 +95,7 @@ def get_live_pages():
     pages = []
     # add multithreading
     for id in ids:
-        pages.append(g.get_page(id_to_boxlink(id)))
+        pages.append(g.page(id_to_boxlink(id)))
     return pages
 
 
@@ -264,7 +264,7 @@ def boxscore(link):
     """
 
     """
-    page = g.get_page(link)
+    page = g.page(link)
     teams = box_teamnames(page)
     if teams:
         a_team, h_team = teams

@@ -18,7 +18,7 @@ def get_df(year, write=True):
 
     """
     url = get_url(year=year)
-    page = g.get_page(url)
+    page = g.page(url)
     table = p.get_table(page, "combine")
     cols = p.columns_from_table(table)
     player_ids = get_ids(table)

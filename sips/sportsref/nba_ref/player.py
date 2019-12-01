@@ -8,28 +8,31 @@ from sips.h import parse
 from sips.sportsref.general import player
 from sips.sportsref import utils as sru
 
-comment_idxs = {
-    25: "per_minute",
-    26: "per_poss",
-    30: "advanced",
-    31: "shooting",
-    32: "pbp",
-    33: "year-and-career-highs",
-    34: "playoffs_per_game",
-    35: "playoffs_totals",
-    36: "playoffs_per_minute",
-    37: "playoffs_per_poss",
-    38: "playoffs_advanced",
-    39: "playoffs_shooting",
-    40: "playoffs_pbp",
-    41: "year-and-career-highs-po",
-    42: "all_star",
-    43: "sim_thru",
-    44: "all_college_stats",
-    44: "sim_career",
-    47: "all_salaries",
-    48: "contracts_orl"
-}
+
+table_ids = [
+    "per_game",
+    "totals",
+    "per_minute",
+    "per_poss",
+    "advanced",
+    "shooting",
+    "pbp",
+    "year-and-career-highs",
+    "playoffs_per_game",
+    "playoffs_totals",
+    "playoffs_per_minute",
+    "playoffs_per_poss",
+    "playoffs_advanced",
+    "playoffs_shooting",
+    "playoffs_pbp",
+    "year-and-career-highs-po",
+    "all_star",
+    "sim_thru",
+    "all_college_stats",
+    "sim_career",
+    "all_salaries",
+    "contracts_orl",
+]
 
 
 def player_links(write=True):
@@ -37,7 +40,7 @@ def player_links(write=True):
     # all_players = pd.DataFrame()
 
     links = [sref.bk_url + "players/" + letter for letter in sref.letters]
-    ps = grab.get_pages(links, output='dict')
+    ps = grab.pages(links, output="dict")
 
     for i, (l, p) in enumerate(ps.items()):
         t = parse.get_table(p, "players")
@@ -54,14 +57,14 @@ def player_links(write=True):
             p_id = th.get("data-append-csv")
             if not p_id:
                 continue
-            a_tag = th.find('a')
-            link = a_tag.get('href')
+            a_tag = th.find("a")
+            link = a_tag.get("href")
             if not link:
                 continue
             section_count += 1
             all_players.append(link)
 
-        print(f'{i} : {sref.letters[i]} : {section_count}')
+        print(f"{i} : {sref.letters[i]} : {section_count}")
 
     if write:
         df = pd.DataFrame(all_players, columns=["link"])
@@ -72,10 +75,9 @@ def player_links(write=True):
 
 def main():
     # sfx = '/players/j/jamesle01.html' sfx
-    table_ids = ["per_game", "totals"]
 
     path = sips.PARENT_DIR + "data/nba/players/"
-    links_df = pd.read_csv(path + 'index.csv')
+    links_df = pd.read_csv(path + "index.csv")
     links = links_df.link
 
     if not os.path.isdir(path):
@@ -89,7 +91,7 @@ def main():
         if not os.path.isdir(player_path):
             os.mkdir(player_path)
 
-        dfd = player.player(player_url, table_ids, comment_idxs)
+        dfd = player.player(player_url, table_ids)
 
         df_count = 0
         for t_id, df in dfd.items():

@@ -13,7 +13,7 @@ def get_links():
 
 def get_teams(output="list"):
     team_links = get_links()
-    team_pages = grab.get_pages(team_links, output=output)
+    team_pages = grab.pages(team_links, output=output)
     return team_pages
 
 

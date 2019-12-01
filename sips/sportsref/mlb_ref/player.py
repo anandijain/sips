@@ -14,7 +14,7 @@ def player_links():
 
     links = [sref.mlb_url + "players/" + letter for letter in sref.letters]
 
-    ps = grab.get_pages(links, output="dict")
+    ps = grab.pages(links, output="dict")
 
     for i, (l, p) in enumerate(ps.items()):
         print(f"{i}: {l}")

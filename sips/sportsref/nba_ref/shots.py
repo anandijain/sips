@@ -68,7 +68,7 @@ def grab_charts(link):
     given a link to a hockey-refference boxscore, 
     returns div, class: shotchart
     """
-    page = g.get_page(link)
+    page = g.page(link)
     charts = page.find_all("div", {"class": "shot-area"})
     return charts
 

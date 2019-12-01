@@ -5,17 +5,36 @@ import requests as r
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import ThreadPoolExecutor
 
+from sips.h import parse
+
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
-def get_page(link):
+def comments(link, verbose=False):
+    p = page(link)
+    cs = parse.comments(p, join=True, to_soup=False, verbose=verbose)
+    both = str(p) + cs
+    both = bs4.BeautifulSoup(both, "html.parser")
+
+    if verbose:
+        print(f"page and comments: {verbose}")
+
+    return both
+
+
+def page(link):
     # request and bs4 parse html
-    req = r.get(link, headers=HEADERS).text
+    req = req_text(link)
     p = bs4.BeautifulSoup(req, "html.parser")
     return p
 
 
-def get_pages(links, output="list", verbose=False):
+def req_text(link):
+    req = r.get(link, headers=HEADERS).text
+    return req
+
+
+def pages(links, output="list", verbose=False):
     """
     Get a list of links using requests and bs4.
 
@@ -28,11 +47,11 @@ def get_pages(links, output="list", verbose=False):
 
     """
     if output == "list":
-        pages = [get_page(l) for l in links]
+        pages = [page(l) for l in links]
     elif output == "dict":
-        pages = {l: get_page(l) for l in links}
+        pages = {l: page(l) for l in links}
     else:
-        pages = f"get_pages output type: {output} unsupported"
+        pages = f"pages output type: {output} unsupported"
 
     if verbose:
         print(pages)
@@ -88,9 +107,9 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
 
 def get_table(link, table_ids, to_pd=True):
     tables = [
-        pd.read_html(get_page(link).find("table", {"id": table_id}).prettify())
+        pd.read_html(page(link).find("table", {"id": table_id}).prettify())
         if to_pd
-        else get_page(link).find("table", {"id": table_id})
+        else page(link).find("table", {"id": table_id})
         for table_id in table_ids
     ]
 

@@ -11,13 +11,13 @@ from sips.sportsref import utils as sru
 def player_links():
     all_players = []
     url = sref.fb_url + "en/players/"
-    p = grab.get_page(url)
+    p = grab.page(url)
     index = p.find("ul", {"class": "page_index"})
     a_tags = index.find_all("a")
     section_links = [sref.fb_no_slash + a_tag["href"] for a_tag in a_tags if a_tag]
     for i, s in enumerate(section_links):
         print(f"{i}: {s}")
-        section_page = grab.get_page(s)
+        section_page = grab.page(s)
         div = section_page.find("div", {"class": "section_content"})
         if not div:
             continue
@@ -31,7 +31,7 @@ def player_links():
 
 
 def player(url):
-    p = grab.get_page(url)
+    p = grab.page(url)
     prefix = "stats_"
     sfxs = [
         "_ks_dom_lg",
@@ -62,9 +62,9 @@ def player(url):
 def main():
     path = sips.PARENT_DIR + "data/fb/players/"
     links_path = path + "index.csv"
+
     players_df = pd.read_csv(links_path)
     links = players_df.link
-
     for i, link in enumerate(links):
 
         p_dfs = player(link)
@@ -73,7 +73,6 @@ def main():
         split_url = link.split("/")
         p_folder = split_url[-1] + "_" + split_url[-2]
         player_dir = path + p_folder + "/"
-
 
         if not os.path.isdir(player_dir):
             os.mkdir(player_dir)
@@ -84,11 +83,11 @@ def main():
         for t_id, df in p_dfs.items():
             if df is None:
                 continue
-            df = df[0]
             fn = player_dir + t_id + ".csv"
             df.to_csv(fn)
 
         print(f"{i}: {p_folder} : {len(p_dfs)}")
+
 
 if __name__ == "__main__":
     main()
