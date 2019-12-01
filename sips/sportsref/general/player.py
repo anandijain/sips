@@ -37,6 +37,8 @@ def players(sport:str, table_ids:list):
 
     if sport == 'nba':
         links = sref.nba_no_slash + links_df.link
+    elif sport == 'nfl':
+        links = sref.nfl_no_slash + links_df.link
     else:
         links = links_df.link
 

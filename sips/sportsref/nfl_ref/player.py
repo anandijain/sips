@@ -9,16 +9,11 @@ from sips.h import parse
 from sips.sportsref.general import player
 from sips.sportsref import utils as sru
 
-comment_idxs = {
-    20: "detailed_rushing_and_receiving",
-    24: "returns",
-    25: "defense",
-    29: "scoring",
-    30: "snap_counts",
-    31: "all_pro",
-    32: "fantasy",
-    33: "combine",
-}
+
+table_ids = ["stats", "rushing_and_receiving",
+             "detailed_rushing_and_receiving", "returns",
+             "defense", "scoring", "snap_counts", "all_pro",
+             "fantasy", "combine", ]
 
 
 def player_links(output="df", write_df=False):
@@ -45,37 +40,5 @@ def player_links(output="df", write_df=False):
     return all_links
 
 
-def main():
-    table_ids = ["stats", "rushing_and_receiving"]
-
-    path = sips.PARENT_DIR + "data/nfl/players/"
-    player_links_path = path + "index.csv"
-    df = pd.read_csv(player_links_path)
-
-    ps = {}
-    for i, link in enumerate(df.link):
-        player_url = sref.nfl_no_slash + link
-        p_id = sru.url_to_id(player_url)
-
-        player_path = path + p_id + "/"
-        print(f"{i}: {player_url}")
-
-        if not os.path.isdir(player_path):
-            os.mkdir(player_path)
-
-        p = player.player(player_url, table_ids, comment_idxs, verbose=True)
-
-        ps[link] = p
-
-        for t_id, df in p.items():
-            if df is None:
-                continue
-            fn = p_id + "_" + t_id
-            df.to_csv(player_path + fn + ".csv")
-
-    return ps
-
-
 if __name__ == "__main__":
-    players = main()
-    print(players)
+    player.players('nfl', table_ids)
