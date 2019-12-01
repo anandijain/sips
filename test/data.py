@@ -69,8 +69,8 @@ def df_filtering_commutative_time_delta():
     delta1 = end1 - start1
     delta2 = end2 - start2
     if len(filter_then_apply_min) > 0:
-        print(f'df: {filter_then_apply_min[0]}')
-        print(f'df: {filter_then_apply_min[0].status}')
+        print(f"df: {filter_then_apply_min[0]}")
+        print(f"df: {filter_then_apply_min[0].status}")
 
     print(f"delta 1: {delta1}")
     print(f"delta 2: {delta2}")

@@ -139,15 +139,14 @@ def serialize_df(
 
     """
     if isinstance(df, str):
-        print(f'dataframe: {df} is of type string for some reason')
-
+        print(f"dataframe: {df} is of type string for some reason")
 
     if drop_extra_cols is not None:
         try:
             df.drop(drop_extra_cols, axis=1, inplace=True)
         except KeyError:
             pass
-    
+
     if in_cols and label_cols:
         all_cols = list(set(in_cols + label_cols))
         df = df[all_cols].copy()

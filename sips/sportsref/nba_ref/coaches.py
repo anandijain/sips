@@ -5,15 +5,16 @@ from sips.h import grab
 from sips.h import parse
 from sips.macros import sports_ref as sref
 
+
 def coaches():
     p = sips.get_page(sref.bk_url + "/coaches/")
     t = p.find("table", {"id": "coaches"})
     ctags = t.find_all("th", {"data-stat": "coach"})
     links = []
     for c in ctags:
-        link = c.find('a')
+        link = c.find("a")
         if link:
-            links.append(sref.bk_url + link['href'])
+            links.append(sref.bk_url + link["href"])
 
     return links
 

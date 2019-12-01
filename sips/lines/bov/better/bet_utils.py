@@ -125,9 +125,6 @@ def locate_btn(game, team_name, mkt_type, verbose=False):
     return to_click
 
 
-
-
-
 def find_bet_button(team_name, mkt_type, driver, verbose=False):
     """
     finds the bet button related to the bet being made

@@ -41,7 +41,7 @@ def comments(page, verbose=False):
     comments = page.findAll(text=lambda text: isinstance(text, bs4.Comment))
     if verbose:
         for i, c in enumerate(comments):
-            print(f'{i} : {c}')
+            print(f"{i} : {c}")
     return comments
 
 
@@ -55,7 +55,7 @@ def get_table(page, table_id, find_all=False, to_pd=False):
 
     if table is None:
         return
-        
+
     if to_pd:
         if find_all:
             ret = [pd.read_html(t.prettify()) for t in table]
@@ -70,7 +70,7 @@ def links(html, prefix=None):
     links = []
     a_tags = html.find_all("a")
     for a_tag in a_tags:
-        link = a_tag['href']
+        link = a_tag["href"]
         if prefix:
             link = prefix + link
         links.append(link)
