@@ -125,12 +125,7 @@ def locate_btn(game, team_name, mkt_type, verbose=False):
     return to_click
 
 
-def to_soup(driver):
-    """
-    driver is selenium webdriver
-    """
-    soup = bs4.BeautifulSoup(driver.page_source, "html.parser")
-    return soup
+
 
 
 def find_bet_button(team_name, mkt_type, driver, verbose=False):

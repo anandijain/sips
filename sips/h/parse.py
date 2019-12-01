@@ -1,7 +1,16 @@
 """
  mainly bs4 utilities for grabbing data from sites:
 """
+import pandas as pd
 import bs4
+
+
+def to_soup(html):
+    """
+    
+    """
+    soup = bs4.BeautifulSoup(html, "html.parser")
+    return soup
 
 
 def parse_json(json, keys, output="dict"):
@@ -36,9 +45,13 @@ def comments(page, verbose=False):
     return comments
 
 
-def get_table(page, table_id):
+def get_table(page, table_id, to_pd=False):
     # given bs4 page and table id, finds table using bs4. returns soup table
     table = page.find("table", {"id": table_id})
+    if not table:
+        return
+    if to_pd:
+        table = pd.read_html(str(table))
     return table
 
 
