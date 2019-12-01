@@ -21,6 +21,8 @@ def get_histories():
 
     for link, page in teams_dict.items():
         team_name = link.split('/')[-1]
+        print(link)
+        print(f'team_name: {team_name}')
         df = grab.get_table(link, [team_name])
         team_histories.append(df)
     return team_histories

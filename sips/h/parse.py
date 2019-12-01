@@ -27,9 +27,12 @@ def parse_json(json, keys, output="dict"):
         return None
 
 
-def comments(page):
+def comments(page, verbose=False):
     # finds all of the bs4.Comments for a page
     comments = page.findAll(text=lambda text: isinstance(text, bs4.Comment))
+    if verbose:
+        for i, c in enumerate(comments):
+            print(f'{i} : {c}')
     return comments
 
 
