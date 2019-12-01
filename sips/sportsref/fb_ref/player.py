@@ -14,8 +14,7 @@ def player_links():
     p = grab.get_page(url)
     index = p.find("ul", {"class": "page_index"})
     a_tags = index.find_all("a")
-    section_links = [sref.fb_no_slash + a_tag["href"]
-                     for a_tag in a_tags if a_tag]
+    section_links = [sref.fb_no_slash + a_tag["href"] for a_tag in a_tags if a_tag]
     for i, s in enumerate(section_links):
         print(f"{i}: {s}")
         section_page = grab.get_page(s)
@@ -23,8 +22,7 @@ def player_links():
         if not div:
             continue
         a_tags = div.find_all("a")
-        p_links = [sref.fb_no_slash + a_tag["href"]
-                   for a_tag in a_tags if a_tag]
+        p_links = [sref.fb_no_slash + a_tag["href"] for a_tag in a_tags if a_tag]
         all_players += p_links
 
     df = pd.DataFrame(all_players, columns=["link"])
@@ -34,15 +32,20 @@ def player_links():
 
 def player(url):
     p = grab.get_page(url)
-    prefix = 'stats_'
-    sfxs = ["_ks_dom_lg", "_ks_dom_cup",
-            "_ks_intl_cup", "_ks_expanded", "_ks_collapsed"]
-    categories = ['standard', 'shooting', 'passing', 'playing_time', 'misc']
+    prefix = "stats_"
+    sfxs = [
+        "_ks_dom_lg",
+        "_ks_dom_cup",
+        "_ks_intl_cup",
+        "_ks_expanded",
+        "_ks_collapsed",
+    ]
+    categories = ["standard", "shooting", "passing", "playing_time", "misc"]
     table_ids = []
     for cat in categories:
-         table_ids += [prefix + cat + sfx for sfx in sfxs]
-    
-    table_ids.append(prefix + 'player_summary')
+        table_ids += [prefix + cat + sfx for sfx in sfxs]
+
+    table_ids.append(prefix + "player_summary")
 
     p_dfs = {}
 
@@ -55,25 +58,25 @@ def player(url):
 
 
 def main():
-    path = sips.PARENT_DIR + 'data/fb/players/'
-    links_path = path + 'index.csv'
+    path = sips.PARENT_DIR + "data/fb/players/"
+    links_path = path + "index.csv"
     players_df = pd.read_csv(links_path)
     links = players_df.link
 
     for i, link in enumerate(links):
-        
+
         p_dfs = player(link)
         p_id = sru.url_to_id(link)
-        
-        split_url = link.split("/")
-        p_folder = split_url[-1] + '_' + split_url[-2]
-        player_dir = path + p_folder + '/'
 
-        print(f'{i}: {p_folder}')
+        split_url = link.split("/")
+        p_folder = split_url[-1] + "_" + split_url[-2]
+        player_dir = path + p_folder + "/"
+
+        print(f"{i}: {p_folder}")
 
         if not os.path.isdir(player_dir):
             os.mkdir(player_dir)
-            
+
         if p_dfs is None:
             continue
 
@@ -81,8 +84,9 @@ def main():
             if df is None:
                 continue
             df = df[0]
-            fn = player_dir + t_id + '.csv'
+            fn = player_dir + t_id + ".csv"
             df.to_csv(fn)
+
 
 if __name__ == "__main__":
     main()

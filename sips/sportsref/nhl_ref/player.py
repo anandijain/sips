@@ -11,7 +11,7 @@ from sips.sportsref import utils as sru
 
 def player_links():
     all_players = []
-    
+
     links = [sref.nhl_url + "players/" + letter for letter in sref.letters]
 
     ps = grab.get_pages(links)

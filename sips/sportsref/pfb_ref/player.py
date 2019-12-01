@@ -20,37 +20,11 @@ comment_idxs = {
 
 
 def player_links(output="df", write_df=False):
-    letters = [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "t",
-        "u",
-        "v",
-        "w",
-        "x",
-        "y",
-        "z",
-    ]
     all_links = []
 
-    section_links = [sref.pfb_url + "players/" + letter.upper() for letter in letters]
+    section_links = [
+        sref.pfb_url + "players/" + letter.upper() for letter in sref.letters.append(x)
+    ]
 
     ps = {l: grab.get_page(l) for l in section_links}
     for l, p in ps.items():
@@ -68,8 +42,7 @@ def player_links(output="df", write_df=False):
     return all_links
 
 
-if __name__ == "__main__":
-    # ls = player_links()
+def main():
     table_ids = ["stats", "rushing_and_receiving"]
 
     path = sips.PARENT_DIR + "data/nfl/players/"
@@ -97,4 +70,9 @@ if __name__ == "__main__":
             fn = p_id + "_" + t_id
             df.to_csv(player_path + fn + ".csv")
 
-    print(ps)
+    return ps
+
+
+if __name__ == "__main__":
+    players = main()
+    print(players)
