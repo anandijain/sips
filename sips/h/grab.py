@@ -1,5 +1,5 @@
 import time
-
+import pandas as pd
 import bs4
 import requests as r
 from requests_futures.sessions import FuturesSession
@@ -84,3 +84,27 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
             jsons = {game.get(key): game for game in jsons}
 
     return jsons
+
+
+def get_table(link, table_ids, to_pd=True):
+    tables = [pd.read_html(get_page(link).find("table", {"id": table_id}).prettify()) if to_pd else get_page(
+        link).find("table", {"id": table_id}).prettify() for table_id in table_ids]
+
+    # handy
+    if len(tables) == 1:
+        tables = tables[0]
+    return tables
+
+
+def get_tables(links, table_ids, to_pd=True, flatten=False):
+    """
+
+    """
+    all_tables = []
+    for link in links:
+        tables = [get_table(link, table_ids, to_pd=to_pd) for link in links]
+        if flatten:
+            all_tables += tables
+        else:
+            all_tables.append(tables)
+    return tables

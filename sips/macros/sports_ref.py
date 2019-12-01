@@ -11,54 +11,7 @@ teams_url = "/teams/"
 
 schedule_suffix = "-schedule-scores.shtml"
 
-mlb_teams_short = [
-    "ARI",
-    "ATL",
-    "BAL",
-    "BOS",
-    "CHC",
-    "CHW",
-    "CIN",
-    "CLE",
-    "COL",
-    "DET",
-    "HOU",
-    "KCR",
-    "ANA",
-    "LAD",
-    "FLA",
-    "MIL",
-    "MIN",
-    "NYM",
-    "NYY",
-    "OAK",
-    "PHI",
-    "PIT",
-    "SDP",
-    "SFG",
-    "SEA",
-    "STL",
-    "TBD",
-    "TEX",
-    "TOR",
-    "WSN",
-]
 
-
-mlb_csv_columns = [
-    "game_id",
-    "inning",
-    "score",
-    "outs",
-    "robs",
-    "pitch_count",
-    "pitches",
-    "runs_outs",
-    "at_bat",
-    "wwpa",
-    "wwe",
-    "desc",
-]
 
 
 bb_ref_box_meta = [
