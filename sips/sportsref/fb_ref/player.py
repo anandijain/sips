@@ -14,7 +14,7 @@ def player_links():
     p = grab.page(url)
     index = p.find("ul", {"class": "page_index"})
     a_tags = index.find_all("a")
-    section_links = [sref.fb_no_slash + a_tag["href"] for a_tag in a_tags if a_tag]
+    section_links = [sref.fb_ns + a_tag["href"] for a_tag in a_tags if a_tag]
     for i, s in enumerate(section_links):
         print(f"{i}: {s}")
         section_page = grab.page(s)
@@ -22,7 +22,7 @@ def player_links():
         if not div:
             continue
         a_tags = div.find_all("a")
-        p_links = [sref.fb_no_slash + a_tag["href"] for a_tag in a_tags if a_tag]
+        p_links = [sref.fb_ns + a_tag["href"] for a_tag in a_tags if a_tag]
         all_players += p_links
 
     df = pd.DataFrame(all_players, columns=["link"])

@@ -5,7 +5,7 @@ import sips
 from sips.macros import sports_ref as sref
 from sips.h import grab
 from sips.h import parse
-from sips.sportsref.general import player
+from sips.sportsref import player
 from sips.sportsref import utils as sru
 
 

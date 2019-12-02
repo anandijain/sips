@@ -7,6 +7,49 @@ from sips.sportsref import utils as sru
 from sips.h import grab
 from sips.h import parse
 
+divs = {
+    'nhl': "div_players",
+    'nfl': "div_players",
+    'mlb': "div_players_",
+
+}
+
+
+def player_links(sport: str, write: bool = False, fn: str='index.csv') -> pd.DataFrame:
+    all_players = []
+
+    path = sips.PARENT_DIR + "data/" + sport + "/players/" + fn
+    prefix = sref.urls[sport] + "players/"
+
+
+    # to fix by getting heading links
+    if sport == 'nfl':
+        nfl_letters = sref.letters
+        nfl_letters.append('x')
+        links = [prefix + letter.upper() for letter in nfl_letters]
+    else:
+        links = [prefix + letter for letter in sref.letters]
+
+    ps = grab.pages(links, output='dict')
+
+    for i, (l, p) in enumerate(ps.items()):
+        div = p.find("div", {"id": divs[sport]})
+        if not div:
+            continue
+        a_tags = div.find_all("a")
+        p_links = [sref.urls_ns[sport] + a_tag["href"]
+                   for a_tag in a_tags if a_tag]
+        all_players += p_links
+        
+        print(f"{i} : {l} : {len(p_links)}")
+
+    df = pd.DataFrame(all_players, columns=["link"])
+
+    if write:
+        df.to_csv(path)
+
+    return df
+
 
 def player(player_url: str, table_ids: list, output="dict", verbose=False):
     dfs = {}
@@ -36,9 +79,9 @@ def players(sport: str, table_ids: list):
     links_df = pd.read_csv(path + "index.csv")
 
     if sport == "nba":
-        links = sref.nba_no_slash + links_df.link
+        links = sref.nba_ns + links_df.link
     elif sport == "nfl":
-        links = sref.nfl_no_slash + links_df.link
+        links = sref.nfl_ns + links_df.link
     else:
         links = links_df.link
 
