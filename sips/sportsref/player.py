@@ -14,26 +14,47 @@ divs = {
 
 }
 
-
-def player_links(sport: str, write: bool = False, fn: str='index.csv') -> pd.DataFrame:
-    all_players = []
-
-    path = sips.PARENT_DIR + "data/" + sport + "/players/" + fn
-    prefix = sref.urls[sport] + "players/"
-
+def player_section_links(sport:str) -> list:
+    if sport == 'fb':
+        prefix = sref.urls[sport] + "en/players/"
+    else:
+        prefix = sref.urls[sport] + "players/"
 
     # to fix by getting heading links
     if sport == 'nfl':
         nfl_letters = sref.letters
         nfl_letters.append('x')
-        links = [prefix + letter.upper() for letter in nfl_letters]
+        section_links = [prefix + letter.upper() for letter in nfl_letters]
+    elif sport == 'fb':
+        p = grab.page(prefix)
+        index = p.find("ul", {"class": "page_index"})
+        a_tags = index.find_all("a")
+        section_links = [sref.fb_ns + a_tag["href"] for a_tag in a_tags if a_tag]
     else:
-        links = [prefix + letter for letter in sref.letters]
+        section_links = [prefix + letter for letter in sref.letters]
 
-    ps = grab.pages(links, output='dict')
+    return section_links
+
+
+def player_links(sport: str, write: bool = False, fn: str='index.csv') -> pd.DataFrame:
+    """
+    gets the links to every player for a given sport
+        - works for mlb, nfl, nhl, and fb
+        - not nba
+
+    """
+    all_players = []
+    path = sips.PARENT_DIR + "data/" + sport + "/players/" + fn
+    section_links = player_section_links(sport)
+    ps = grab.pages(section_links, output='dict')
 
     for i, (l, p) in enumerate(ps.items()):
-        div = p.find("div", {"id": divs[sport]})
+
+        if sport == 'fb':
+            div = p.find("div", {"class": "section_content"})
+        else:
+            div = p.find("div", {"id": divs[sport]})
+
         if not div:
             continue
         a_tags = div.find_all("a")
@@ -77,13 +98,8 @@ def players(sport: str, table_ids: list):
 
     path = sips.PARENT_DIR + "data/" + sport + "/players/"
     links_df = pd.read_csv(path + "index.csv")
-
-    if sport == "nba":
-        links = sref.nba_ns + links_df.link
-    elif sport == "nfl":
-        links = sref.nfl_ns + links_df.link
-    else:
-        links = links_df.link
+    
+    links = links_df.link
 
     if not os.path.isdir(path):
         os.mkdir(path)
