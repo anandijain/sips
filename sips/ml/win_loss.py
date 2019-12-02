@@ -13,7 +13,7 @@ from sips.ml import fwd
 from sips.ml import lstm
 
 import sips.ml.loading as tfls
-import sips.ml.tf_utils as tfu
+from sips.ml import utils as tfu
 
 
 def get_wl_datasets():
@@ -24,7 +24,7 @@ def get_wl_datasets():
         dfs_w_win,
         in_cols=bm.TO_SERIALIZE,
         label_cols=["a_win", "h_win"],
-        drop_labs=True,
+        drop_labels=True,
         norm=True,
     )
 

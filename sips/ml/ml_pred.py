@@ -10,7 +10,7 @@ from sips.macros import tfm
 
 from sips.ml import loading as tfls
 from sips.ml import fwd
-from sips.ml import tf_utils as tfu
+from sips.ml import utils as tfu
 from sips.ml import lstm
 
 

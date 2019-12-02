@@ -2,55 +2,73 @@ import os
 import pandas as pd
 
 import sips
-from sips.macros import sports_ref as sref
-from sips.sportsref import utils as sru
 from sips.h import grab
 from sips.h import parse
 
-divs = {
-    'nhl': "div_players",
-    'nfl': "div_players",
-    'mlb': "div_players_",
+from sips.macros import sports_ref as sref
+from sips.sportsref import utils as sru
 
+
+divs = {
+    "nhl": "div_players",
+    "nfl": "div_players",
+    "mlb": "div_players_",
 }
 
-def player_section_links(sport:str) -> list:
-    if sport == 'fb':
+
+def player_section_links(sport: str) -> list:
+    if sport == "fb":
         prefix = sref.urls[sport] + "en/players/"
     else:
         prefix = sref.urls[sport] + "players/"
 
     # to fix by getting heading links
-    if sport == 'nfl':
+    if sport == "nfl":
         nfl_letters = sref.letters
-        nfl_letters.append('x')
+        nfl_letters.append("x")
         section_links = [prefix + letter.upper() for letter in nfl_letters]
-    elif sport == 'fb':
+    elif sport == "fb":
         p = grab.page(prefix)
         index = p.find("ul", {"class": "page_index"})
         a_tags = index.find_all("a")
-        section_links = [sref.fb_ns + a_tag["href"] for a_tag in a_tags if a_tag]
+        section_links = [sref.fb_ns + a_tag["href"]
+                         for a_tag in a_tags if a_tag]
     else:
         section_links = [prefix + letter for letter in sref.letters]
 
     return section_links
 
 
-def player_links(sport: str, write: bool = False, fn: str='index.csv') -> pd.DataFrame:
+def player_links_multi_sports(sports: list, concat_dfs: bool=True, write: bool = False, fn: str = "index.csv"):
+    dfs = [player_links(sport, write=write, fn=fn) for sport in sports]
+
+    if concat_dfs:
+        ret = pd.concat(dfs)
+    else:
+        ret = dfs    
+    return ret
+
+
+def player_links(
+    sport: str, write: bool = False, fn: str = "index.csv"
+) -> pd.DataFrame:
     """
     gets the links to every player for a given sport
         - works for mlb, nfl, nhl, and fb
         - not nba
 
+    Args:
+
+
     """
-    all_players = []
+    rows = []
     path = sips.PARENT_DIR + "data/" + sport + "/players/" + fn
     section_links = player_section_links(sport)
-    ps = grab.pages(section_links, output='dict')
+    ps = grab.pages(section_links, output="dict")
 
     for i, (l, p) in enumerate(ps.items()):
 
-        if sport == 'fb':
+        if sport == "fb":
             div = p.find("div", {"class": "section_content"})
         else:
             div = p.find("div", {"id": divs[sport]})
@@ -58,18 +76,23 @@ def player_links(sport: str, write: bool = False, fn: str='index.csv') -> pd.Dat
         if not div:
             continue
         a_tags = div.find_all("a")
-        p_links = [sref.urls_ns[sport] + a_tag["href"]
-                   for a_tag in a_tags if a_tag]
-        all_players += p_links
-        
-        print(f"{i} : {l} : {len(p_links)}")
+        count = 0
+        for a_tag in a_tags:
+            if not a_tag:
+                continue
+            link = sref.urls_ns[sport] + a_tag["href"]
+            p_id = sru.url_to_id(link)
+            name = a_tag.text
+            rows.append([name, p_id, link])
+            count += 1
+        print(f"{i} : {l} : {count}")
 
-    df = pd.DataFrame(all_players, columns=["link"])
+    all_players = pd.DataFrame(rows, columns=['name', 'id', 'link'])
 
     if write:
-        df.to_csv(path)
+        all_players.to_csv(path)
 
-    return df
+    return all_players
 
 
 def player(player_url: str, table_ids: list, output="dict", verbose=False):
@@ -98,7 +121,7 @@ def players(sport: str, table_ids: list):
 
     path = sips.PARENT_DIR + "data/" + sport + "/players/"
     links_df = pd.read_csv(path + "index.csv")
-    
+
     links = links_df.link
 
     if not os.path.isdir(path):
@@ -125,4 +148,10 @@ def players(sport: str, table_ids: list):
 
 
 if __name__ == "__main__":
-    pass
+    sports = ['nfl', 'mlb', 'nhl']
+    dfs = [player_links(sport, write=True) for sport in sports]
+    print(dfs)
+
+
+    df = player_links_multi_sports(sports)
+    print(df)

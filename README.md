@@ -12,7 +12,7 @@ cd sips
 pip install -e . [--user]
 ```
 
-usages:
+## usages:
 
 1. gather data
 
@@ -25,3 +25,12 @@ usages:
 
     - place lines.py CSVs in sips/data/lines
     - go to sips/ml/ and `python tf_lstm.py`
+
+## TODO
+
+
+## CHANGELOG
+
+1. the sports-reference api has been largely revamped
+
+2. 

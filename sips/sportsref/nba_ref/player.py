@@ -9,34 +9,9 @@ from sips.sportsref import player
 from sips.sportsref import utils as sru
 
 
-table_ids = [
-    "per_game",
-    "totals",
-    "per_minute",
-    "per_poss",
-    "advanced",
-    "shooting",
-    "pbp",
-    "year-and-career-highs",
-    "playoffs_per_game",
-    "playoffs_totals",
-    "playoffs_per_minute",
-    "playoffs_per_poss",
-    "playoffs_advanced",
-    "playoffs_shooting",
-    "playoffs_pbp",
-    "year-and-career-highs-po",
-    "all_star",
-    "sim_thru",
-    "all_college_stats",
-    "sim_career",
-    "all_salaries",
-    "contracts_orl",
-]
-
 
 def player_links(write=True):
-    all_players = []
+    player_rows = []
     # all_players = pd.DataFrame()
 
     links = [sref.nba_url + "players/" + letter for letter in sref.letters]
@@ -61,17 +36,20 @@ def player_links(write=True):
             link = a_tag.get("href")
             if not link:
                 continue
+            name = a_tag.text
             section_count += 1
-            all_players.append(link)
-
+            player_rows.append([name, p_id, link])
         print(f"{i} : {sref.letters[i]} : {section_count}")
 
+    all_players = pd.DataFrame(player_rows, columns=["name", "id", "link"])
+
     if write:
-        df = pd.DataFrame(all_players, columns=["link"])
-        df.to_csv(sips.PARENT_DIR + "data/players/index.csv")
+        all_players.to_csv(sips.PARENT_DIR + "data/nba/players/index.csv")
 
     return all_players
 
 
 if __name__ == "__main__":
-    player.players("nba", table_ids)
+    df = player_links(write=True)
+    print(df)
+    # player.players("nba", sref.TABLE_IDS['nba'])
