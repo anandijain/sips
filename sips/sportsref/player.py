@@ -27,6 +27,7 @@ def player_section_links(sport: str) -> list:
         nfl_letters = sref.letters
         nfl_letters.append("x")
         section_links = [prefix + letter.upper() for letter in nfl_letters]
+        
     elif sport == "fb":
         p = grab.page(prefix)
         index = p.find("ul", {"class": "page_index"})

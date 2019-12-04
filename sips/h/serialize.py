@@ -184,9 +184,9 @@ def serialize_df(
             X = df.drop(label_cols, axis=1)
 
     if to_numpy:
-        X = np.array(X, dtype=np.float16)
+        X = np.array(X, dtype=np.float32)
         if label_cols is not None:
-            y = np.array(y, dtype=np.float16)
+            y = np.array(y, dtype=np.float32)
         if norm:
             X = h.sk_scale(X, to_df=False)
 
