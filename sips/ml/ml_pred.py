@@ -14,9 +14,11 @@ from sips.ml import utils as tfu
 from sips.ml import lstm
 
 
-def ml_predict(datasets, test_datasets, log_dir, model_fn, NUM_EPOCHS=1):
-
-    x, y = tfu.get_example(datasets)
+def ml_predict(datasets, test_datasets, log_dir, model_fn, num_epochs=1):
+    
+    weights_path = tfu.model_save_fn(HISTORY_SIZE, PRED_SIZE, ext='tf')
+    
+    x, y = tfu.get_example(datasets, verbose=True)
 
     loss_fxn = tf.losses.MeanAbsolutePercentageError()
     optimizer = tf.keras.optimizers.RMSprop()
@@ -24,7 +26,8 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn, NUM_EPOCHS=1):
 
     train_loss, test_loss = tfu.get_loss_metrics()
 
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
+        log_dir)
     print(f"log_dir: {log_dir}")
 
     train_step_num = 0
@@ -89,12 +92,13 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn, NUM_EPOCHS=1):
             model.reset_states()
 
         tf.saved_model.save(model, model_fn)
+        model.save_weights(weights_path, save_format='tf')
 
 
 def get_datasets(history_size, pred_size):
 
     all_datasets = tfls.prediction_data_from_folder(
-        tfm.READ_FROM,
+        folder=tfm.READ_FROM,
         in_cols=None,
         label_cols=["a_ml", "h_ml"],
         batch_size=1,
@@ -103,6 +107,7 @@ def get_datasets(history_size, pred_size):
         pred_size=PRED_SIZE,
         step_size=1,
         norm=True,
+        verbose=True
     )
 
     print(f"num datasets: {len(all_datasets)}")
@@ -110,18 +115,19 @@ def get_datasets(history_size, pred_size):
     return datasets, test_datasets
 
 
-def main(history_size, pred_size):
+def main(history_size, pred_size, num_epochs=1):
 
     datasets, test_datasets = get_datasets(HISTORY_SIZE, PRED_SIZE)
     model_fn = tfu.model_save_fn(HISTORY_SIZE, PRED_SIZE)
     log_dir = tfu.get_logdir()
 
-    ml_predict(datasets, test_datasets, log_dir, model_fn)
+    ml_predict(datasets, test_datasets, log_dir, model_fn, num_epochs=NUM_EPOCHS)
 
 
 if __name__ == "__main__":
     HISTORY_SIZE = 1
     PRED_SIZE = 30
     PRINT_INTERVAL = PRED_SIZE
+    NUM_EPOCHS = 2
 
-    main(HISTORY_SIZE, PRED_SIZE)
+    main(HISTORY_SIZE, PRED_SIZE, num_epochs=NUM_EPOCHS)

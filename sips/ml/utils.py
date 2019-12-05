@@ -6,7 +6,7 @@ from sips.ml import lstm
 from sips.macros import tfm
 
 
-def get_example(datasets):
+def get_example(datasets, verbose=False):
     x_train, y_train = None, None
     len_datasets = len(datasets)
     print(f"len_datasets: {len_datasets}")
@@ -26,6 +26,9 @@ def get_example(datasets):
             print(f"y_train: {y_train}")
             print(f"y_train.shape: {y_train.shape}")
             break
+    if verbose:
+        print(f'x_train: {x_train}')
+        print(f'y_train: {y_train}')
     return x_train, y_train
 
 
@@ -66,7 +69,7 @@ def get_classification_metrics():
     return train_loss, train_accuracy, test_loss, test_accuracy
 
 
-def model_save_fn(history_size, pred_size):
+def model_save_fn(history_size, pred_size, ext='.pb'):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     fp = (
         tfm.WRITE_TO
@@ -76,7 +79,7 @@ def model_save_fn(history_size, pred_size):
         + str(pred_size)
         + "_"
         + current_time
-        + ".pb"
+        + ext
     )
     return fp
 

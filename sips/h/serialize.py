@@ -21,6 +21,7 @@ def serialize_dfs(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
+    output_type='list',
     verbose=False,
 ):
     """
@@ -47,6 +48,9 @@ def serialize_dfs(
         pd.DataFrame or np.array
 
     """
+    if output_type == 'dict':
+        ret = {}
+
     sXs = []
     sYs = []
 
@@ -58,6 +62,8 @@ def serialize_dfs(
 
     if isinstance(dfs, dict):  # hacky
         dfs = list(dfs.values())
+    elif isinstance(dfs, str):
+        dfs = h.get_dfs()
 
     for df in dfs:
         sdf = serialize_df(
@@ -74,18 +80,26 @@ def serialize_dfs(
             drop_extra_cols=drop_extra_cols,
             drop_labels=drop_labels,
             drop_cold=drop_cold,
+            output_type=output_type
         )
+
         if filter_empty:
             if sdf is None:
                 continue
 
-        if label_cols is not None:
+        if output_type == 'dict':
+            game_id, data = sdf
+            ret[game_id] = data
+        elif label_cols is not None:
             X, y = sdf
             sYs.append(y)
+            sXs.append(X)
         else:
             X = sdf
+            sXs.append(X)
 
-        sXs.append(X)
+    if output_type == 'dict':
+        return ret
 
     if label_cols is not None:
         ret = (sXs, sYs)
@@ -112,6 +126,7 @@ def serialize_df(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
+    output_type='list',  # list or dict
     verbose=False,
 ):
     """
@@ -148,6 +163,8 @@ def serialize_df(
             pass
 
     if in_cols and label_cols:
+        print(f'in_cols: {in_cols}')
+        print(f'label_cols: {label_cols}')
         all_cols = list(set(in_cols + label_cols))
         df = df[all_cols].copy()
     elif in_cols and not label_cols:
@@ -175,6 +192,7 @@ def serialize_df(
     if df.empty:
         return
 
+    game_id = df.game_id.iloc[0]
     X = df.copy()
 
     if label_cols is not None:
@@ -203,6 +221,9 @@ def serialize_df(
         ret = (X, y)
     else:
         ret = X
+    
+    if output_type == 'dict':
+        return (game_id, ret)
 
     if verbose:
         print(f"serialized_df: {ret}")
