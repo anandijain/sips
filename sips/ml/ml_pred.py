@@ -120,7 +120,7 @@ def main(history_size, pred_size):
 
 
 if __name__ == "__main__":
-    HISTORY_SIZE = 30
+    HISTORY_SIZE = 1
     PRED_SIZE = 30
     PRINT_INTERVAL = PRED_SIZE
 

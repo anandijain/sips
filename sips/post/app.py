@@ -17,11 +17,12 @@ import numpy as np
 from flask import Flask, Response, request, render_template
 
 # df = bov.lines(["nba"])
+
 dfs = h.get_dfs()
-sdfs = s.serialize_dfs(
-    dfs, in_cols=["game_id", "last_mod", "a_ml", "h_ml"], norm=False, to_numpy=False
-)
-sdfs = [sdf for sdf in sdfs if not sdf.empty]
+# sdfs = s.serialize_dfs(
+#     dfs, in_cols=["sport", "game_id", "last_mod", "a_team", "h_team", "status",  "a_ml", "h_ml"], norm=False, to_numpy=False
+# )
+sdfs = s.serialize_dfs(dfs, norm=False, to_numpy=False, dont_hot=True)
 to_plot = random.choice(sdfs)
 print(to_plot)
 
@@ -41,9 +42,14 @@ def hello_world():
     return to_plot.to_html(header="true", table_id="table")
 
 
+@app.route("/predictions/<game_id>")
+def hello_world():
+    return to_plot.to_html(header="true", table_id="table")
+
+
 @app.route("/<game_id>")
 def plot_game(df, game_id):
-    game_id, t, a_ml, h_ml = ml_ts(to_plot)
+    game_id, t, a_ml, h_ml = ml_ts(df)
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
     axis.plot(t, a_ml)
@@ -58,5 +64,7 @@ if __name__ == "__main__":
 
     host = "0.0.0.0"
     app.run(host=host, debug=True)
+    for df in sdfs:
+        plot_game(df, df.game_id[0])
 
     webbrowser.open("http://" + host + ":5000/")

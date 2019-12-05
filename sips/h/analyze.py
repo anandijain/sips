@@ -1,6 +1,14 @@
+import pandas as pd
 import numpy as np
 
 from sips.h import serialize as s
+
+def summary(df: pd.DataFrame, output='list'):
+    """
+    takes a dataframe of lines and returns a single row dataframe or list
+    
+    """
+
 
 
 def classify_transition(prev_mls, cur_mls):

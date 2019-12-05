@@ -74,6 +74,7 @@ def model_save_fn(history_size, pred_size):
         + str(history_size)
         + "_"
         + str(pred_size)
+        + "_"
         + current_time
         + ".pb"
     )
