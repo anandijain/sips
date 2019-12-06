@@ -23,11 +23,13 @@ from flask import Flask, Response, request, render_template
 #     dfs, in_cols=["sport", "game_id", "last_mod", "a_team", "h_team", "status",  "a_ml", "h_ml"], norm=False, to_numpy=False
 # )
 model = tf.saved_model.load(
-    '/home/sippycups/absa/sips/logs/models/1_3020191205-143620.pb')
+    "/home/sippycups/absa/sips/logs/models/1_3020191205-143620.pb"
+)
 dfs = h.get_dfs()
-sdfs = s.serialize_dfs(dfs, norm=False, to_numpy=False,
-                       dont_hot=True, output_type='dict')
-print(sdfs.keys())                       
+sdfs = s.serialize_dfs(
+    dfs, norm=False, to_numpy=False, dont_hot=True, output_type="dict"
+)
+print(sdfs.keys())
 to_plot = random.choice(list(sdfs.items()))[1]
 # print(to_plot)
 
@@ -48,18 +50,19 @@ def hello_world():
 
 @app.route("/lines")
 def lines():
-    df = bov.lines(['nba'])
+    df = bov.lines(["nba"])
     sdf = s.serialize_df(df, label_cols=["a_ml", "h_ml"], to_numpy=False)
-    X = sdf[0].to_html(header='true', table_id='lines')
-    Y = sdf[1].to_html(header='true', table_id='lines')
+    X = sdf[0].to_html(header="true", table_id="lines")
+    Y = sdf[1].to_html(header="true", table_id="lines")
     return X
+
 
 @app.route("/preds")
 def preds():
-    df = bov.lines(['nba'])
+    df = bov.lines(["nba"])
     sdf = s.serialize_df(df, label_cols=["a_ml", "h_ml"], to_numpy=False)
-    X = sdf[0].to_html(header='true', table_id='lines')
-    Y = sdf[1].to_html(header='true', table_id='lines')
+    X = sdf[0].to_html(header="true", table_id="lines")
+    Y = sdf[1].to_html(header="true", table_id="lines")
     preds = model(X)
     print(preds)
     return preds
@@ -73,15 +76,15 @@ def plot_game(game_id):
 
     a_deci = list(map(calc.eq, a_ml))
     h_deci = list(map(calc.eq, h_ml))
-    print(f'a_deci: {a_deci}')
-    print(f'h_deci: {h_deci}')
+    print(f"a_deci: {a_deci}")
+    print(f"h_deci: {h_deci}")
     axis = fig.add_subplot(1, 1, 1, title=str(game_id))
-    axis.plot(t, a_ml, label='a_ml')
-    axis.plot(t, h_ml, label='h_ml')
-    axis.plot(t, a_deci, label='a_deci')
-    axis.plot(t, h_deci, label='h_deci')
+    axis.plot(t, a_ml, label="a_ml")
+    axis.plot(t, h_ml, label="h_ml")
+    axis.plot(t, a_deci, label="a_deci")
+    axis.plot(t, h_deci, label="h_deci")
     # axis.set_yscale('log')
-    fig.legend(loc='best')
+    fig.legend(loc="best")
     output = io.BytesIO()
     FigureCanvasAgg(fig).print_png(output)
 

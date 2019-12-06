@@ -21,7 +21,7 @@ def serialize_dfs(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
-    output_type='list',
+    output_type="list",
     verbose=False,
 ):
     """
@@ -48,7 +48,7 @@ def serialize_dfs(
         pd.DataFrame or np.array
 
     """
-    if output_type == 'dict':
+    if output_type == "dict":
         ret = {}
 
     sXs = []
@@ -80,14 +80,14 @@ def serialize_dfs(
             drop_extra_cols=drop_extra_cols,
             drop_labels=drop_labels,
             drop_cold=drop_cold,
-            output_type=output_type
+            output_type=output_type,
         )
 
         if filter_empty:
             if sdf is None:
                 continue
 
-        if output_type == 'dict':
+        if output_type == "dict":
             game_id, data = sdf
             ret[game_id] = data
         elif label_cols is not None:
@@ -98,7 +98,7 @@ def serialize_dfs(
             X = sdf
             sXs.append(X)
 
-    if output_type == 'dict':
+    if output_type == "dict":
         return ret
 
     if label_cols is not None:
@@ -126,7 +126,7 @@ def serialize_df(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
-    output_type='list',  # list or dict
+    output_type="list",  # list or dict
     verbose=False,
 ):
     """
@@ -163,8 +163,8 @@ def serialize_df(
             pass
 
     if in_cols and label_cols:
-        print(f'in_cols: {in_cols}')
-        print(f'label_cols: {label_cols}')
+        print(f"in_cols: {in_cols}")
+        print(f"label_cols: {label_cols}")
         all_cols = list(set(in_cols + label_cols))
         df = df[all_cols].copy()
     elif in_cols and not label_cols:
@@ -221,8 +221,8 @@ def serialize_df(
         ret = (X, y)
     else:
         ret = X
-    
-    if output_type == 'dict':
+
+    if output_type == "dict":
         return (game_id, ret)
 
     if verbose:

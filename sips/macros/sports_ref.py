@@ -17,8 +17,6 @@ urls = {"mlb": mlb_url, "nba": nba_url, "fb": fb_url, "nfl": nfl_url, "nhl": nhl
 urls_ns = {"mlb": mlb_ns, "nba": nba_ns, "fb": fb_ns, "nfl": nfl_ns, "nhl": nhl_ns}
 
 
-
-
 letters = [
     "a",
     "b",
@@ -116,7 +114,6 @@ MLB_PLAYER_TABLE_IDS = [
 ]
 
 
-
 def get_FB_PLAYER_TABLE_IDS(verbose=False) -> list:
     prefix = "stats_"
     sfxs = [
@@ -140,12 +137,13 @@ def get_FB_PLAYER_TABLE_IDS(verbose=False) -> list:
 
     return table_ids
 
+
 FB_PLAYER_TABLE_IDS = get_FB_PLAYER_TABLE_IDS()
 
 TABLE_IDS = {
-    'mlb': MLB_PLAYER_TABLE_IDS,
-    'nba': NBA_PLAYER_TABLE_IDS,
-    'nfl': NFL_PLAYER_TABLE_IDS,
-    'nhl': NHL_PLAYER_TABLE_IDS,
-    'fb': FB_PLAYER_TABLE_IDS
+    "mlb": MLB_PLAYER_TABLE_IDS,
+    "nba": NBA_PLAYER_TABLE_IDS,
+    "nfl": NFL_PLAYER_TABLE_IDS,
+    "nhl": NHL_PLAYER_TABLE_IDS,
+    "fb": FB_PLAYER_TABLE_IDS,
 }

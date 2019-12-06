@@ -2,8 +2,14 @@ from sips.macros import sports_ref as sref
 from sips.h import grab
 from sips.h import parse
 
-table_ids = ['coaching_results', 'coaching_ranks',
-             'coaching_history', 'challenge_results', 'worked_for', 'employed']
+table_ids = [
+    "coaching_results",
+    "coaching_ranks",
+    "coaching_history",
+    "challenge_results",
+    "worked_for",
+    "employed",
+]
 
 
 def coaches_summary(to_pd=True):

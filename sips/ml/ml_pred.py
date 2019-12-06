@@ -15,9 +15,9 @@ from sips.ml import lstm
 
 
 def ml_predict(datasets, test_datasets, log_dir, model_fn, num_epochs=1):
-    
-    weights_path = tfu.model_save_fn(HISTORY_SIZE, PRED_SIZE, ext='tf')
-    
+
+    weights_path = tfu.model_save_fn(HISTORY_SIZE, PRED_SIZE, ext="tf")
+
     x, y = tfu.get_example(datasets, verbose=True)
 
     loss_fxn = tf.losses.MeanAbsolutePercentageError()
@@ -26,8 +26,7 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn, num_epochs=1):
 
     train_loss, test_loss = tfu.get_loss_metrics()
 
-    train_summary_writer, test_summary_writer = tfu.init_summary_writers(
-        log_dir)
+    train_summary_writer, test_summary_writer = tfu.init_summary_writers(log_dir)
     print(f"log_dir: {log_dir}")
 
     train_step_num = 0
@@ -92,7 +91,7 @@ def ml_predict(datasets, test_datasets, log_dir, model_fn, num_epochs=1):
             model.reset_states()
 
         tf.saved_model.save(model, model_fn)
-        model.save_weights(weights_path, save_format='tf')
+        model.save_weights(weights_path, save_format="tf")
 
 
 def get_datasets(history_size, pred_size):
@@ -107,7 +106,7 @@ def get_datasets(history_size, pred_size):
         pred_size=PRED_SIZE,
         step_size=1,
         norm=True,
-        verbose=True
+        verbose=True,
     )
 
     print(f"num datasets: {len(all_datasets)}")

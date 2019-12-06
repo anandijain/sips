@@ -27,8 +27,8 @@ def get_example(datasets, verbose=False):
             print(f"y_train.shape: {y_train.shape}")
             break
     if verbose:
-        print(f'x_train: {x_train}')
-        print(f'y_train: {y_train}')
+        print(f"x_train: {x_train}")
+        print(f"y_train: {y_train}")
     return x_train, y_train
 
 
@@ -69,7 +69,7 @@ def get_classification_metrics():
     return train_loss, train_accuracy, test_loss, test_accuracy
 
 
-def model_save_fn(history_size, pred_size, ext='.pb'):
+def model_save_fn(history_size, pred_size, ext=".pb"):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     fp = (
         tfm.WRITE_TO

@@ -27,26 +27,27 @@ def player_section_links(sport: str) -> list:
         nfl_letters = sref.letters
         nfl_letters.append("x")
         section_links = [prefix + letter.upper() for letter in nfl_letters]
-        
+
     elif sport == "fb":
         p = grab.page(prefix)
         index = p.find("ul", {"class": "page_index"})
         a_tags = index.find_all("a")
-        section_links = [sref.fb_ns + a_tag["href"]
-                         for a_tag in a_tags if a_tag]
+        section_links = [sref.fb_ns + a_tag["href"] for a_tag in a_tags if a_tag]
     else:
         section_links = [prefix + letter for letter in sref.letters]
 
     return section_links
 
 
-def player_links_multi_sports(sports: list, concat_dfs: bool=True, write: bool = False, fn: str = "index.csv"):
+def player_links_multi_sports(
+    sports: list, concat_dfs: bool = True, write: bool = False, fn: str = "index.csv"
+):
     dfs = [player_links(sport, write=write, fn=fn) for sport in sports]
 
     if concat_dfs:
         ret = pd.concat(dfs)
     else:
-        ret = dfs    
+        ret = dfs
     return ret
 
 
@@ -88,7 +89,7 @@ def player_links(
             count += 1
         print(f"{i} : {l} : {count}")
 
-    all_players = pd.DataFrame(rows, columns=['name', 'id', 'link'])
+    all_players = pd.DataFrame(rows, columns=["name", "id", "link"])
 
     if write:
         all_players.to_csv(path)
@@ -149,10 +150,9 @@ def players(sport: str, table_ids: list):
 
 
 if __name__ == "__main__":
-    sports = ['nfl', 'mlb', 'nhl']
+    sports = ["nfl", "mlb", "nhl"]
     dfs = [player_links(sport, write=True) for sport in sports]
     print(dfs)
-
 
     df = player_links_multi_sports(sports)
     print(df)

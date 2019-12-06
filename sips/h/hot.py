@@ -99,8 +99,8 @@ def hot(df, hot_maps, drop_cold=True, ret_hots_only=False, verbose=False):
     returns dataframe 
     """
     if verbose:
-        print(f'hot_df cols: {df.columns}')
-        
+        print(f"hot_df cols: {df.columns}")
+
     ret = []
     for i, (col_name, hot_map) in enumerate(hot_maps.items()):
         ret.append(hot_col(df[col_name], hot_map))
