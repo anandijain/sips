@@ -1,3 +1,8 @@
+"""
+used to grab data about players
+
+"""
+
 import os
 import pandas as pd
 
@@ -17,6 +22,9 @@ divs = {
 
 
 def player_section_links(sport: str) -> list:
+    """
+
+    """
     if sport == "fb":
         prefix = sref.urls[sport] + "en/players/"
     else:
@@ -42,6 +50,9 @@ def player_section_links(sport: str) -> list:
 def player_links_multi_sports(
     sports: list, concat_dfs: bool = True, write: bool = False, fn: str = "index.csv"
 ):
+    """
+
+    """
     dfs = [player_links(sport, write=write, fn=fn) for sport in sports]
 
     if concat_dfs:
@@ -98,6 +109,9 @@ def player_links(
 
 
 def player(player_url: str, table_ids: list, output="dict", verbose=False):
+    """
+
+    """
     dfs = {}
 
     p = grab.comments(player_url, verbose=False)
@@ -120,7 +134,9 @@ def player(player_url: str, table_ids: list, output="dict", verbose=False):
 
 
 def players(sport: str, table_ids: list):
+    """
 
+    """
     path = sips.PARENT_DIR + "data/" + sport + "/players/"
     links_df = pd.read_csv(path + "index.csv")
 

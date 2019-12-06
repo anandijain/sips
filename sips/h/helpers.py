@@ -1,3 +1,6 @@
+"""
+
+"""
 import random
 import time
 
@@ -33,14 +36,14 @@ def get_dfs(to_read=None, output="list"):
 
 
 def window_multivariate(
-    dataset,
-    target,
-    start_index=0,
-    end_index=None,
-    history_size=1,
-    target_size=1,
-    step=1,
-    single_step=False,
+        dataset,
+        target,
+        start_index=0,
+        end_index=None,
+        history_size=1,
+        target_size=1,
+        step=1,
+        single_step=False,
 ):
     """
     create sliding window tuples for training nns on multivar timeseries

@@ -1,3 +1,6 @@
+"""
+
+"""
 import time
 from sips.h import grab as g
 

@@ -4,6 +4,9 @@ from sips.h import parse
 
 
 def referee_links():
+    """
+
+    """
     links = []
     t = grab.get_table(sref.nba_url + "referees/", ["referees"], to_pd=False)
     ref_tags = t.find_all("th", {"data-stat": "referee"})
@@ -15,12 +18,15 @@ def referee_links():
 
 
 def ref_season_links():
+    """
+
+    """
     links = [
         sref.nba_url + "/referees/" + str(n) + "_register.html"
         for n in range(1989, 2020)
     ]
 
-    refs = grab.get_tables(links, ["rs_raw"])
+    refs = grab.tables_from_links(links, ["rs_raw"])
     return refs
 
 

@@ -1,3 +1,6 @@
+"""
+
+"""
 import sips.h.grab as g
 from sips.lines import collate
 

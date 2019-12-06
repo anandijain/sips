@@ -10,6 +10,9 @@ from sips.sportsref import utils as sru
 
 
 def player_links(write=True):
+    """
+
+    """
     player_rows = []
     # all_players = pd.DataFrame()
 

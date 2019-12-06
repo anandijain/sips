@@ -3,6 +3,9 @@ import sips.h.grab as g
 
 
 def season_boxlinks():
+    """
+
+    """
     root = m.sports_ref.nfl_url
     ext = "/years/2019/games.htm"
 

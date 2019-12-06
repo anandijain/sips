@@ -5,6 +5,9 @@ url = "https://www.hockey-reference.com"
 
 
 def league_index():
+    """
+
+    """
     suffix = "/leagues/"
     p = g.page(url + suffix)
     t = p.find("table", {"id": "league_index"})
@@ -12,7 +15,10 @@ def league_index():
 
 
 def find_in_table(t, tup):
-    # tup is 3tuple with ('th', 'data-stat', 'season') for example
+    """
+    tup is 3tuple with ('th', 'data-stat', 'season') for example
+
+    """
     selected = t.find_all(tup[0], {tup[1]: tup[2]})
     links = []
     for sel in selected:
@@ -24,6 +30,9 @@ def find_in_table(t, tup):
 
 
 def link_fix(link):
+    """
+
+    """
     split = link.split(".")
     split[0] += "_games."
     ret = split[0] + split[1]
@@ -31,6 +40,9 @@ def link_fix(link):
 
 
 def gamelinks_str_fix(links):
+    """
+
+    """
     ret = []
     for link in links:
         ret.append(link_fix(link))
@@ -71,6 +83,9 @@ def parse_box(boxlink):
 
 
 def main(write=True):
+    """
+
+    """
     ret = []
     t = league_index()
     ls = find_in_table(t, ("th", "data-stat", "season"))

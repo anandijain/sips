@@ -1,5 +1,5 @@
 """
-
+basic formulas and ops for data analysis
 """
 from numbers import Number
 
@@ -7,6 +7,7 @@ from sips.h.bet_hedge import Bet, Hedge
 
 
 def deltas(odds: list) -> list:
+    # convolve over list returning difference at each point
     delta_list = []
     prev = None
     for cur in odds:
@@ -22,7 +23,7 @@ def eq(odd: Number) -> Number:
     # US odd -> decimal
     if odd == 0:
         return 0
-    if odd >= 100:
+    elif odd >= 100:
         return odd / 100.0
     elif odd < 100:
         return abs(100 / odd)
@@ -30,14 +31,14 @@ def eq(odd: Number) -> Number:
 
 def eq_to_odd(equity: float) -> Number:
     # Decimal -> US odd
-    if equity > 1:
+    if equity == 0:
+        return 0.0
+    elif equity > 1:
         odd = 100 * equity
         return odd
     elif equity <= 1:
         odd = -100 / equity
         return odd
-    elif equity == 0:
-        return 0.0
 
 
 def net(bet: Bet, bet2: Bet) -> Number:

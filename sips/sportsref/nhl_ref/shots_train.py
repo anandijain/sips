@@ -4,17 +4,26 @@ import numpy as np
 
 
 def to_cat_codes(df, col):
+    """
+
+    """
     df[col] = pd.Categorical(df[col])
     return df[col].cat.codes
 
 
 def convert_cols(df, columns):
+    """
+
+    """
     for col in columns:
         df[col] = to_cat_codes(df, col)
     return df
 
 
 def parse_shots_df(df):
+    """
+
+    """
     cols = ["type", "outcome", "player", "game_id"]
     df = convert_cols(df, cols)
 
@@ -26,6 +35,9 @@ def parse_shots_df(df):
 
 
 def get_compiled_model():
+    """
+
+    """
     model = tf.keras.Sequential(
         [
             tf.keras.layers.Dense(10, activation="relu"),
@@ -40,6 +52,9 @@ def get_compiled_model():
 
 
 def datasets():
+    """
+
+    """
     train = pd.read_csv("./data/test.csv")
     test = pd.read_csv("./data/shots.csv")
 
@@ -60,6 +75,9 @@ def datasets():
 
 
 def main():
+    """
+
+    """
     fn = "./data/model1/test"
     train, test = datasets()
     cp_callback = tf.keras.callbacks.ModelCheckpoint(

@@ -6,18 +6,27 @@ from sips.h import parse
 
 
 def get_links():
+    """
+
+    """
     t = grab.get_table(sref.nba_url + "/teams/", ["teams_active"], to_pd=False)
     links = [sref.nba_url + link["href"] for link in t.find_all("a")]
     return links
 
 
 def get_teams(output="list"):
+    """
+
+    """
     team_links = get_links()
     team_pages = grab.pages(team_links, output=output)
     return team_pages
 
 
 def get_histories():
+    """
+
+    """
     team_histories = []
     teams_dict = get_teams(output="dict")  # link : page
 

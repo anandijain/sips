@@ -1,3 +1,6 @@
+"""
+
+"""
 import io
 import random
 
@@ -37,6 +40,9 @@ app = Flask(__name__)
 
 
 def ml_ts(df):
+    """
+
+    """
     t = np.array(df.last_mod, dtype=np.float32)
     a_ml = np.array(df.a_ml, dtype=np.float32)
     h_ml = np.array(df.h_ml, dtype=np.float32)
@@ -45,11 +51,17 @@ def ml_ts(df):
 
 @app.route("/")
 def hello_world():
+    """
+
+    """
     return to_plot.to_html(header="true", table_id="table")
 
 
 @app.route("/lines")
 def lines():
+    """
+
+    """
     df = bov.lines(["nba"])
     sdf = s.serialize_df(df, label_cols=["a_ml", "h_ml"], to_numpy=False)
     X = sdf[0].to_html(header="true", table_id="lines")
@@ -59,6 +71,9 @@ def lines():
 
 @app.route("/preds")
 def preds():
+    """
+
+    """
     df = bov.lines(["nba"])
     sdf = s.serialize_df(df, label_cols=["a_ml", "h_ml"], to_numpy=False)
     X = sdf[0].to_html(header="true", table_id="lines")
@@ -70,6 +85,9 @@ def preds():
 
 @app.route("/<int:game_id>")
 def plot_game(game_id):
+    """
+
+    """
     fig = Figure(figsize=(7, 10))
 
     t, a_ml, h_ml = ml_ts(sdfs[game_id])

@@ -1,3 +1,6 @@
+"""
+
+"""
 import pandas as pd
 import numpy as np
 
@@ -7,22 +10,22 @@ from sips.h import helpers as h
 
 
 def serialize_dfs(
-    dfs,
-    in_cols=None,
-    label_cols=None,
-    replace_dict=None,
-    hot_maps=None,
-    to_numpy=True,
-    norm=False,
-    astype=None,
-    dropna=True,
-    filter_empty=True,
-    dont_hot=False,
-    drop_labels=True,
-    drop_extra_cols=["a_ou", "h_ou"],
-    drop_cold=True,
-    output_type="list",
-    verbose=False,
+        dfs,
+        in_cols=None,
+        label_cols=None,
+        replace_dict=None,
+        hot_maps=None,
+        to_numpy=True,
+        norm=False,
+        astype=None,
+        dropna=True,
+        filter_empty=True,
+        dont_hot=False,
+        drop_labels=True,
+        drop_extra_cols=["a_ou", "h_ou"],
+        drop_cold=True,
+        output_type="list",
+        verbose=False,
 ):
     """
     Multipurpose conversion of multi-datatype DataFrames into numbers.
@@ -51,8 +54,8 @@ def serialize_dfs(
     if output_type == "dict":
         ret = {}
 
-    sXs = []
-    sYs = []
+    serialized_Xs = []
+    serialized_Ys = []
 
     if dont_hot:
         hot_maps = None
@@ -66,7 +69,7 @@ def serialize_dfs(
         dfs = h.get_dfs()
 
     for df in dfs:
-        sdf = serialize_df(
+        serialized_df = serialize_df(
             df,
             in_cols=in_cols,
             label_cols=label_cols,
@@ -84,27 +87,27 @@ def serialize_dfs(
         )
 
         if filter_empty:
-            if sdf is None:
+            if serialized_df is None:
                 continue
 
         if output_type == "dict":
-            game_id, data = sdf
+            game_id, data = serialized_df
             ret[game_id] = data
         elif label_cols is not None:
-            X, y = sdf
-            sYs.append(y)
-            sXs.append(X)
+            features, labels = serialized_df
+            serialized_Ys.append(labels)
+            serialized_Xs.append(features)
         else:
-            X = sdf
-            sXs.append(X)
+            features = serialized_df
+            serialized_Xs.append(features)
 
     if output_type == "dict":
         return ret
 
     if label_cols is not None:
-        ret = (sXs, sYs)
+        ret = (serialized_Xs, serialized_Ys)
     else:
-        ret = sXs
+        ret = serialized_Xs
 
     if verbose:
         print(f"serialized_dfs: {ret}")
@@ -113,21 +116,21 @@ def serialize_dfs(
 
 
 def serialize_df(
-    df,
-    in_cols=None,
-    label_cols=None,
-    replace_dict=None,
-    hot_maps=None,
-    to_numpy=True,
-    norm=False,
-    astype=None,
-    dropna=True,
-    dont_hot=False,
-    drop_labels=True,
-    drop_extra_cols=["a_ou", "h_ou"],
-    drop_cold=True,
-    output_type="list",  # list or dict
-    verbose=False,
+        df,
+        in_cols=None,
+        label_cols=None,
+        replace_dict=None,
+        hot_maps=None,
+        to_numpy=True,
+        norm=False,
+        astype=None,
+        dropna=True,
+        dont_hot=False,
+        drop_labels=True,
+        drop_extra_cols=["a_ou", "h_ou"],
+        drop_cold=True,
+        output_type="list",  # list or dict
+        verbose=False,
 ):
     """
     Multipurpose conversion of multi-datatype DataFrame into numbers.
@@ -140,13 +143,13 @@ def serialize_df(
             label_cols (list str): label data
             replace_dict (dict): replace values in DataFrame
             hot_maps (list dict): provide your own hot maps
-            to_numpy (bool): convert the dfs to np arrays 
+            to_numpy (bool): convert the dfs to np arrays
             norm (bool): normalize using tf.keras.utils.normalize
             astype (numeric type): given a type to convert dfs to
-            dropna (bool): pd.dropna 
+            dropna (bool): pd.dropna
             dont_hot (bool)
             drop_labels (bool): drop labels from training data
-            drop_extra_cols (list str): disjoint with union(in_cols, label) 
+            drop_extra_cols (list str): disjoint with union(in_cols, label)
             drop_cold (bool): drop the categorical columns
             verbose (bool): print
     Returns: 
@@ -193,34 +196,34 @@ def serialize_df(
         return
 
     game_id = df.game_id.iloc[0]
-    X = df.copy()
+    features = df.copy()
 
     if label_cols is not None:
-        y = df[label_cols].copy()
+        labels = df[label_cols].copy()
 
         if drop_labels:
-            X = df.drop(label_cols, axis=1)
+            features = df.drop(label_cols, axis=1)
 
     if to_numpy:
-        X = np.array(X, dtype=np.float32)
+        features = np.array(features, dtype=np.float32)
         if label_cols is not None:
-            y = np.array(y, dtype=np.float32)
+            labels = np.array(labels, dtype=np.float32)
         if norm:
-            X = h.sk_scale(X, to_df=False)
+            features = h.sk_scale(features, to_df=False)
 
     elif astype:
-        X = X.astype(astype, errors="ignore")
+        features = features.astype(astype, errors="ignore")
 
         if label_cols is not None:
-            y = y.astype(astype, errors="ignore")
+            labels = labels.astype(astype, errors="ignore")
 
-        if norm and not isinstance(X, np.object):
-            X = h.sk_scale(X, to_df=True)
+        if norm and not isinstance(features, np.object):
+            features = h.sk_scale(features, to_df=True)
 
     if label_cols is not None:
-        ret = (X, y)
+        ret = (features, labels)
     else:
-        ret = X
+        ret = features
 
     if output_type == "dict":
         return (game_id, ret)

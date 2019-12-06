@@ -1,4 +1,8 @@
-# get a season of boxlinks
+"""
+get boxlinks
+
+"""
+
 import sips.h.grab as g
 import sips.h.parse as p
 
@@ -28,6 +32,9 @@ def month_of_boxlinks(link):
 
 
 def main():
+    """
+
+    """
     root = "https://www.basketball-reference.com"
     url = "/leagues/NBA_2020_games.html"
 
