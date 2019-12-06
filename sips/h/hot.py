@@ -88,7 +88,7 @@ def all_hot_maps(sports=["nba"], output="dict"):
     return hot_maps
 
 
-def hot(df, hot_maps, drop_cold=True, ret_hots_only=False):
+def hot(df, hot_maps, drop_cold=True, ret_hots_only=False, verbose=False):
     """
     df: pd.DataFrame
     hot_maps: list(dict)
@@ -98,6 +98,9 @@ def hot(df, hot_maps, drop_cold=True, ret_hots_only=False):
     ---
     returns dataframe 
     """
+    if verbose:
+        print(f'hot_df cols: {df.columns}')
+        
     ret = []
     for i, (col_name, hot_map) in enumerate(hot_maps.items()):
         ret.append(hot_col(df[col_name], hot_map))

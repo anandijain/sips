@@ -6,6 +6,18 @@ from numbers import Number
 from sips.h.bet_hedge import Bet, Hedge
 
 
+def deltas(odds: list) -> list:
+    delta_list = []
+    prev = None
+    for cur in odds:
+        if not prev:
+            prev = cur
+            continue
+        delta_list.append(cur - prev)
+        prev = cur
+    return delta_list
+
+
 def eq(odd: Number) -> Number:
     # US odd -> decimal
     if odd == 0:
