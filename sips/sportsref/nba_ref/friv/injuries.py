@@ -5,7 +5,7 @@ from sips.macros import sports_ref as sref
 
 
 def trade_summary():
-    df = grab.get_table(sref.nba_url + "/friv/injuries.fcgi", ["injuries"])
+    df = grab.get_table(sref.NBA_URL + "/friv/injuries.fcgi", ["injuries"])
     return df
 
 

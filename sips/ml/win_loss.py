@@ -1,4 +1,3 @@
-import datetime
 import random
 import tensorflow as tf
 
@@ -17,6 +16,9 @@ from sips.ml import utils as tfu
 
 
 def get_wl_datasets():
+    """
+
+    """
     dfs = h.get_dfs()
     dfs_w_win = a.wins(dfs)
 
@@ -36,7 +38,9 @@ def get_wl_datasets():
 
 
 def wl_predict(datasets, test_datasets):
+    """
 
+    """
     log_dir = tfu.get_logdir()
     datasets, test_datasets = get_wl_datasets()
 
@@ -117,6 +121,9 @@ def wl_predict(datasets, test_datasets):
 
 
 def main():
+    """
+
+    """
     train, test = get_wl_datasets()
     wl_predict(train, test)
 

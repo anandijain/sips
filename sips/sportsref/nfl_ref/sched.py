@@ -6,7 +6,7 @@ def season_boxlinks():
     """
 
     """
-    root = m.sports_ref.nfl_url
+    root = m.sports_ref.NFL_URL
     ext = "/years/2019/games.htm"
 
     p = g.page(root + ext)

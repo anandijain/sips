@@ -9,8 +9,8 @@ def get_links():
     """
 
     """
-    t = grab.get_table(sref.nba_url + "/teams/", ["teams_active"], to_pd=False)
-    links = [sref.nba_url + link["href"] for link in t.find_all("a")]
+    t = grab.get_table(sref.NBA_URL + "/teams/", ["teams_active"], to_pd=False)
+    links = [sref.NBA_URL + link["href"] for link in t.find_all("a")]
     return links
 
 

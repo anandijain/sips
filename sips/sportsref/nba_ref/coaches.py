@@ -10,14 +10,14 @@ def coaches():
     """
 
     """
-    p = sips.page(sref.nba_url + "/coaches/")
+    p = sips.page(sref.NBA_URL + "/coaches/")
     t = p.find("table", {"id": "coaches"})
     ctags = t.find_all("th", {"data-stat": "coach"})
     links = []
     for c in ctags:
         link = c.find("a")
         if link:
-            links.append(sref.nba_url + link["href"])
+            links.append(sref.NBA_URL + link["href"])
 
     return links
 

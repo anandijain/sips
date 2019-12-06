@@ -1,11 +1,11 @@
-import tensorflow as tf
-import datetime
 import random
 
-from sips.macros import tfm
+import tensorflow as tf
 
-from sips.h import hot
 import sips.h.helpers as h
+
+from sips.macros import tfm
+from sips.h import hot
 
 from sips.ml import loading as tfls
 from sips.ml import fwd

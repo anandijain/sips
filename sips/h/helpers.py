@@ -2,17 +2,15 @@
 
 """
 import random
-import time
 
 import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
-from sips.h import fileio as fio
-from sips.h import attach
+import sips
 
-from sips.macros import macros as m
+from sips.h import fileio as fio
 
 
 def get_dfs(to_read=None, output="list"):
@@ -22,7 +20,7 @@ def get_dfs(to_read=None, output="list"):
         - path to folder 
     """
     if not to_read:
-        to_read = m.PARENT_DIR + "data/lines/lines/"
+        to_read = sips.PARENT_DIR + "data/lines/lines/"
 
     if isinstance(to_read, str):
         to_read = fio.get_fns(to_read)

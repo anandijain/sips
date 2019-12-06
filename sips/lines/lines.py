@@ -12,6 +12,8 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 from requests_futures.sessions import FuturesSession
 
+import sips
+
 import sips.h.fileio as io
 import sips.h.serialize as s
 
@@ -26,8 +28,8 @@ from sips.macros import macros as m
 from sips.macros import bov as bm
 
 
-LINES_DATA_PATH = m.PARENT_DIR + "/data/lines/"
-CONFIG_PATH = m.PROJ_DIR + "lines/config/lines.json"
+LINES_DATA_PATH = sips.PARENT_DIR + "/data/lines/"
+CONFIG_PATH = sips.PROJ_DIR + "lines/config/lines.json"
 
 
 parser = argparse.ArgumentParser(description="configure lines.py")

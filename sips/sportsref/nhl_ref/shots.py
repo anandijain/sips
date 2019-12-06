@@ -1,7 +1,6 @@
 import bs4
 import requests as r
 
-
 import pandas as pd
 import numpy as np
 
@@ -41,6 +40,7 @@ def grab_charts(link):
     """
     given a link to a hockey-refference boxscore, 
     returns div, class: shotchart
+
     """
     req = r.get(link).text
     p = bs4.BeautifulSoup(req, "html.parser")
@@ -61,6 +61,7 @@ def main():
     """
     outputs one large DataFrame
     game_id, x, y, type, outcome, player
+
     """
 
     write_path = "./data/shots.csv"
@@ -84,14 +85,11 @@ def main():
         )
 
         if i % 200 == 0:
-            game_id = sfx_to_gameid(sfx)
+            game_id = utils.url_to_id(sfx)
             print(game_id)
     meta_df.to_csv("./data/meta_shots.csv")
 
 
 if __name__ == "__main__":
     main()
-    # dl = grab(link=link)
-    # dl
-    # dl[0]
-    # pass
+

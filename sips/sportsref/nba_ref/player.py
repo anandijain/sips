@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 
 import sips
@@ -16,7 +15,7 @@ def player_links(write=True):
     player_rows = []
     # all_players = pd.DataFrame()
 
-    links = [sref.nba_url + "players/" + letter for letter in sref.letters]
+    links = [sref.NBA_URL + "players/" + letter for letter in sref.LETTERS]
     ps = grab.pages(links, output="dict")
 
     for i, (l, p) in enumerate(ps.items()):
@@ -41,7 +40,7 @@ def player_links(write=True):
             name = a_tag.text
             section_count += 1
             player_rows.append([name, p_id, link])
-        print(f"{i} : {sref.letters[i]} : {section_count}")
+        print(f"{i} : {sref.LETTERS[i]} : {section_count}")
 
     all_players = pd.DataFrame(player_rows, columns=["name", "id", "link"])
 

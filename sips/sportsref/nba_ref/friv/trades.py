@@ -5,7 +5,7 @@ from sips.macros import sports_ref as sref
 
 
 def trade_summary():
-    p = sips.page(sref.nba_url + "/friv/trades.fcgi")
+    p = sips.page(sref.NBA_URL + "/friv/trades.fcgi")
     t = p.find("table", {"id": "summary_matrix"})
     df = pd.read_html(t.prettify())
     return df

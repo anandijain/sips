@@ -1,23 +1,23 @@
 # macros.py for highly usable data
-mlb_url = "https://www.baseball-reference.com/"
-nba_url = "https://www.basketball-reference.com/"
-nfl_url = "https://www.pro-football-reference.com/"
-nhl_url = "https://www.hockey-reference.com/"
-fb_url = "https://fbref.com/"
+MLB_URL = "https://www.baseball-reference.com/"
+NBA_URL = "https://www.basketball-reference.com/"
+NFL_URL = "https://www.pro-football-reference.com/"
+NHL_URL = "https://www.hockey-reference.com/"
+FB_URL = "https://fbref.com/"
 
 
-nba_ns = "https://www.basketball-reference.com"
-nfl_ns = "https://www.pro-football-reference.com"
-fb_ns = "https://fbref.com"
-nhl_ns = "https://www.hockey-reference.com"
-mlb_ns = "https://www.baseball-reference.com"
+NBA_NS = "https://www.basketball-reference.com"
+NFL_NS = "https://www.pro-football-reference.com"
+FB_NS = "https://fbref.com"
+NHL_NS = "https://www.hockey-reference.com"
+MLB_NS = "https://www.baseball-reference.com"
 
-urls = {"mlb": mlb_url, "nba": nba_url, "fb": fb_url, "nfl": nfl_url, "nhl": nhl_url}
+URLS = {"mlb": MLB_URL, "nba": NBA_URL, "fb": FB_URL, "nfl": NFL_URL, "nhl": NHL_URL}
 
-urls_ns = {"mlb": mlb_ns, "nba": nba_ns, "fb": fb_ns, "nfl": nfl_ns, "nhl": nhl_ns}
+URLS_NS = {"mlb": MLB_NS, "nba": NBA_NS, "fb": FB_NS, "nfl": NFL_NS, "nhl": NHL_NS}
 
 
-letters = [
+LETTERS = [
     "a",
     "b",
     "c",

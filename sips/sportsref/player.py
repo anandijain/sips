@@ -26,13 +26,13 @@ def player_section_links(sport: str) -> list:
 
     """
     if sport == "fb":
-        prefix = sref.urls[sport] + "en/players/"
+        prefix = sref.URLS[sport] + "en/players/"
     else:
-        prefix = sref.urls[sport] + "players/"
+        prefix = sref.URLS[sport] + "players/"
 
     # to fix by getting heading links
     if sport == "nfl":
-        nfl_letters = sref.letters
+        nfl_letters = sref.LETTERS
         nfl_letters.append("x")
         section_links = [prefix + letter.upper() for letter in nfl_letters]
 
@@ -40,9 +40,9 @@ def player_section_links(sport: str) -> list:
         p = grab.page(prefix)
         index = p.find("ul", {"class": "page_index"})
         a_tags = index.find_all("a")
-        section_links = [sref.fb_ns + a_tag["href"] for a_tag in a_tags if a_tag]
+        section_links = [sref.FB_NS + a_tag["href"] for a_tag in a_tags if a_tag]
     else:
-        section_links = [prefix + letter for letter in sref.letters]
+        section_links = [prefix + letter for letter in sref.LETTERS]
 
     return section_links
 
@@ -93,7 +93,7 @@ def player_links(
         for a_tag in a_tags:
             if not a_tag:
                 continue
-            link = sref.urls_ns[sport] + a_tag["href"]
+            link = sref.URLS_ns[sport] + a_tag["href"]
             p_id = sru.url_to_id(link)
             name = a_tag.text
             rows.append([name, p_id, link])
