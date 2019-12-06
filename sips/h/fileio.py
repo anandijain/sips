@@ -8,10 +8,10 @@ import pandas as pd
 from sips.macros import tfm
 
 
-def init_csv(file_name:str, header:list, close=True):
+def init_csv(file_name: str, header: list, close=True):
     """
     create a csv and write header, option to close
-    
+
     """
     csv_file = open(file_name, "a")
     write_list(csv_file, header)
@@ -48,7 +48,7 @@ def append_csv(fn: str, df: pd.DataFrame):
 def get_fns(directory):
     """
     return the absolute file paths of a directory
-    
+
     """
     for dirpath, _, filenames in os.walk(directory):
         for file_name in filenames:

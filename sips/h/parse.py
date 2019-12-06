@@ -8,7 +8,7 @@ import bs4
 
 def to_soup(html):
     """
-    
+
     """
     soup = bs4.BeautifulSoup(html, "html.parser")
     return soup

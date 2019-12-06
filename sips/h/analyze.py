@@ -1,12 +1,8 @@
 """
+directional moneyline transition classes
 
 """
-import pandas as pd
 import numpy as np
-
-from sips.h import serialize as s
-from sips.h import calc
-from sips.h import helpers
 
 
 def classify_transition(prev_mls, cur_mls):

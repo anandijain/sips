@@ -9,6 +9,7 @@ from sips.lines.bov.utils import bov_utils as u
 def get_scores(events, session=None):
     """
     {game_id : quarter, secs, a_pts, h_pts, status}
+
     """
     ids = u.get_ids(events)
     links = [bm.BOV_SCORES_URL + game_id for game_id in ids]
@@ -23,6 +24,7 @@ def get_scores(events, session=None):
 def score(json_data):
     """
     given json data for a game_id, returns the score data of the game
+    
     """
     [quarter, secs, a_pts, h_pts, game_status] = [None for _ in range(5)]
 

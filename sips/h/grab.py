@@ -132,7 +132,7 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
     return jsons
 
 
-def get_table(link:str, table_ids:list, to_pd=True):
+def get_table(link: str, table_ids: list, to_pd=True):
     """
     given a link, parses w/ bs4 and returns tables with table_id
 
@@ -152,7 +152,7 @@ def get_table(link:str, table_ids:list, to_pd=True):
     return tables
 
 
-def tables_from_links(links:str, table_ids:list, to_pd=True, flatten=False):
+def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
     """
     get tables from a list of links
 

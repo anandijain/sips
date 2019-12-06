@@ -13,6 +13,9 @@ def train_step_classify(
         train_accuracy,
         verbose=False,
 ):
+    """
+
+    """
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
@@ -31,6 +34,9 @@ def train_step_classify(
 
 
 def train_step_regress(model, optimizer, loss_object, x_train, y_train, train_loss):
+    """
+
+    """
     with tf.GradientTape() as tape:
         predictions = model(x_train, training=True)
         loss = loss_object(y_train, predictions)
@@ -43,6 +49,9 @@ def train_step_regress(model, optimizer, loss_object, x_train, y_train, train_lo
 
 
 def test_step(model, loss_object, x_test, y_test, test_loss, test_accuracy=None):
+    """
+
+    """
     predictions = model(x_test)
     loss = loss_object(y_test, predictions)
 
@@ -52,3 +61,7 @@ def test_step(model, loss_object, x_test, y_test, test_loss, test_accuracy=None)
         return te_loss, tea
     else:
         return te_loss
+
+
+if __name__ == "__main__":
+    pass

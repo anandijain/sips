@@ -61,7 +61,7 @@ def window_multivariate(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 

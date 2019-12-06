@@ -13,6 +13,7 @@ def summaries(
     dfs: list, columns=["a_ml", "h_ml", "a_hcap", "h_hcap"], verbose=False
 ) -> pd.DataFrame:
     """
+    given a list of serialized dataframes, an aggregate summary df is returned
 
     """
     rows = []
@@ -22,42 +23,32 @@ def summaries(
         row = summary(sdf, columns=columns, summ_cols=summ_cols, output="df")
         rows.append(row)
 
-    summaries = pd.concat(rows)
-    summaries.reindex()
+    summs = pd.concat(rows)
+    summs.reindex()
 
     if verbose:
-        print(summaries)
-        print(summaries.describe())
+        print(summs)
+        print(summs.describe())
 
-    return summaries
+    return summs
 
 
 def summary(
-    df: pd.DataFrame,
-    columns=["a_ml", "h_ml", "a_hcap", "h_hcap", "a_ps", "h_ps"],
-    summ_cols=None,
-    output="list",
+        df: pd.DataFrame,
+        columns=["a_ml", "h_ml", "a_hcap", "h_hcap", "a_ps", "h_ps"],
+        summ_cols=None,
+        output="list"
 ):
     """
     takes a dataframe of lines and returns a single row dataframe or list
-    per team:
-        num_changes
-        total_change
-        min_change
-        max_change
-        25, 50, 75% changes
-        std changes
-        avg change
-        num closures
 
-        min, max, quartiles, std general
     """
     subset = df[columns]
     desc = subset.describe()
     desc_data = desc.values.tolist()
     deltas = []
 
-    for i, col in subset.iteritems():
+    for _, col in subset.iteritems():
         deltas.append(calc.deltas(col))
 
     deltas_df = pd.DataFrame(deltas).transpose()
@@ -75,7 +66,10 @@ def summary(
 
 
 def get_summary_cols(cols_to_summarize: list, verbose=False):
-    # constructs columns for summary df
+    """
+    constructs columns for summary df
+
+    """
     single_team_lines_summary_columns = [
         "num",
         "mean",

@@ -131,7 +131,7 @@ def hot_col(col, hot_map, on_keyerror="skip"):
     on_keyerror: str 
         one in ['skip', 'set_zero']
     iterates over rows of a column and serializes the 
-    
+
     """
 
     hot_cols = list(hot_map.keys())
