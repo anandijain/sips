@@ -7,6 +7,10 @@ from numbers import Number
 from sips.h.bet_hedge import Bet, Hedge
 
 
+def kelly(win_pct:float, eq_odd:float) -> float:
+    return (win_pct * eq_odd - (1 - win_pct)) / eq_odd
+
+
 def deltas(odds: list) -> list:
     """
     convolve over list returning difference at each point
