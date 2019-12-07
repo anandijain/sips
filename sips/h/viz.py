@@ -1,7 +1,14 @@
+"""
+visualizing data and helper fxns 
+
+"""
 import matplotlib.pyplot as plt
 
 
 def create_time_steps(length):
+    """
+
+    """
     time_steps = []
     for i in range(-length, 0, 1):
         time_steps.append(i)
@@ -9,6 +16,9 @@ def create_time_steps(length):
 
 
 def show_plot(plot_data, delta, title):
+    """
+
+    """
     labels = ["History", "True Future", "Model Prediction"]
     marker = [".-", "rx", "go"]
     time_steps = create_time_steps(plot_data[0].shape[0])
@@ -34,6 +44,7 @@ def show_plot(plot_data, delta, title):
 def plot_train_history(history, title):
     """
     simple tf loss plotter
+
     """
     loss = history.history["loss"]
 
@@ -46,3 +57,7 @@ def plot_train_history(history, title):
     plt.legend()
 
     plt.show()
+
+
+if __name__ == "__main__":
+    pass

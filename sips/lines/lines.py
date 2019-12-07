@@ -12,6 +12,8 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 from requests_futures.sessions import FuturesSession
 
+import sips
+
 import sips.h.fileio as io
 import sips.h.serialize as s
 

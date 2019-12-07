@@ -1,3 +1,6 @@
+"""
+
+"""
 import pandas as pd
 import numpy as np
 
@@ -21,6 +24,7 @@ def serialize_dfs(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
+    output_type="list",
     verbose=False,
 ):
     """
@@ -47,8 +51,11 @@ def serialize_dfs(
         pd.DataFrame or np.array
 
     """
-    sXs = []
-    sYs = []
+    if output_type == "dict":
+        ret = {}
+
+    serialized_Xs = []
+    serialized_Ys = []
 
     if dont_hot:
         hot_maps = None
@@ -58,9 +65,11 @@ def serialize_dfs(
 
     if isinstance(dfs, dict):  # hacky
         dfs = list(dfs.values())
+    elif isinstance(dfs, str):
+        dfs = h.get_dfs()
 
     for df in dfs:
-        sdf = serialize_df(
+        serialized_df = serialize_df(
             df,
             in_cols=in_cols,
             label_cols=label_cols,
@@ -74,23 +83,31 @@ def serialize_dfs(
             drop_extra_cols=drop_extra_cols,
             drop_labels=drop_labels,
             drop_cold=drop_cold,
+            output_type=output_type,
         )
+
         if filter_empty:
-            if sdf is None:
+            if serialized_df is None:
                 continue
 
-        if label_cols is not None:
-            X, y = sdf
-            sYs.append(y)
+        if output_type == "dict":
+            game_id, data = serialized_df
+            ret[game_id] = data
+        elif label_cols is not None:
+            features, labels = serialized_df
+            serialized_Ys.append(labels)
+            serialized_Xs.append(features)
         else:
-            X = sdf
+            features = serialized_df
+            serialized_Xs.append(features)
 
-        sXs.append(X)
+    if output_type == "dict":
+        return ret
 
     if label_cols is not None:
-        ret = (sXs, sYs)
+        ret = (serialized_Xs, serialized_Ys)
     else:
-        ret = sXs
+        ret = serialized_Xs
 
     if verbose:
         print(f"serialized_dfs: {ret}")
@@ -112,6 +129,7 @@ def serialize_df(
     drop_labels=True,
     drop_extra_cols=["a_ou", "h_ou"],
     drop_cold=True,
+    output_type="list",  # list or dict
     verbose=False,
 ):
     """
@@ -125,13 +143,13 @@ def serialize_df(
             label_cols (list str): label data
             replace_dict (dict): replace values in DataFrame
             hot_maps (list dict): provide your own hot maps
-            to_numpy (bool): convert the dfs to np arrays 
+            to_numpy (bool): convert the dfs to np arrays
             norm (bool): normalize using tf.keras.utils.normalize
             astype (numeric type): given a type to convert dfs to
-            dropna (bool): pd.dropna 
+            dropna (bool): pd.dropna
             dont_hot (bool)
             drop_labels (bool): drop labels from training data
-            drop_extra_cols (list str): disjoint with union(in_cols, label) 
+            drop_extra_cols (list str): disjoint with union(in_cols, label)
             drop_cold (bool): drop the categorical columns
             verbose (bool): print
     Returns: 
@@ -148,6 +166,8 @@ def serialize_df(
             pass
 
     if in_cols and label_cols:
+        print(f"in_cols: {in_cols}")
+        print(f"label_cols: {label_cols}")
         all_cols = list(set(in_cols + label_cols))
         df = df[all_cols].copy()
     elif in_cols and not label_cols:
@@ -175,34 +195,38 @@ def serialize_df(
     if df.empty:
         return
 
-    X = df.copy()
+    game_id = df.game_id.iloc[0]
+    features = df.copy()
 
     if label_cols is not None:
-        y = df[label_cols].copy()
+        labels = df[label_cols].copy()
 
         if drop_labels:
-            X = df.drop(label_cols, axis=1)
+            features = df.drop(label_cols, axis=1)
 
     if to_numpy:
-        X = np.array(X, dtype=np.float16)
+        features = np.array(features, dtype=np.float32)
         if label_cols is not None:
-            y = np.array(y, dtype=np.float16)
+            labels = np.array(labels, dtype=np.float32)
         if norm:
-            X = h.sk_scale(X, to_df=False)
+            features = h.sk_scale(features, to_df=False)
 
     elif astype:
-        X = X.astype(astype, errors="ignore")
+        features = features.astype(astype, errors="ignore")
 
         if label_cols is not None:
-            y = y.astype(astype, errors="ignore")
+            labels = labels.astype(astype, errors="ignore")
 
-        if norm and not isinstance(X, np.object):
-            X = h.sk_scale(X, to_df=True)
+        if norm and not isinstance(features, np.object):
+            features = h.sk_scale(features, to_df=True)
 
     if label_cols is not None:
-        ret = (X, y)
+        ret = (features, labels)
     else:
-        ret = X
+        ret = features
+
+    if output_type == "dict":
+        return (game_id, ret)
 
     if verbose:
         print(f"serialized_df: {ret}")

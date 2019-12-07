@@ -1,9 +1,12 @@
 import time
 
+import sips
+
 from sips.h import attach
 from sips.h import hot
 from sips.h import helpers as h
 from sips.h import serialize as s
+from sips.h import attach
 
 from sips.macros import macros as m
 from sips.macros import bov as bm

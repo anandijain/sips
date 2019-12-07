@@ -71,6 +71,7 @@ def prediction_data_from_folder(
     pred_size=2,
     step_size=1,
     norm=True,
+    verbose=False,
 ):
     """
 
@@ -81,12 +82,14 @@ def prediction_data_from_folder(
 
     train_df_vals, train_df_labs = s.serialize_dfs(
         dfs,
-        in_cols,
-        label_cols,
+        label_cols=label_cols,
         replace_dict=replace_data_map,
         hot_maps=hot_maps,
         norm=norm,
     )
+    if verbose:
+        print(f"train_df_vals: {train_df_vals}")
+        print(f"train_df_labs: {train_df_labs}")
 
     datasets = serialized_to_datasets(
         train_df_vals,

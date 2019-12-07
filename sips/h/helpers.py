@@ -1,18 +1,19 @@
+"""
+
+"""
 import random
-import time
 
 import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
-from sips.h import fileio as fio
-from sips.h import attach
-
 from sips.macros import macros as m
 
+from sips.h import fileio as fio
 
-def get_dfs(to_read=None, output="list"):
+
+def get_dfs(to_read=None, dict_key=None, output="list"):
     """
     to_read is one of:
         - list of *full* file names 
@@ -27,7 +28,17 @@ def get_dfs(to_read=None, output="list"):
     if output == "list":
         dfs = [pd.read_csv(fn) for fn in to_read]
     elif output == "dict":
-        dfs = {fn.split("/")[-1]: pd.read_csv(fn) for fn in to_read}
+        dfs = {}
+        if not dict_key:
+            dict_key = "game_id"
+        for fn in to_read:
+            df = pd.read_csv(fn)
+            try:
+                key = df[dict_key].iloc[0]
+            except KeyError:
+                continue
+
+            dfs[key] = df
 
     return dfs
 

@@ -5,14 +5,20 @@ url = "https://www.hockey-reference.com"
 
 
 def league_index():
+    """
+
+    """
     suffix = "/leagues/"
-    p = g.get_page(url + suffix)
+    p = g.page(url + suffix)
     t = p.find("table", {"id": "league_index"})
     return t
 
 
 def find_in_table(t, tup):
-    # tup is 3tuple with ('th', 'data-stat', 'season') for example
+    """
+    tup is 3tuple with ('th', 'data-stat', 'season') for example
+
+    """
     selected = t.find_all(tup[0], {tup[1]: tup[2]})
     links = []
     for sel in selected:
@@ -24,6 +30,9 @@ def find_in_table(t, tup):
 
 
 def link_fix(link):
+    """
+
+    """
     split = link.split(".")
     split[0] += "_games."
     ret = split[0] + split[1]
@@ -31,6 +40,9 @@ def link_fix(link):
 
 
 def gamelinks_str_fix(links):
+    """
+
+    """
     ret = []
     for link in links:
         ret.append(link_fix(link))
@@ -42,7 +54,7 @@ def season_boxlinks(season_url):
 
     """
     find_tup = ("th", "data-stat", "date_game")
-    p = g.get_page(season_url)
+    p = g.page(season_url)
     tables = p.find_all("table")
     ret = []
     for table in tables:
@@ -54,7 +66,7 @@ def parse_box(boxlink):
     """
 
     """
-    p = g.get_page(boxlink)
+    p = g.page(boxlink)
     tables = p.find_all("table")
     dfs = []
     for table in tables:
@@ -71,6 +83,9 @@ def parse_box(boxlink):
 
 
 def main(write=True):
+    """
+
+    """
     ret = []
     t = league_index()
     ls = find_in_table(t, ("th", "data-stat", "season"))

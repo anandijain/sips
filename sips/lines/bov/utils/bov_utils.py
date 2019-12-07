@@ -47,16 +47,11 @@ def reduce_mkt_type(market_desc):
 def get_event():
     """
     used for quick debug purposes
+
     """
     req = g.req_json(bm.BOV_URL + "basketball/nba")
     event = req[0]["events"][0]
     return event
-
-
-def fxn():
-    ev = get_event()
-    fs = parse_display_groups(ev)
-    return fs
 
 
 def parse_display_groups(event):
@@ -82,6 +77,9 @@ def parse_display_groups(event):
 
 
 def parse_display_group(display_group, competitors):
+    """
+
+    """
     group_markets = display_group.get("markets")
     data = parse_markets(group_markets, competitors=competitors)
     return data
@@ -103,6 +101,9 @@ def merge_lines_scores(lines, scores):
 
 
 def get_links(sports, all_mkts=True):
+    """
+
+    """
     if all_mkts:
         links = [bm.BOV_URL + match_sport_str(s) for s in sports]
     else:
@@ -111,12 +112,18 @@ def get_links(sports, all_mkts=True):
 
 
 def sports_to_jsons(sports, all_mkts=True):
+    """
+
+    """
     links = get_links(sports, all_mkts=all_mkts)
     jsons = g.reqs_json(links)
     return jsons
 
 
 def sports_to_events(sports, all_mkts=False, verbose=False):
+    """
+
+    """
     jsons = sports_to_jsons(sports=sports, all_mkts=all_mkts)
     events = events_from_jsons(jsons)
     if verbose:
@@ -128,6 +135,7 @@ def events_from_jsons(jsons):
     """
     jsons is a list of dictionaries for each sport 
     if rows, return parsed row data instead of list of events
+    
     """
     events = [e for j in jsons for e in events_from_json(j)]
     return events
@@ -137,6 +145,7 @@ def rows_from_jsons(jsons):
     """
     jsons is a list of dictionaries for each sport 
     if rows, return parsed row data instead of list of events
+
     """
     events = [parse_event(e) for j in jsons for e in events_from_json(j)]
     return events
@@ -158,6 +167,7 @@ def parse_event(event, output="list", verbose=False):
     """
     parses an event with three markets (spread, ml, total)
     returns list of data following the order in header()
+
     """
     game_id, sport, live, num_markets, last_mod = p.parse_json(
         event, ["id", "sport", "live", "numMarkets", "lastModified"], output="list"
@@ -253,6 +263,7 @@ def grab_row_from_markets(markets):
     """
     to be deprecated, only grabs the filtered mkts
     parse main markets (match ps, ml, totals) json in bov event
+    
     """
     (
         a_ps,
@@ -306,11 +317,9 @@ def parse_markets(markets, competitors, output="dict"):
     Moneyline -> moneyline_ml_M
     Point Spread -> point_spread_ps_M
     First Team to reach 20 points -> first_team_to_reach_20_points_ml_M
+    
     """
     all_markets = {}
-
-    # a_ps, h_ps, a_hcap, h_hcap, a_ml, h_ml, a_tot, h_tot, \
-    #     a_hcap_tot, h_hcap_tot, a_ou, h_ou = ["NaN" for _ in range(12)]
 
     for market in markets:
         market_desc = market.get("description")
@@ -335,6 +344,7 @@ def parse_market(market, competitors):
     """
     given: market in bovada sport json
     returns: dictionary w (field , field_value)
+    
     """
     period_desc, abbrv, live = mkt_period_info(market)
     outcomes = market.get("outcomes")
@@ -356,6 +366,7 @@ def parse_market(market, competitors):
 def ml_from_outcomes(outcomes, competitors):
     """
     returns a_ml, h_ml
+    
     """
     a_ml, h_ml = None, None
     if competitors:
@@ -385,6 +396,7 @@ def ml_from_outcomes(outcomes, competitors):
 def mkt_period_info(market):
     """
     returns the desc, abbrev, and live 
+    
     """
     period = market.get("period")
     to_grab = ["description", "abbreviation", "live"]
@@ -406,6 +418,7 @@ def clean_desc(desc):
 def spread(outcomes):
     """
     gets both teams spread data
+    
     """
     a_ps, a_hcap, h_ps, h_hcap = [None for _ in range(4)]
     for outcome in outcomes:
@@ -421,6 +434,7 @@ def spread(outcomes):
 def moneyline(outcomes):
     """
     gets both teams moneyline
+    
     """
     a_ml = None
     h_ml = None
@@ -437,6 +451,7 @@ def total(outcomes):
     """
     gets the over_under
     limited to two outcomes currently
+    
     """
     null_ret = [None for _ in range(6)]
     if not outcomes:
@@ -467,6 +482,7 @@ def total(outcomes):
 def competitors(event, verbose=False):
     """
     keys: 'home' (bool), 'id' (str), 'name' (str)
+    
     """
     comps = event.get("competitors")
     if not comps:
@@ -480,6 +496,7 @@ def competitors(event, verbose=False):
 def teams(event):
     """
     returns away, home team names (str)
+    
     """
     teams = competitors(event)
     if not teams or len(teams) != 2:
@@ -499,6 +516,7 @@ def teams(event):
 def bov_team_ids(event):
     """
     get competitor ids
+    
     """
     teams = event.get("competitors")
     if not teams or len(teams) != 2:
@@ -516,7 +534,10 @@ def bov_team_ids(event):
 
 
 def filtered_links(sports, verbose=False):
-    # append market filter to each url
+    """
+    append market filter to each url
+
+    """
     sfx = "?marketFilterId=def&lang=en"
     links = [bm.BOV_URL + match_sport_str(s) + sfx for s in sports]
     if verbose:
@@ -555,7 +576,7 @@ def match_sport_str(sport="baseball/mlb"):
     return sport
 
 
-def bov_all_dict():
+def bov_all_dict(verbose=False):
     """
 
     """
@@ -567,13 +588,15 @@ def bov_all_dict():
     es = req[0].get("events")
     for event in es:
         desc = event.get("description")
-        # print(f'desc: {desc}')
         if not desc:
             continue
         event_dict = parse_display_groups(event)
-        # cleaned = clean_desc(desc)
         all_dict[desc] = event_dict
-    # print(f'all_dict: {all_dict}')
+
+    if verbose:
+        print(f"desc: {desc}")
+        print(f"all_dict: {all_dict}")
+
     return all_dict
 
 

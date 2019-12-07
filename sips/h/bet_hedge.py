@@ -1,3 +1,7 @@
+"""
+class for calculating reward for hedged bets
+
+"""
 from sips.h import calc
 
 
@@ -8,8 +12,10 @@ class Bet:
 
     def __init__(self, amt, action, odds, cur_state):
         """
+        initialize bet
 
         """
+
         self.amt = amt
         self.team = action  # 0 for away, 1 for home
         self.a_odds = odds[0]
@@ -31,6 +37,7 @@ class Bet:
 
 class Hedge:
     """
+    hedge takes in two bets of type Bet and returns the net reward
 
     """
 

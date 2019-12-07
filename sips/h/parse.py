@@ -1,5 +1,6 @@
 """
- mainly bs4 utilities for grabbing data from sites:
+ mainly bs4 utilities for grabbing data from sites
+ 
 """
 import pandas as pd
 import bs4
@@ -7,7 +8,7 @@ import bs4
 
 def to_soup(html):
     """
-    
+
     """
     soup = bs4.BeautifulSoup(html, "html.parser")
     return soup
@@ -36,12 +37,21 @@ def parse_json(json, keys, output="dict"):
         return None
 
 
-def comments(page, verbose=False):
+def comments(page, join=False, to_soup=False, verbose=False):
     # finds all of the bs4.Comments for a page
     comments = page.findAll(text=lambda text: isinstance(text, bs4.Comment))
+
+    if join:
+        comments = "".join(comments)
+        if to_soup:
+            comments = bs4.BeautifulSoup(comments, "html.parser")
+    else:
+        if to_soup:
+            comments = [bs4.BeautifulSoup(c, "html.parser") for c in comments]
+
     if verbose:
         for i, c in enumerate(comments):
-            print(f"{i} : {c}")
+            print(f"$CS$: {i} : {c}")
     return comments
 
 
@@ -60,7 +70,7 @@ def get_table(page, table_id, find_all=False, to_pd=False):
         if find_all:
             ret = [pd.read_html(t.prettify()) for t in table]
         else:
-            ret = pd.read_html(table.prettify())
+            ret = pd.read_html(table.prettify())[0]
     else:
         ret = table
     return ret

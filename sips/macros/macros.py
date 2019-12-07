@@ -1,8 +1,5 @@
 # Heavily referenced data
-import sips
 
-PROJ_DIR = sips.__path__[0] + "/"
-PARENT_DIR = PROJ_DIR + "../"
 
 SPORT_TO_SUFFIX = {
     "nfl": "football/nfl",
@@ -12,3 +9,7 @@ SPORT_TO_SUFFIX = {
     "college-football": "football/college-football",
     "college-basketball": "basketball/college-basketball",
 }
+import sips
+
+PROJ_DIR = sips.__path__[0] + "/"
+PARENT_DIR = PROJ_DIR + "../"

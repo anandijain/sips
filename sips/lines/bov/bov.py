@@ -14,6 +14,7 @@ def lines(sports, output="df", parse=True, all_mkts=False, verbose=False):
     """
     returns either a dictionary or list
     dictionary - (game_id, row)
+
     """
     events = u.sports_to_events(sports, all_mkts=all_mkts)
 
@@ -49,6 +50,7 @@ def single_game_line(
     basketball/nba/
     detroit-pistons-washington-wizards-
     201911041910
+    
     """
 
     a_tm, h_tm = [team.lower().replace(" ", "-") for team in [a_team, h_team]]

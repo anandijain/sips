@@ -1,3 +1,6 @@
+"""
+
+"""
 import pandas as pd
 import numpy as np
 
@@ -8,7 +11,8 @@ from sips.h import helpers as h
 def hot_list(strings, output="np"):
     """
     given a list of strings it will return a dict
-    string : one hotted np array 
+    string : one hotted np array
+
     """
     str_set = set(strings)
     length = len(str_set)
@@ -65,6 +69,7 @@ def hot_sports_dict():
 def hot_bool_dict(row):
     """
     row type pd.series (row of dataframe)
+
     """
     hot_mkt = np.array([1, 0]) if row.live else np.array([0, 1])
     return hot_mkt
@@ -88,7 +93,7 @@ def all_hot_maps(sports=["nba"], output="dict"):
     return hot_maps
 
 
-def hot(df, hot_maps, drop_cold=True, ret_hots_only=False):
+def hot(df, hot_maps, drop_cold=True, ret_hots_only=False, verbose=False):
     """
     df: pd.DataFrame
     hot_maps: list(dict)
@@ -97,7 +102,11 @@ def hot(df, hot_maps, drop_cold=True, ret_hots_only=False):
             value: one_hot vector for unique row value
     ---
     returns dataframe 
+
     """
+    if verbose:
+        print(f"hot_df cols: {df.columns}")
+
     ret = []
     for i, (col_name, hot_map) in enumerate(hot_maps.items()):
         ret.append(hot_col(df[col_name], hot_map))
@@ -122,6 +131,7 @@ def hot_col(col, hot_map, on_keyerror="skip"):
     on_keyerror: str 
         one in ['skip', 'set_zero']
     iterates over rows of a column and serializes the 
+
     """
 
     hot_cols = list(hot_map.keys())

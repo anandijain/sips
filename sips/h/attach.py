@@ -1,3 +1,7 @@
+"""
+
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -41,12 +45,12 @@ def ml_transitions(game, attach=True, verbose=False):
 
 def wins(dfs, verbose=True):
     """
+    given serialized dfs, append win labels
 
     """
     dfs_w_wins = []
     total_games = len(dfs)
     skipped = 0
-    sdfs = s.serialize_dfs(dfs, dont_hot=True, to_numpy=False)
     for df in dfs:
         if not df.empty:
             with_labels = win(df)
@@ -112,13 +116,13 @@ def profit(df):
     """
     h_mls = df.h_ml
     a_mls = df.a_ml
-    status = df.status
+    statuses = df.status
     h_profs = []
     a_profs = []
     h_init = None
     a_init = None
-    for i in range(len(status)):
-        if status[i] == "IN_PROGRESS":
+    for i, status in enumerate(statuses):
+        if status == "IN_PROGRESS":
             if df.a_ml.iloc[i] != "None":
                 a_init = df.a_ml.iloc[i]
                 if a_init == "EVEN":
@@ -159,6 +163,10 @@ def profit(df):
 
 
 def attach_all(df):
+    """
+    attach multiple heuristic labels
+
+    """
     fxns = [wins]  # , ml_transitions, profit]
     for fxn in fxns:
         if df is None:
@@ -168,8 +176,7 @@ def attach_all(df):
     return df
 
 
-def test_attach_all():
-    dfs = h.get_dfs()
+def dfs_attach_all(dfs):
     all_attached = []
     for df in dfs:
         if df.empty:
@@ -184,10 +191,12 @@ def test_attach_all():
 
 if __name__ == "__main__":
     in_cols = bm.TO_SERIALIZE
-    dfs = test_attach_all()
+    dfs = h.get_dfs()
+    dfs = dfs_attach_all(dfs)
     print(dfs[0].columns)
     print(dfs[0])
-    sXs, sYs = s.serialize_dfs(
+
+    serialized_Xs, serialized_Ys = s.serialize_dfs(
         dfs,
         in_cols=in_cols,
         label_cols=["a_win", "h_win"],

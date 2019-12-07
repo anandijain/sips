@@ -1,21 +1,59 @@
+"""
+requesting and parsing data with requests, bs4, and pandas
+
+"""
+from concurrent.futures import ThreadPoolExecutor
 import time
+
 import pandas as pd
 import bs4
 import requests as r
 from requests_futures.sessions import FuturesSession
-from concurrent.futures import ThreadPoolExecutor
+
+from sips.h import parse
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
-def get_page(link):
-    # request and bs4 parse html
+def comments(link: str, verbose=False):
+    """
+    given a link, returns bs4 parsed html including commented sections
+
+    """
+    page_no_comments = page(link)
+    page_comments = parse.comments(
+        page_no_comments, join=True, to_soup=False, verbose=verbose
+    )
+
+    both = str(page_no_comments) + page_comments
+    page_with_comments = bs4.BeautifulSoup(both, "html.parser")
+
+    if verbose:
+        print(f"page and comments: {page_with_comments}")
+
+    return page_with_comments
+
+
+def page(link: str):
+    """
+    request and bs4 parse html
+
+    """
+    req = req_text(link)
+    soup = bs4.BeautifulSoup(req, "html.parser")
+    return soup
+
+
+def req_text(link: str) -> str:
+    """
+    request link and get text
+
+    """
     req = r.get(link, headers=HEADERS).text
-    p = bs4.BeautifulSoup(req, "html.parser")
-    return p
+    return req
 
 
-def get_pages(links, output="list", verbose=False):
+def pages(links, output="list", verbose=False):
     """
     Get a list of links using requests and bs4.
 
@@ -28,11 +66,11 @@ def get_pages(links, output="list", verbose=False):
 
     """
     if output == "list":
-        pages = [get_page(l) for l in links]
+        pages = [page(l) for l in links]
     elif output == "dict":
-        pages = {l: get_page(l) for l in links}
+        pages = {l: page(l) for l in links}
     else:
-        pages = f"get_pages output type: {output} unsupported"
+        pages = f"pages output type: {output} unsupported"
 
     if verbose:
         print(pages)
@@ -41,13 +79,20 @@ def get_pages(links, output="list", verbose=False):
 
 
 def reqs_json(urls, sleep=0.5, verbose=False):
-    # simple list concat on req_json
+    """
+    simple list concat on req_json
+
+    """
     jsons = [req_json(url) for url in urls]
     return jsons
 
 
 def req_json(url, sleep=0.5, verbose=False):
-    # requests.get with some try excepts
+    """
+    requests.get with some try excepts
+
+    """
+
     try:
         req = r.get(url, headers=HEADERS, timeout=10)
     except:
@@ -71,6 +116,7 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
     asyncronous request of list of links
 
     Todo: depr
+
     """
     if not session:
         session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
@@ -86,24 +132,32 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
     return jsons
 
 
-def get_table(link, table_ids, to_pd=True):
+def get_table(link: str, table_ids: list, to_pd=True):
+    """
+    given a link, parses w/ bs4 and returns tables with table_id
+
+    """
+
     tables = [
-        pd.read_html(get_page(link).find("table", {"id": table_id}).prettify())
+        pd.read_html(page(link).find("table", {"id": table_id}).prettify())
         if to_pd
-        else get_page(link).find("table", {"id": table_id})
+        else page(link).find("table", {"id": table_id})
         for table_id in table_ids
     ]
 
     # handy
     if len(tables) == 1:
         tables = tables[0]
+
     return tables
 
 
-def get_tables(links, table_ids, to_pd=True, flatten=False):
+def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
     """
+    get tables from a list of links
 
     """
+
     all_tables = []
     for link in links:
         tables = [get_table(link, table_ids, to_pd=to_pd) for link in links]
@@ -112,3 +166,7 @@ def get_tables(links, table_ids, to_pd=True, flatten=False):
         else:
             all_tables.append(tables)
     return tables
+
+
+if __name__ == "__main__":
+    pass
