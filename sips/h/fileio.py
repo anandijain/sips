@@ -45,7 +45,7 @@ def append_csv(fn: str, df: pd.DataFrame):
         df.to_csv(f, header=False)
 
 
-def get_fns(directory):
+def get_fns_generator(directory):
     """
     return the absolute file paths of a directory
 
@@ -53,3 +53,12 @@ def get_fns(directory):
     for dirpath, _, filenames in os.walk(directory):
         for file_name in filenames:
             yield os.path.abspath(os.path.join(dirpath, file_name))
+
+
+def get_fns(directory):
+    """
+    return the absolute file paths of a directory
+
+    """
+    fns_generator = get_fns_generator(directory)
+    return list(fns_generator)
