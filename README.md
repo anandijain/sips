@@ -12,25 +12,27 @@ cd sips
 pip install -e . [--user]
 ```
 
-## usages:
+## USAGE
 
-1. gather data
+1. get data
 
     ```python
     from sips.lines import lines
     lines.Lines()
+    # or
+    from sips.lines.bov import bov
+    bov.lines(['nba'])
     ```
 
 2. train on data
 
     - place lines.py CSVs in sips/data/lines
-    - go to sips/ml/ and `python tf_lstm.py`
+    - go to sips/ml/ and `python ml_pred.py`
 
-## TODO
-
-
-## CHANGELOG
+## CHANGELOG / ROADMAP
 
 1. the sports-reference api has been largely revamped
 
-2. 
+2. preparing for pypi release
+
+3. post will be moved to separate repo and have sips as dependency
