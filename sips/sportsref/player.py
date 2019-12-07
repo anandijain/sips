@@ -12,6 +12,7 @@ from sips.h import parse
 
 from sips.macros import sports_ref as sref
 from sips.sportsref import utils as sru
+from sips.macros import macros as m
 
 
 divs = {
@@ -40,7 +41,8 @@ def player_section_links(sport: str) -> list:
         p = grab.page(prefix)
         index = p.find("ul", {"class": "page_index"})
         a_tags = index.find_all("a")
-        section_links = [sref.FB_NS + a_tag["href"] for a_tag in a_tags if a_tag]
+        section_links = [sref.FB_NS + a_tag["href"]
+                         for a_tag in a_tags if a_tag]
     else:
         section_links = [prefix + letter for letter in sref.LETTERS]
 
@@ -75,7 +77,7 @@ def player_links(
 
     """
     rows = []
-    path = sips.PARENT_DIR + "data/" + sport + "/players/" + fn
+    path = m.PARENT_DIR + "data/" + sport + "/players/" + fn
     section_links = player_section_links(sport)
     ps = grab.pages(section_links, output="dict")
 
@@ -137,7 +139,7 @@ def players(sport: str, table_ids: list):
     """
 
     """
-    path = sips.PARENT_DIR + "data/" + sport + "/players/"
+    path = m.PARENT_DIR + "data/" + sport + "/players/"
     links_df = pd.read_csv(path + "index.csv")
 
     links = links_df.link

@@ -19,7 +19,7 @@ from sips.macros import bov as bm
 def test_get_and_window():
 
     columns = ["a_pts", "h_pts", "quarter", "secs"]
-    dfs = h.get_dfs(sips.PARENT_DIR + "data/lines/lines/")
+    dfs = h.get_dfs(m.PARENT_DIR + "data/lines/lines/")
 
     sets = [
         h.window_multivariate(

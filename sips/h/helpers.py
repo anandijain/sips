@@ -8,19 +8,19 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
-import sips
+from sips.macros import macros as m
 
 from sips.h import fileio as fio
 
 
-def get_dfs(to_read=None, output="list"):
+def get_dfs(to_read=None, dict_key=None, output="list"):
     """
     to_read is one of:
         - list of *full* file names 
         - path to folder 
     """
     if not to_read:
-        to_read = sips.PARENT_DIR + "data/lines/lines/"
+        to_read = m.PARENT_DIR + "data/lines/lines/"
 
     if isinstance(to_read, str):
         to_read = fio.get_fns(to_read)
@@ -28,7 +28,13 @@ def get_dfs(to_read=None, output="list"):
     if output == "list":
         dfs = [pd.read_csv(fn) for fn in to_read]
     elif output == "dict":
-        dfs = {fn.split("/")[-1]: pd.read_csv(fn) for fn in to_read}
+        dfs = {}
+        if not dict_key:
+            dict_key = 'game_id'
+        for fn in to_read:
+            df = pd.read_csv(fn)
+            key = df[dict_key].iloc[0]
+            dfs[key] = df
 
     return dfs
 

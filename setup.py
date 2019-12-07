@@ -16,5 +16,6 @@ setup(
         "requests-futures",
         "google-cloud-profiler",
         "lxml",
+        "flask"
     ],  # external packages as dependencies
 )

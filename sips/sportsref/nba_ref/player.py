@@ -6,6 +6,7 @@ from sips.h import grab
 from sips.h import parse
 from sips.sportsref import player
 from sips.sportsref import utils as sru
+from sips.macros import macros as m
 
 
 def player_links(write=True):
@@ -45,7 +46,7 @@ def player_links(write=True):
     all_players = pd.DataFrame(player_rows, columns=["name", "id", "link"])
 
     if write:
-        all_players.to_csv(sips.PARENT_DIR + "data/nba/players/index.csv")
+        all_players.to_csv(m.PARENT_DIR + "data/nba/players/index.csv")
 
     return all_players
 

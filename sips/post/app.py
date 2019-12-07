@@ -25,9 +25,12 @@ from flask import Flask, Response, request, render_template
 # sdfs = s.serialize_dfs(
 #     dfs, in_cols=["sport", "game_id", "last_mod", "a_team", "h_team", "status",  "a_ml", "h_ml"], norm=False, to_numpy=False
 # )
-model = tf.saved_model.load(
-    "/home/sippycups/absa/sips/logs/models/1_3020191205-143620.pb"
+try:
+    model = tf.saved_model.load(
+        "/home/sippycups/absa/sips/logs/models/1_3020191205-143620.pb"
 )
+except:
+    pass
 dfs = h.get_dfs()
 sdfs = s.serialize_dfs(
     dfs, norm=False, to_numpy=False, dont_hot=True, output_type="dict"
