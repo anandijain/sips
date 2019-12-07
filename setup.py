@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="sips",
-    version="0.15",
+    version="0.14.1",
     description="tools for quantitative sports analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -22,7 +22,7 @@ setup(
         "requests-futures",
         "google-cloud-profiler",
         "lxml",
-        "flask"
+        "flask",
     ],  # external packages as dependencies
-    python_requires='>=3.6'
+    python_requires=">=3.6",
 )

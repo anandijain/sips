@@ -10,22 +10,22 @@ from sips.h import helpers as h
 
 
 def serialize_dfs(
-        dfs,
-        in_cols=None,
-        label_cols=None,
-        replace_dict=None,
-        hot_maps=None,
-        to_numpy=True,
-        norm=False,
-        astype=None,
-        dropna=True,
-        filter_empty=True,
-        dont_hot=False,
-        drop_labels=True,
-        drop_extra_cols=["a_ou", "h_ou"],
-        drop_cold=True,
-        output_type="list",
-        verbose=False,
+    dfs,
+    in_cols=None,
+    label_cols=None,
+    replace_dict=None,
+    hot_maps=None,
+    to_numpy=True,
+    norm=False,
+    astype=None,
+    dropna=True,
+    filter_empty=True,
+    dont_hot=False,
+    drop_labels=True,
+    drop_extra_cols=["a_ou", "h_ou"],
+    drop_cold=True,
+    output_type="list",
+    verbose=False,
 ):
     """
     Multipurpose conversion of multi-datatype DataFrames into numbers.
@@ -116,21 +116,21 @@ def serialize_dfs(
 
 
 def serialize_df(
-        df,
-        in_cols=None,
-        label_cols=None,
-        replace_dict=None,
-        hot_maps=None,
-        to_numpy=True,
-        norm=False,
-        astype=None,
-        dropna=True,
-        dont_hot=False,
-        drop_labels=True,
-        drop_extra_cols=["a_ou", "h_ou"],
-        drop_cold=True,
-        output_type="list",  # list or dict
-        verbose=False,
+    df,
+    in_cols=None,
+    label_cols=None,
+    replace_dict=None,
+    hot_maps=None,
+    to_numpy=True,
+    norm=False,
+    astype=None,
+    dropna=True,
+    dont_hot=False,
+    drop_labels=True,
+    drop_extra_cols=["a_ou", "h_ou"],
+    drop_cold=True,
+    output_type="list",  # list or dict
+    verbose=False,
 ):
     """
     Multipurpose conversion of multi-datatype DataFrame into numbers.

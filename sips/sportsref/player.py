@@ -41,8 +41,7 @@ def player_section_links(sport: str) -> list:
         p = grab.page(prefix)
         index = p.find("ul", {"class": "page_index"})
         a_tags = index.find_all("a")
-        section_links = [sref.FB_NS + a_tag["href"]
-                         for a_tag in a_tags if a_tag]
+        section_links = [sref.FB_NS + a_tag["href"] for a_tag in a_tags if a_tag]
     else:
         section_links = [prefix + letter for letter in sref.LETTERS]
 

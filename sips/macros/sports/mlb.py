@@ -77,5 +77,5 @@ mlb_csv_columns = [
     "at_bat",
     "wwpa",
     "wwe",
-    "desc"
+    "desc",
 ]

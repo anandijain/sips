@@ -21,8 +21,9 @@ def comments(link: str, verbose=False):
 
     """
     page_no_comments = page(link)
-    page_comments = parse.comments(page_no_comments, join=True,
-                                   to_soup=False, verbose=verbose)
+    page_comments = parse.comments(
+        page_no_comments, join=True, to_soup=False, verbose=verbose
+    )
 
     both = str(page_no_comments) + page_comments
     page_with_comments = bs4.BeautifulSoup(both, "html.parser")
@@ -118,8 +119,7 @@ def async_req(links, output="list", session=None, max_workers=10, key=None):
 
     """
     if not session:
-        session = FuturesSession(
-            executor=ThreadPoolExecutor(max_workers=max_workers))
+        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
 
     jsons = [session.get(link).result().json() for link in links]
     if output == "dict":

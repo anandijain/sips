@@ -34,10 +34,10 @@ def summaries(
 
 
 def summary(
-        df: pd.DataFrame,
-        columns=["a_ml", "h_ml", "a_hcap", "h_hcap", "a_ps", "h_ps"],
-        summ_cols=None,
-        output="list"
+    df: pd.DataFrame,
+    columns=["a_ml", "h_ml", "a_hcap", "h_hcap", "a_ps", "h_ps"],
+    summ_cols=None,
+    output="list",
 ):
     """
     takes a dataframe of lines and returns a single row dataframe or list

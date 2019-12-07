@@ -592,10 +592,10 @@ def bov_all_dict(verbose=False):
             continue
         event_dict = parse_display_groups(event)
         all_dict[desc] = event_dict
-    
+
     if verbose:
-        print(f'desc: {desc}')
-        print(f'all_dict: {all_dict}')
+        print(f"desc: {desc}")
+        print(f"all_dict: {all_dict}")
 
     return all_dict
 

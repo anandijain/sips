@@ -31,11 +31,9 @@ def show_plot(plot_data, delta, title):
     plt.title(title)
     for i, x in enumerate(plot_data):
         if i:
-            plt.plot(future, plot_data[i], marker[i],
-                     markersize=10, label=labels[i])
+            plt.plot(future, plot_data[i], marker[i], markersize=10, label=labels[i])
         else:
-            plt.plot(time_steps, plot_data[i].flatten(
-            ), marker[i], label=labels[i])
+            plt.plot(time_steps, plot_data[i].flatten(), marker[i], label=labels[i])
 
     plt.legend()
     plt.xlim([time_steps[0], (future + 5) * 2])

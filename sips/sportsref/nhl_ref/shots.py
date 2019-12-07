@@ -25,7 +25,7 @@ def grab(link, fn=None):
     if len(divs) == 0:
         return None
 
-    rows = utils.divs_to_arr(divs, 'nhl')
+    rows = utils.divs_to_arr(divs, "nhl")
 
     df = utils.cat_id(rows, game_id)
     # df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
@@ -92,4 +92,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

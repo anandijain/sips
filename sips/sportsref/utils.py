@@ -37,7 +37,7 @@ def divs_to_arr(divs, sport):
     return rows
 
 
-def arr_row(div, sport:str):
+def arr_row(div, sport: str):
     """
     game_id, x, y, shot_type, title, player
 
@@ -48,11 +48,8 @@ def arr_row(div, sport:str):
     return [x, y, type, title, player]
 
 
-def div_coords(div, sport:str):
-    div_dict = {
-        'nhl': div_coords_nhl(div),
-        'nba': div_coords_nba(div)
-    }
+def div_coords(div, sport: str):
+    div_dict = {"nhl": div_coords_nhl(div), "nba": div_coords_nba(div)}
     return div_dict[sport]
 
 

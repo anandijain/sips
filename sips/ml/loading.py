@@ -17,12 +17,12 @@ import sips.h.calc as c
 
 
 def transition_datasets_from_folder(
-        folder=tfm.READ_FROM,
-        hot_maps=None,
-        history_size=1,
-        pred_size=1,
-        batch_size=1,
-        single_step=False,
+    folder=tfm.READ_FROM,
+    hot_maps=None,
+    history_size=1,
+    pred_size=1,
+    batch_size=1,
+    single_step=False,
 ):
     """
 
@@ -62,16 +62,16 @@ def prep_game_dataset(df, hot_maps=None):
 
 
 def prediction_data_from_folder(
-        folder=tfm.READ_FROM,
-        in_cols=None,
-        label_cols=["a_ml", "h_ml"],
-        batch_size=1,
-        buffer_size=1,
-        history_size=10,
-        pred_size=2,
-        step_size=1,
-        norm=True,
-        verbose=False,
+    folder=tfm.READ_FROM,
+    in_cols=None,
+    label_cols=["a_ml", "h_ml"],
+    batch_size=1,
+    buffer_size=1,
+    history_size=10,
+    pred_size=2,
+    step_size=1,
+    norm=True,
+    verbose=False,
 ):
     """
 
@@ -103,12 +103,12 @@ def prediction_data_from_folder(
 
 
 def serialized_to_datasets(
-        train_df_vals,
-        train_df_labs,
-        history_size=1,
-        pred_size=1,
-        batch_size=1,
-        single_step=False,
+    train_df_vals,
+    train_df_labs,
+    history_size=1,
+    pred_size=1,
+    batch_size=1,
+    single_step=False,
 ):
     """
 

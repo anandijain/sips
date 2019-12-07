@@ -12,10 +12,6 @@ from sips.macros import macros as m
 from sips.macros import bov as bm
 
 
-
-
-
-
 def test_get_and_window():
 
     columns = ["a_pts", "h_pts", "quarter", "secs"]

@@ -7,7 +7,7 @@ from numbers import Number
 from sips.h.bet_hedge import Bet, Hedge
 
 
-def kelly(win_pct:float, eq_odd:float) -> float:
+def kelly(win_pct: float, eq_odd: float) -> float:
     return (win_pct * eq_odd - (1 - win_pct)) / eq_odd
 
 
@@ -85,7 +85,7 @@ def hedge_amt(bet, cur_odds):
         return (bet.amt * (eq(bet.h_odds) + 1)) / (eq(cur_odds[0]) + 1)
 
 
-def net_given_odds(bet:Bet, cur_odds):
+def net_given_odds(bet: Bet, cur_odds):
     """
     given a bet:Bet and the current odds, calculate net
 

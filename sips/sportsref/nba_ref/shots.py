@@ -1,6 +1,6 @@
 import pandas as pd
 
-from sips.h import grab 
+from sips.h import grab
 from sips.h import fileio
 from sips.sportsref import utils
 
@@ -8,7 +8,7 @@ root = "https://www.basketball-reference.com"
 link = root + "/boxscores/shot-chart/201910220TOR.html"
 
 
-def grab_charts(link:str):
+def grab_charts(link: str):
     """
     given a link to a hockey-reference boxscore, 
     returns div, class: shotchart
@@ -28,7 +28,7 @@ def boxlinks():
     return sfxs
 
 
-def link_to_charts_df(link:str, fn=None):
+def link_to_charts_df(link: str, fn=None):
     """
     df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
 
@@ -40,7 +40,7 @@ def link_to_charts_df(link:str, fn=None):
     if len(divs) == 0:
         return None
 
-    rows = utils.divs_to_arr(divs, 'nba')
+    rows = utils.divs_to_arr(divs, "nba")
 
     df = utils.cat_id(rows, game_id)
 

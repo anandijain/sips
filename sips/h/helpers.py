@@ -30,7 +30,7 @@ def get_dfs(to_read=None, dict_key=None, output="list"):
     elif output == "dict":
         dfs = {}
         if not dict_key:
-            dict_key = 'game_id'
+            dict_key = "game_id"
         for fn in to_read:
             df = pd.read_csv(fn)
             try:
@@ -44,14 +44,14 @@ def get_dfs(to_read=None, dict_key=None, output="list"):
 
 
 def window_multivariate(
-        dataset,
-        target,
-        start_index=0,
-        end_index=None,
-        history_size=1,
-        target_size=1,
-        step=1,
-        single_step=False,
+    dataset,
+    target,
+    start_index=0,
+    end_index=None,
+    history_size=1,
+    target_size=1,
+    step=1,
+    single_step=False,
 ):
     """
     create sliding window tuples for training nns on multivar timeseries
@@ -71,7 +71,7 @@ def window_multivariate(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i: i + target_size]
+            label = target[i : i + target_size]
 
         labels.append(label)
 

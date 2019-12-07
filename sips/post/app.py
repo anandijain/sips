@@ -28,7 +28,7 @@ from flask import Flask, Response, request, render_template
 try:
     model = tf.saved_model.load(
         "/home/sippycups/absa/sips/logs/models/1_3020191205-143620.pb"
-)
+    )
 except:
     pass
 dfs = h.get_dfs()

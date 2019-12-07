@@ -4,14 +4,14 @@ from sips.macros import bov as bm
 
 
 def train_step_classify(
-        model,
-        optimizer,
-        loss_object,
-        x_train,
-        y_train,
-        train_loss,
-        train_accuracy,
-        verbose=False,
+    model,
+    optimizer,
+    loss_object,
+    x_train,
+    y_train,
+    train_loss,
+    train_accuracy,
+    verbose=False,
 ):
     """
 

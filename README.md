@@ -1,4 +1,4 @@
-# sips 0.15
+# sips 0.14.1
 
 setup:
 
@@ -24,10 +24,10 @@ pip install -e . [--user]
     bov.lines(['nba'])
     ```
 
-2. train on data
+2. train LSTM predictor on data
 
-    - place lines.py CSVs in sips/data/lines
-    - go to sips/ml/ and `python ml_pred.py`
+    - place `lines.py` output CSVs in `sips/data/lines`
+    - go to `sips/ml/` and `python ml_pred.py`
 
 ## CHANGELOG / ROADMAP
 
@@ -36,3 +36,5 @@ pip install -e . [--user]
 2. preparing for pypi release
 
 3. post will be moved to separate repo and have sips as dependency
+
+4. premature update of master to 0.14.1

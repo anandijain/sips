@@ -36,7 +36,7 @@ def single_game_line(
     sport="basketball/nba",
     a_team="Detroit Pistons",
     h_team="Washington Wizards",
-    game_start_time="201911041910"
+    game_start_time="201911041910",
 ):
     """
     sport: 3-letter sport

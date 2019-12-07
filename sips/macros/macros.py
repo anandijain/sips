@@ -10,5 +10,6 @@ SPORT_TO_SUFFIX = {
     "college-basketball": "basketball/college-basketball",
 }
 import sips
+
 PROJ_DIR = sips.__path__[0] + "/"
 PARENT_DIR = PROJ_DIR + "../"
