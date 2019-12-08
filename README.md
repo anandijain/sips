@@ -1,4 +1,4 @@
-# sips 0.14.1
+# sips 0.14.2
 
 setup:
 
@@ -37,4 +37,6 @@ pip install -e . [--user]
 
 3. post will be moved to separate repo and have sips as dependency
 
-4. premature update of master to 0.14.1
+4. premature update of master to 0.14.2
+
+5. 0.14.2 fixes some relative import problems, could be lingering instability
