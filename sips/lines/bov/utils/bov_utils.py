@@ -141,17 +141,18 @@ def events_from_jsons(jsons):
     return events
 
 
-def rows_from_jsons(jsons):
+def rows_from_jsons(jsons, get_score=True):
     """
     jsons is a list of dictionaries for each sport 
     if rows, return parsed row data instead of list of events
 
     """
-    events = [parse_event(e) for j in jsons for e in events_from_json(j)]
+    events = [parse_event(e, get_score=get_score)
+              for j in jsons for e in events_from_json(j)]
     return events
 
 
-def dict_from_events(events, key="id", rows=True):
+def dict_from_events(events, key="id", get_score=True, rows=True):
     """
     returns a dictionary of (key, event) or (key, list)
 
@@ -159,11 +160,11 @@ def dict_from_events(events, key="id", rows=True):
     rows: (bool)
         - if true, set key-vals to rows
     """
-    event_dict = {e[key]: parse_event(e) if rows else e for e in events}
+    event_dict = {e[key]: parse_event(e, get_score=get_score) if rows else e for e in events}
     return event_dict
 
 
-def parse_event(event, output="list", verbose=False):
+def parse_event(event, output="list", get_score=True, verbose=False):
     """
     parses an event with three markets (spread, ml, total)
     returns list of data following the order in header()
@@ -224,37 +225,62 @@ def parse_event(event, output="list", verbose=False):
                 None for _ in range(7)
             ]
 
-    score_url = bm.BOV_SCORES_URL + game_id
-    score_data = g.req_json(score_url)
-    quarter, secs, a_pts, h_pts, status = scores.score(score_data)
+    if get_score:
+        score_url = bm.BOV_SCORES_URL + game_id
+        score_data = g.req_json(score_url)
 
-    ret = [
-        sport,
-        game_id,
-        a_team,
-        h_team,
-        last_mod,
-        num_markets,
-        live,
-        quarter,
-        secs,
-        a_pts,
-        h_pts,
-        status,
-        a_ps,
-        h_ps,
-        a_hcap,
-        h_hcap,
-        a_ml,
-        h_ml,
-        a_tot,
-        h_tot,
-        a_hcap_tot,
-        h_hcap_tot,
-        a_ou,
-        h_ou,
-        game_start_time,
-    ]
+        quarter, secs, a_pts, h_pts, status = scores.score(score_data)
+
+        ret = [
+            sport,
+            game_id,
+            a_team,
+            h_team,
+            last_mod,
+            num_markets,
+            live,
+            quarter,
+            secs,
+            a_pts,
+            h_pts,
+            status,
+            a_ps,
+            h_ps,
+            a_hcap,
+            h_hcap,
+            a_ml,
+            h_ml,
+            a_tot,
+            h_tot,
+            a_hcap_tot,
+            h_hcap_tot,
+            a_ou,
+            h_ou,
+            game_start_time,
+        ]
+    else:
+        ret = [
+            sport,
+            game_id,
+            a_team,
+            h_team,
+            last_mod,
+            num_markets,
+            live,
+            a_ps,
+            h_ps,
+            a_hcap,
+            h_hcap,
+            a_ml,
+            h_ml,
+            a_tot,
+            h_tot,
+            a_hcap_tot,
+            h_hcap_tot,
+            a_ou,
+            h_ou,
+            game_start_time,
+        ]
 
     return ret
 

@@ -65,11 +65,11 @@ def lines():
     """
 
     """
-    df = bov.lines(["nba"])
-    sdf = s.serialize_df(df, label_cols=["a_ml", "h_ml"], to_numpy=False)
-    X = sdf[0].to_html(header="true", table_id="lines")
-    Y = sdf[1].to_html(header="true", table_id="lines")
-    return X
+    df = bov.lines(["nba", "nfl"])
+    # sdf = s.serialize_df(df, label_cols=["a_ml", "h_ml"], to_numpy=False)
+    # X = sdf[0].to_html(header="true", table_id="lines")
+    # Y = sdf[1].to_html(header="true", table_id="lines")
+    return df.to_html(header="true", table_id="lines")
 
 
 @app.route("/preds")

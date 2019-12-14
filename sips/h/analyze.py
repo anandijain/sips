@@ -14,8 +14,12 @@ def classify_transition(prev_mls, cur_mls):
     a_prev, h_prev = prev_mls
     a_cur, h_cur = cur_mls
 
-    propositions = directional_transitions(a_prev, a_cur, h_prev, h_cur)
-    ret = np.zeros(len(propositions))
+    ret = np.zeros(9)
+
+    if not a_prev or not h_prev or not a_cur or not h_cur:
+        return ret
+
+    propositions = directional_transitions_no_closes(float(a_prev), float(a_cur), float(h_prev), float(h_cur))
 
     for i, phi in enumerate(propositions):
         if phi:
@@ -43,6 +47,26 @@ def directional_transitions(a1, a2, h1, h2):
         ((a1 and a2 == -1) and (h1 > h2)),
         ((a1 < a2) and (h1 and h2 == -1)),
         ((a1 > a2) and (h1 and h2 == -1)),
+        # directionals
+        (a1 == a2 and h1 == h2),
+        (a1 < a2 and h1 == h2),
+        (a1 > a2 and h1 == h2),
+        (a1 == a2 and h1 < h2),
+        (a1 == a2 and h1 > h2),
+        (a1 < a2 and h1 < h2),
+        (a1 > a2 and h1 > h2),
+        (a1 < a2 and h1 > h2),
+        (a1 > a2 and h1 < h2),
+    ]
+    return propositions
+
+
+def directional_transitions_no_closes(a1, a2, h1, h2):
+    """
+    classification of the movement of lines where -1 is closed
+    """
+    # how to metaprogram the enumeration of combinations given binary relations
+    propositions = [
         # directionals
         (a1 == a2 and h1 == h2),
         (a1 < a2 and h1 == h2),
