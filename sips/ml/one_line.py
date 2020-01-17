@@ -8,11 +8,13 @@ import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
-
+PATH = './one_liner.pth'
 DIR = '/home/sippycups/absa/sips/data/nba/'
 FILES = ['nba_history_with_stats.csv', 'nba_history.csv']
 '/home/sippycups/absa/sips/data/nba/nba_history_with_stats.csv'
+
 COLS = ['Home_team_gen_avg_3_point_attempt_rate',
         'Home_team_gen_avg_3_pointers_attempted',
         'Home_team_gen_avg_3_pointers_made',
@@ -31,6 +33,7 @@ COLS = ['Home_team_gen_avg_3_point_attempt_rate',
         'Away_team_gen_avg_defensive_rating',
         'Away_team_gen_avg_defensive_rebound_percentage',
         'Away_team_gen_avg_defensive_rebounds']
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -82,7 +85,7 @@ def load_data(batch_size=1, verbose=False):
     m = m.select_dtypes(exclude=['object'])
     m = m.apply(pd.to_numeric, errors='coerce')
     # m = m.drop(['A_team_x', 'Game_id', 'H_team_x', 'A_plus_minus',
-                # 'A_team_y', 'Arena', 'H_plus_minus', 'H_team_y', 'Time'], axis=1)
+    # 'A_team_y', 'Arena', 'H_plus_minus', 'H_team_y', 'Time'], axis=1)
     # m = m[COLS]
     target.columns = ['H_win', 'A_win']
     m = (m-m.mean())/m.std()
@@ -92,11 +95,19 @@ def load_data(batch_size=1, verbose=False):
     return m, target
 
 
+def infer():
+    net = Net()
+    net.load_state_dict(torch.load(PATH))
+
+
 if __name__ == "__main__":
 
     net = Net()
     dataset = OneLiner()
-
+    # default `log_dir` is "runs" - we'll be more specific here
+    writer = SummaryWriter('runs/one_liner0')
+    # writer.add_graph(net, images)
+    # writer.close()
     for i in range(len(dataset)):
         sample = dataset[i]
 
@@ -126,7 +137,7 @@ if __name__ == "__main__":
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
+            writer.add_scalar('train_loss', loss, i + epoch*len(dataloader))
             # print statistics
             running_loss += loss.item()
             if i % 2000 == 1999:    # print every 2000 mini-batches
@@ -135,3 +146,5 @@ if __name__ == "__main__":
                 running_loss = 0.0
 
     print('Finished Training')
+
+    torch.save(net.state_dict(), PATH)
