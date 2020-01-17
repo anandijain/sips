@@ -5,12 +5,14 @@ __pycache__/
 *.csv
 *.pyc
 *.json
+*.pth
 .vscode
 
 local/
 data/
 models/
 logs/
+runs/ 
 
 sips.egg-info/
 sips/gym_sip/gym_sip.egg-info
