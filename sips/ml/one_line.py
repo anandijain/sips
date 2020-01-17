@@ -95,9 +95,10 @@ def load_data(batch_size=1, verbose=False):
     return m, target
 
 
-def infer():
+def load_pretrained():
     net = Net()
     net.load_state_dict(torch.load(PATH))
+    return net
 
 
 if __name__ == "__main__":
