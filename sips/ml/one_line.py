@@ -1,6 +1,9 @@
 import time
+
 import pandas as pd
 import numpy as np
+
+import sklearn
 
 import torch
 import torchvision.transforms as transforms
@@ -47,6 +50,7 @@ class Model(nn.Module):
         self.fc5 = nn.Linear(100, 10)
         self.fc6 = nn.Linear(10, 2)
         self.softmax = nn.Softmax(dim=1)
+
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -58,26 +62,27 @@ class Model(nn.Module):
             x = self.softmax(self.fc6(x))
         else:
             x = F.relu(self.fc6(x))
-        
+
         return x
 
 
 class OneLiner(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, shuffle=True, verbose=True):
         """
 
         """
         if not data:
-            xs, ys = load_data(verbose=True)
-        print(xs)
+            xs, ys = load_data(shuffle=shuffle, verbose=verbose)
         self.xs = torch.tensor(xs.values)
-        # print(self.xs)
         self.ys = torch.tensor(ys.values, dtype=torch.long)
-        print(self.ys.shape)
         self.length = len(self.xs)
-        print(self.length)
+
+        if verbose:
+            print(xs)
+            print(self.ys.shape)
+            print(self.length)
 
     def __len__(self):
         return self.length
@@ -87,12 +92,16 @@ class OneLiner(Dataset):
         return {'x': self.xs[idx], 'y': self.ys[idx]}
 
 
-def load_data(batch_size=1, norm=True, verbose=False):
+def load_data(shuffle=False, batch_size=1, norm=True, verbose=False):
     """
 
     """
     df, df2 = [pd.read_csv(DIR + f) for f in FILES]
     m = df.merge(df2, left_on='Game_id', right_on='Game_id', how='outer')
+
+    if shuffle:
+        m = sklearn.utils.shuffle(m)
+
     m = m.fillna(0)
     target = m.pop('H_win')
 
@@ -102,7 +111,7 @@ def load_data(batch_size=1, norm=True, verbose=False):
     target.columns = ['H_win', 'A_win']
 
     if norm:
-        m = (m-m.mean())/m.std() 
+        m = (m-m.mean())/m.std()
 
     if verbose:
         print(f'xs: {m}, target: {target}')
@@ -142,17 +151,16 @@ def prep():
         break
 
     d = {
-        'dataset' : dataset,
+        'dataset': dataset,
         'train_set': train_set,
-        'test_set' : test_set,
+        'test_set': test_set,
         'model': model,
-        'x' : x,
-        'y' : y,
-        'y_hat' : y_hat,
+        'x': x,
+        'y': y,
+        'y_hat': y_hat,
         'loss': loss
     }
     return d
-
 
 
 if __name__ == "__main__":
@@ -166,22 +174,23 @@ if __name__ == "__main__":
     model = Model(dim)
     model.to(device)
     split_idx = len(dataset) // 2
-    test_len = len(dataset) - split_idx 
+    test_len = len(dataset) - split_idx
 
-    train_set, test_set = torch.utils.data.random_split(dataset, [split_idx, test_len]) 
+    train_set, test_set = torch.utils.data.random_split(
+        dataset, [split_idx, test_len])
 
     # default `log_dir` is "runs" - we'll be more specific here
 
     writer = SummaryWriter(f'runs/one_liner_{time.asctime()}')
-    
+
     train_loader = DataLoader(train_set, batch_size=1,
-                            shuffle=True, num_workers=4)
-    
+                              shuffle=True, num_workers=4)
+
     test_loader = DataLoader(test_set, batch_size=1,
-                            shuffle=True, num_workers=4)
+                             shuffle=True, num_workers=4)
 
     Xs, Ys = next(iter(train_loader))
-    
+
     # writer.add_graph(model, Xs)
     # writer.close()
 
@@ -207,9 +216,9 @@ if __name__ == "__main__":
 
             optimizer.zero_grad()
 
-            outputs = model(x.reshape(1, -1).float())
-            
-            loss = criterion(outputs, y)
+            y_hat = model(x.reshape(1, -1).float())
+
+            loss = criterion(y_hat, y)
             loss.backward()
             optimizer.step()
 
@@ -218,23 +227,30 @@ if __name__ == "__main__":
 
             running_loss += loss.item()
             if i % 2000 == 1999:
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 2000))
+                print(f'[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}')
+                print(f'y: {y.item()}, y_hat: {y_hat.item()}')
+
                 running_loss = 0.0
 
         print('testing')
         model.eval()
+
+        running_loss = 0.0
         for j, test_data, in enumerate(test_loader, 0):
-            test_x, test_y = test_data['x'].to(device), test_data['y'].to(device)
+            test_x, test_y = test_data['x'].to(
+                device), test_data['y'].to(device)
+
             optimizer.zero_grad()
 
-            outputs = model(test_x.reshape(1, -1).float())
-            test_loss = criterion(outputs, test_y)
+            test_y_hat = model(test_x.reshape(1, -1).float())
+            test_loss = criterion(test_y_hat, test_y)
 
-            writer.add_scalar('test_loss', test_loss, j + epoch*len(test_loader))
+            writer.add_scalar('test_loss', test_loss,
+                              j + epoch*len(test_loader))
+
             if j % 2000 == 1999:
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, j + 1, running_loss / 2000))
+                print(f'[{epoch + 1}, {j + 1}] loss: {running_loss / 2000}')
+                print(f'test_y: {test_y.item()}, test_y_hat: {test_y_hat.item()}')
                 running_loss = 0.0
 
     print('Finished Training')
