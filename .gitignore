@@ -4,6 +4,7 @@ __pycache__/
 *.out
 *.csv
 *.pyc
+*.json
 .vscode
 
 local/
