@@ -128,7 +128,7 @@ def clean(numbers_only=False, merge_how="inner"):
     merged = df.merge(df2, on="Game_id", how=merge_how)
     print(f"merged {list(merged.columns)}")
     wins = df[['Game_id', 'H_win']]
-    merged = merged.drop(["A_ML", "H_ML"]) # "Game_id", "Date_x", "Date_y"], axis=1)
+    merged = merged.drop(["A_ML", "H_ML"], axis=1) # "Game_id", "Date_x", "Date_y"], axis=1)
 
     if numbers_only:
         merged = merged.apply(pd.to_numeric)  # , errors='coerce')
