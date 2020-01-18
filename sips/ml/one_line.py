@@ -121,21 +121,23 @@ def get_data(fn):
     return X
 
 
-def clean(numbers_only=False, merge_how="inner"):
+def clean(nums_only=False, how="inner", coerce=True):
     df, df2 = [pd.read_csv(f) for f in FILES]
     print(f"df {list(df.columns)}")
     print(f"df2 {list(df2.columns)}")
-    merged = df.merge(df2, on="Game_id", how=merge_how)
+    merged = df.merge(df2, on="Game_id", how=how)
     print(f"merged {list(merged.columns)}")
     wins = df[['Game_id', 'H_win']]
     merged = merged.drop(["A_ML", "H_ML"], axis=1) # "Game_id", "Date_x", "Date_y"], axis=1)
 
-    if numbers_only:
-        merged = merged.apply(pd.to_numeric)  # , errors='coerce')
+    if nums_only:
+        if coerce:
+            merged = merged.apply(pd.to_numeric, errors='coerce')
+        else:
+            merged = merged.apply(pd.to_numeric)
         merged = merged.select_dtypes(exclude=["object"])
         types = df_col_type_dict(merged)
         print(types)
-
 
     print(merged)
     wins = merged.pop("H_win")
