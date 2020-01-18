@@ -40,7 +40,8 @@ app = Flask(__name__)
 
 
 imagenet_class_index = json.load(
-    open('/home/sippycups/absa/sips/sips/post/imagenet_class_index.json'))
+    open("/home/sippycups/absa/sips/sips/post/imagenet_class_index.json")
+)
 
 model = models.densenet121(pretrained=True)
 model.eval()
@@ -84,30 +85,33 @@ def get_prediction(image_bytes):
     return imagenet_class_index[predicted_idx]
 
 
-@app.route("/predict", methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
     """
 
     """
 
-    if request.method == 'POST':
+    if request.method == "POST":
         # we will get the file from the request
-        file = request.files['file']
+        file = request.files["file"]
         # convert that to bytes
         img_bytes = file.read()
         class_id, class_name = get_prediction(image_bytes=img_bytes)
-        return jsonify({'class_id': class_id, 'class_name': class_name})
+        return jsonify({"class_id": class_id, "class_name": class_name})
 
 
 def transform_image(image_bytes):
-    my_transforms = transforms.Compose([transforms.Resize(255),
-                                        transforms.CenterCrop(224),
-                                        transforms.ToTensor(),
-                                        transforms.Normalize(
-                                            [0.485, 0.456, 0.406],
-                                            [0.229, 0.224, 0.225])])
+    my_transforms = transforms.Compose(
+        [
+            transforms.Resize(255),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
     image = Image.open(io.BytesIO(image_bytes))
     return my_transforms(image).unsqueeze(0)
+
 
 @app.route("/<int:game_id>")
 def plot_game(game_id):
@@ -135,21 +139,23 @@ def plot_game(game_id):
     return Response(output.getvalue(), mimetype="image/png")
 
 
-
 app = Flask(__name__)
 imagenet_class_index = json.load(
-    open('/home/sippycups/absa/sips/sips/post/imagenet_class_index.json'))
+    open("/home/sippycups/absa/sips/sips/post/imagenet_class_index.json")
+)
 model = models.densenet121(pretrained=True)
 model.eval()
 
 
 def transform_image(image_bytes):
-    my_transforms = transforms.Compose([transforms.Resize(255),
-                                        transforms.CenterCrop(224),
-                                        transforms.ToTensor(),
-                                        transforms.Normalize(
-                                            [0.485, 0.456, 0.406],
-                                            [0.229, 0.224, 0.225])])
+    my_transforms = transforms.Compose(
+        [
+            transforms.Resize(255),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
     image = Image.open(io.BytesIO(image_bytes))
     return my_transforms(image).unsqueeze(0)
 
@@ -162,16 +168,16 @@ def get_prediction(image_bytes):
     return imagenet_class_index[predicted_idx]
 
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    if request.method == 'POST':
-        file = request.files['file']
+    if request.method == "POST":
+        file = request.files["file"]
         img_bytes = file.read()
         class_id, class_name = get_prediction(image_bytes=img_bytes)
-        return jsonify({'class_id': class_id, 'class_name': class_name})
+        return jsonify({"class_id": class_id, "class_name": class_name})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import webbrowser
 
     host = "0.0.0.0"

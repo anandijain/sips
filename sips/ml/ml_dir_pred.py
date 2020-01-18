@@ -56,7 +56,7 @@ def train_directional_predictor(datasets, test_datasets, NUM_EPOCHS=1):
                 tel, tea = fwd.test_step(
                     model, loss_fxn, xte, yte, test_loss, test_accuracy
                 )
-                print(f'tel: {tel}, tea: {tea}')
+                print(f"tel: {tel}, tea: {tea}")
                 test_step += 1
 
                 with test_summary_writer.as_default():

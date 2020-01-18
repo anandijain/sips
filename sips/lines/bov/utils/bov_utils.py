@@ -147,8 +147,9 @@ def rows_from_jsons(jsons, get_score=True):
     if rows, return parsed row data instead of list of events
 
     """
-    events = [parse_event(e, get_score=get_score)
-              for j in jsons for e in events_from_json(j)]
+    events = [
+        parse_event(e, get_score=get_score) for j in jsons for e in events_from_json(j)
+    ]
     return events
 
 
@@ -160,7 +161,9 @@ def dict_from_events(events, key="id", get_score=True, rows=True):
     rows: (bool)
         - if true, set key-vals to rows
     """
-    event_dict = {e[key]: parse_event(e, get_score=get_score) if rows else e for e in events}
+    event_dict = {
+        e[key]: parse_event(e, get_score=get_score) if rows else e for e in events
+    }
     return event_dict
 
 

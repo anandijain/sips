@@ -19,7 +19,9 @@ def classify_transition(prev_mls, cur_mls):
     if not a_prev or not h_prev or not a_cur or not h_cur:
         return ret
 
-    propositions = directional_transitions_no_closes(float(a_prev), float(a_cur), float(h_prev), float(h_cur))
+    propositions = directional_transitions_no_closes(
+        float(a_prev), float(a_cur), float(h_prev), float(h_cur)
+    )
 
     for i, phi in enumerate(propositions):
         if phi:

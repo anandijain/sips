@@ -10,7 +10,9 @@ from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
 
-def lines(sports:list, output="df", get_score=True, parse=True, all_mkts=False, verbose=False):
+def lines(
+    sports: list, output="df", get_score=True, parse=True, all_mkts=False, verbose=False
+):
     """
     returns either a dictionary or list
     dictionary - (game_id, row)
