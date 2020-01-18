@@ -82,18 +82,15 @@ class Model(nn.Module):
 class OneLiner(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, data=None, norm=True, shuffle=True, verbose=True):
+    def __init__(self, norm=True, shuffle=True, verbose=True):
         """
-
+        
+        TODO: 
+            compare if converting to tensor then indexing is faster than
+            using dict to index by game_id then converting to tensor
         """
-        if not data:
-            xs, ys = load_data(norm=norm, shuffle=shuffle, verbose=verbose)
-
-            self.xs = torch.tensor(xs.values)
-            self.ys = torch.tensor(ys.values, dtype=torch.long)
-        else:
-            self.xs = torch.tensor(data[0].values)
-            self.ys = torch.tensor(data[1].values)
+        self.xs = clean()
+        self.ys = pd.read_csv('wins.csv')
 
         self.length = len(self.xs)
 
@@ -101,13 +98,22 @@ class OneLiner(Dataset):
             print(self.xs)
             print(self.ys.shape)
             print(self.length)
+    
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
+        x = self.xs.iloc[idx]
+        game_id = x.Game_id[0]
+        x = x.drop('Game_id').astype(np.float32)
+        x = torch.tensor(x.values, dtype=torch.float)
+
+        y = self.ys[self.ys['Game_id'] == game_id]
+        print(y)
+        y = torch.tensor(y['H_win'].astype(np.int64).values)
         # x = self.xs.iloc[idx].values
-        return {"x": self.xs[idx], "y": self.ys[idx]}
+        return {"x": x, "y": y}
 
 
 def get_data(fn):
@@ -121,15 +127,22 @@ def get_data(fn):
     return X
 
 
-def clean(nums_only=False, how="inner", coerce=True):
+def merge_stats(nums_only=False, how="inner", coerce=True):
     df, df2 = [pd.read_csv(f) for f in FILES]
     print(f"df {list(df.columns)}")
     print(f"df2 {list(df2.columns)}")
     merged = df.merge(df2, on="Game_id", how=how)
     print(f"merged {list(merged.columns)}")
-    wins = df[['Game_id', 'H_win']]
-    merged = merged.drop(["A_ML", "H_ML, H_win"], axis=1) # "Game_id", "Date_x", "Date_y"], axis=1)
-
+    wins = df[['Game_id', 'H_win', 'A_win']]
+    # "Game_id", "Date_x", "Date_y"], axis=1)
+    merged = merged.drop(
+        ["A_ML", "H_ML"], axis=1)
+        
+    merged = merged.rename(columns={'A_team_x': 'A_team', 'H_team_x': 'H_team',
+                           'Date_x': 'Date', 'Season_x': 'Season'})
+    merged = clean(merged)
+    merged = merged.rename(columns={'A_team_y': 'A_team', 'H_team_y': 'H_team',
+                                    'Date_y': 'Date', 'Season_y': 'Season'})
     if nums_only:
         merged = merged.select_dtypes(exclude=["object"])
         if coerce:
@@ -143,61 +156,21 @@ def clean(nums_only=False, how="inner", coerce=True):
     return merged, wins
 
 
+def clean(df=None):
+    if df is None:
+        df, wins = merge_stats()
+    # cleaned, wins = merge_stats()
+    cols = list(df.columns)
+    cols.remove('Game_id')
+    for col in nba.POST_GAME:
+        if col in cols:
+            df = df.drop(col, axis=1)
+    return df
+
+
 def df_col_type_dict(df):
     # given a df, returns a dict where key is column name, value is dtype
     return dict(zip(list(df.columns), list(df.dtypes)))
-
-
-def excluded_cols():
-    df, w = clean(nums_only=True)
-    df2, w2 = clean(nums_only=False)
-
-    list(df.columns)
-    list(df2.columns)
-
-
-def load_data(
-    train_file,
-    predict_file=None,
-    classify=False,
-    batch_size=1,
-    norm=True,
-    verbose=False,
-):
-    """
-
-    """
-    X = pd.read_csv(train_file)
-
-    X = X.fillna(0)
-
-    if predict_file:
-        stats = pd.read_csv(predict_file)
-        if classify:
-            target = stats["H_win"]
-            target.columns = ["H_win", "A_win"]
-    else:
-        to_pred = list(stats.columns)
-        for item in ["A_team", "H_team", "Date", "Season"]:
-            to_pred.remove(item)
-        X = X.merge(stats, on="Game_id", how="outer")
-        print(X)
-        # X = X.select_dtypes(exclude=['object'])
-        X = X.apply(pd.to_numeric, errors="coerce")
-
-        target = X[to_pred].copy()
-        del X[to_pred]
-
-    X = X.select_dtypes(exclude=["object"])
-    X = X.apply(pd.to_numeric, errors="coerce")
-
-    if norm:
-        X = (X - X.mean()) / X.std()
-
-    if verbose:
-        print(f"xs: {X}, target: {target}")
-
-    return X, target
 
 
 def prep(batch_size=1, classify=False, verbose=False):
@@ -230,7 +203,8 @@ def prep(batch_size=1, classify=False, verbose=False):
     split_idx = len(dataset) // 2
     test_len = len(dataset) - split_idx
 
-    train_set, test_set = torch.utils.data.random_split(dataset, [split_idx, test_len])
+    train_set, test_set = torch.utils.data.random_split(
+        dataset, [split_idx, test_len])
 
     train_loader = DataLoader(
         train_set, batch_size=batch_size, shuffle=True, num_workers=4
@@ -339,8 +313,7 @@ def train():
     torch.save(model.state_dict(), PATH)
 
 
-
 if __name__ == "__main__":
-    
-    df, wins = clean()
-    
+
+    df, wins = merge_stats()
+    # wins.to_csv('wins.csv', index=False)
