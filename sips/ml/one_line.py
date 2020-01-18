@@ -128,25 +128,32 @@ def clean(nums_only=False, how="inner", coerce=True):
     merged = df.merge(df2, on="Game_id", how=how)
     print(f"merged {list(merged.columns)}")
     wins = df[['Game_id', 'H_win']]
-    merged = merged.drop(["A_ML", "H_ML"], axis=1) # "Game_id", "Date_x", "Date_y"], axis=1)
+    merged = merged.drop(["A_ML", "H_ML, H_win"], axis=1) # "Game_id", "Date_x", "Date_y"], axis=1)
 
     if nums_only:
+        merged = merged.select_dtypes(exclude=["object"])
         if coerce:
             merged = merged.apply(pd.to_numeric, errors='coerce')
         else:
             merged = merged.apply(pd.to_numeric)
-        merged = merged.select_dtypes(exclude=["object"])
         types = df_col_type_dict(merged)
         print(types)
 
     print(merged)
-    wins = merged.pop("H_win")
     return merged, wins
 
 
 def df_col_type_dict(df):
     # given a df, returns a dict where key is column name, value is dtype
     return dict(zip(list(df.columns), list(df.dtypes)))
+
+
+def excluded_cols():
+    df, w = clean(nums_only=True)
+    df2, w2 = clean(nums_only=False)
+
+    list(df.columns)
+    list(df2.columns)
 
 
 def load_data(
@@ -265,7 +272,7 @@ def prep(batch_size=1, classify=False, verbose=False):
     return d
 
 
-if __name__ == "__main__":
+def train():
     BATCH_SIZE = 1
 
     d = prep(classify=True, batch_size=BATCH_SIZE)
@@ -295,7 +302,8 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
-            writer.add_scalar("train_loss", loss, i + epoch * len(train_loader))
+            writer.add_scalar("train_loss", loss, i +
+                              epoch * len(train_loader))
             writer.add_scalar
 
             running_loss += loss.item()
@@ -310,14 +318,16 @@ if __name__ == "__main__":
 
         running_loss = 0.0
         for j, test_data, in enumerate(test_loader, 0):
-            test_x, test_y = test_data["x"].to(device), test_data["y"].to(device)
+            test_x, test_y = test_data["x"].to(
+                device), test_data["y"].to(device)
 
             optimizer.zero_grad()
 
             test_y_hat = model(test_x.reshape(1, -1).float())
             test_loss = criterion(test_y_hat, test_y)
 
-            writer.add_scalar("test_loss", test_loss, j + epoch * len(test_loader))
+            writer.add_scalar("test_loss", test_loss, j +
+                              epoch * len(test_loader))
 
             if j % 2000 == 1999:
                 print(f"[{epoch + 1}, {j + 1}] loss: {running_loss / 2000}")
@@ -327,3 +337,10 @@ if __name__ == "__main__":
     print("Finished Training")
 
     torch.save(model.state_dict(), PATH)
+
+
+
+if __name__ == "__main__":
+    
+    df, wins = clean()
+    

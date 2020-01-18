@@ -178,9 +178,8 @@ POST_GAME = [
     "Time",
 ]
 
-HISTORY = [
-    "A_ML",
-    "A_team",
+HISTORY_NOML = [
+    "A_team_x",
     "Away_team_gen_avg_3_point_attempt_rate",
     "Away_team_gen_avg_3_pointers_attempted",
     "Away_team_gen_avg_3_pointers_made",
@@ -244,8 +243,7 @@ HISTORY = [
     "Away_team_gen_op_avg_turnovers",
     "Date",
     "Game_id",
-    "H_ML",
-    "H_team",
+    "H_team_x",
     "Home_team_gen_avg_3_point_attempt_rate",
     "Home_team_gen_avg_3_pointers_attempted",
     "Home_team_gen_avg_3_pointers_made",
