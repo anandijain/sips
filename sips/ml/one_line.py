@@ -18,8 +18,8 @@ from sips.macros.sports import nba
 from sips.h import hot
 
 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 print(device)
 
 PATH = "./one_liner.pth"
@@ -227,7 +227,7 @@ def prep(batch_size=5, classify=True, verbose=False):
     print(f"out_dim: {out_dim}")
 
     writer = SummaryWriter(f"runs/one_liner_{time.asctime()}")
-    model = Model(in_dim, out_dim)
+    model = Model(in_dim, out_dim).to(device)
 
     if classify:
         criterion = nn.CrossEntropyLoss()
@@ -267,7 +267,9 @@ def prep(batch_size=5, classify=True, verbose=False):
 
 
 def train():
-    BATCH_SIZE = 1
+    EPOCHS = 10
+    BATCH_SIZE = 64
+    RUNNING_INTERVAL = 500
     CLASSIFY = True
     d = prep(classify=CLASSIFY, batch_size=BATCH_SIZE)
     dataset = d["dataset"]
@@ -288,7 +290,7 @@ def train():
 
             optimizer.zero_grad()
 
-            y_hat = model(x.reshape(BATCH_SIZE, -1).float())
+            y_hat = model(x.float())
 
             loss = criterion(y_hat, torch.max(y, 1)[1])
             loss.backward()
@@ -299,7 +301,7 @@ def train():
             writer.add_scalar
 
             running_loss += loss.item()
-            if i % 2000 == 1999:
+            if i % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
                 print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}")
                 print(f"y: {y}, y_hat: {y_hat}")
 
@@ -315,14 +317,14 @@ def train():
 
             optimizer.zero_grad()
 
-            test_y_hat = model(test_x.reshape(1, -1).float())
+            test_y_hat = model(test_x.float())
             test_loss = criterion(test_y_hat, torch.max(test_y, 1)[1])
 
             writer.add_scalar("test_loss", test_loss, j +
                               epoch * len(test_loader))
 
             running_loss += test_loss.item()
-            if j % 2000 == 1999:
+            if j % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
                 print(f"[{epoch + 1}, {j + 1}] loss: {running_loss / 2000}")
                 print(f"test_y: {test_y}, test_y_hat: {test_y_hat}")
                 running_loss = 0.0
