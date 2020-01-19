@@ -17,6 +17,7 @@ teams = [
     "Miami Heat",
     "Milwaukee Bucks",
     "Minnesota Timberwolves",
+    "New Jersey Nets",
     "New Orleans Pelicans",
     "New York Knicks",
     "Oklahoma City Thunder",
@@ -26,8 +27,10 @@ teams = [
     "Portland Trail Blazers",
     "Sacramento Kings",
     "San Antonio Spurs",
+    "Seattle SuperSonics",
     "Toronto Raptors",
     "Utah Jazz",
+    "Vancouver Grizzlies",
     "Washington Wizards",
 ]
 

@@ -84,35 +84,31 @@ class OneLiner(Dataset):
 
     def __init__(self, norm=True, shuffle=True, verbose=True):
         """
-        
+
         TODO: 
             compare if converting to tensor then indexing is faster than
             using dict to index by game_id then converting to tensor
         """
-        self.xs = clean()
-        self.ys = pd.read_csv('wins.csv')
-
+        self.xs, self.ys = clean(hot_data=True)
         self.length = len(self.xs)
 
         if verbose:
             print(self.xs)
             print(self.ys.shape)
             print(self.length)
-    
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
         x = self.xs.iloc[idx]
-        game_id = x.Game_id[0]
-        x = x.drop('Game_id').astype(np.float32)
+        game_id = x.Game_id
+
+        x = x.drop("Game_id").astype(np.float32)
         x = torch.tensor(x.values, dtype=torch.float)
 
-        y = self.ys[self.ys['Game_id'] == game_id]
-        print(y)
-        y = torch.tensor(y['H_win'].astype(np.int64).values)
-        # x = self.xs.iloc[idx].values
+        y = self.ys[self.ys["Game_id"] == game_id]
+        y = torch.tensor(y[["H_win", "A_win"]].iloc[0].values)
         return {"x": x, "y": y}
 
 
@@ -127,45 +123,58 @@ def get_data(fn):
     return X
 
 
-def merge_stats(nums_only=False, how="inner", coerce=True):
+def clean(hot_data=True, nums_only=False, how="inner", coerce=True):
     df, df2 = [pd.read_csv(f) for f in FILES]
-    print(f"df {list(df.columns)}")
-    print(f"df2 {list(df2.columns)}")
     merged = df.merge(df2, on="Game_id", how=how)
-    print(f"merged {list(merged.columns)}")
-    wins = df[['Game_id', 'H_win', 'A_win']]
-    # "Game_id", "Date_x", "Date_y"], axis=1)
-    merged = merged.drop(
-        ["A_ML", "H_ML"], axis=1)
-        
-    merged = merged.rename(columns={'A_team_x': 'A_team', 'H_team_x': 'H_team',
-                           'Date_x': 'Date', 'Season_x': 'Season'})
-    merged = clean(merged)
-    merged = merged.rename(columns={'A_team_y': 'A_team', 'H_team_y': 'H_team',
-                                    'Date_y': 'Date', 'Season_y': 'Season'})
+
+    wins = df[["Game_id", "H_win", "A_win"]]
+
+    merged = merged.drop(["A_ML", "H_ML"], axis=1)
+
+    merged = merged.rename(
+        columns={
+            "A_team_x": "A_team",
+            "H_team_x": "H_team",
+            "Date_x": "Date",
+            "Season_x": "Season",
+        }
+    )
+    cols = list(df.columns)
+    cols.remove("Game_id")
+
+    for col in nba.POST_GAME:
+        if col in cols:
+            merged = merged.drop(col, axis=1)
+    merged = merged.rename(
+        columns={
+            "A_team_y": "A_team",
+            "H_team_y": "H_team",
+            "Date_y": "Date",
+            "Season_y": "Season",
+        }
+    )
+
     if nums_only:
         merged = merged.select_dtypes(exclude=["object"])
         if coerce:
-            merged = merged.apply(pd.to_numeric, errors='coerce')
+            merged = merged.apply(pd.to_numeric, errors="coerce")
         else:
             merged = merged.apply(pd.to_numeric)
         types = df_col_type_dict(merged)
-        print(types)
 
     print(merged)
+    if hot_data:
+        hm = hot.to_hot_map(nba.teams)
+
+        h = hot.hot_col(merged.H_team, hm)
+        a = hot.hot_col(merged.A_team, hm)
+        a.rename(columns=lambda x: x + "_a", inplace=True)
+        merged = pd.concat([merged, h, a], axis=1)
+        merged = merged.drop(["A_team", "H_team"], axis=1)
+
+        # TODO:
+        merged = merged.dropna()
     return merged, wins
-
-
-def clean(df=None):
-    if df is None:
-        df, wins = merge_stats()
-    # cleaned, wins = merge_stats()
-    cols = list(df.columns)
-    cols.remove('Game_id')
-    for col in nba.POST_GAME:
-        if col in cols:
-            df = df.drop(col, axis=1)
-    return df
 
 
 def df_col_type_dict(df):
@@ -173,33 +182,7 @@ def df_col_type_dict(df):
     return dict(zip(list(df.columns), list(df.dtypes)))
 
 
-def prep(batch_size=1, classify=False, verbose=False):
-    """
-
-    """
-
-    data = load_data(FILES, norm=False, classify=classify)
-    dataset = OneLiner(data=data)
-
-    if verbose:
-        for i in range(len(dataset)):
-            sample = dataset[i]
-
-            print(i, sample["x"], sample["y"])
-            if i == 0:
-                x_shape = sample["x"].shape
-                y_shape = sample["y"].shape
-                break
-    # default `log_dir` is "runs" - we'll be more specific here
-    writer = SummaryWriter(f"runs/one_liner_{time.asctime()}")
-
-    in_dim = len(dataset[0]["x"])
-    if classify:
-        out_dim = 2
-    else:
-        out_dim = len(dataset[0]["y"])
-
-    model = Model(in_dim, out_dim)
+def loaders(dataset, batch_size=1, verbose=False):
     split_idx = len(dataset) // 2
     test_len = len(dataset) - split_idx
 
@@ -213,8 +196,38 @@ def prep(batch_size=1, classify=False, verbose=False):
     test_loader = DataLoader(
         test_set, batch_size=batch_size, shuffle=True, num_workers=4
     )
+    if verbose:
+        for i in range(len(dataset)):
+            sample = dataset[i]
+
+            print(i, sample["x"], sample["y"])
+            if i == 0:
+                x_shape = sample["x"].shape
+                y_shape = sample["y"].shape
+                print(f"x_shape: {x_shape}")
+                print(f"y_shape: {y_shape}")
+                break
+    return train_set, test_set, train_loader, test_loader
+
+
+def prep(batch_size=5, classify=True, verbose=False):
+    """
+
+    """
+    dataset = OneLiner()
+    x, y = dataset[0]["x"], dataset[0]["y"]
+    train_set, test_set, train_loader, test_loader = loaders(
+        dataset, batch_size=batch_size, verbose=verbose
+    )
+
+    in_dim = len(dataset[0]["x"])
+    out_dim = len(dataset[0]["y"].squeeze(0))
+
+    print(f"in_dim: {in_dim}")
+    print(f"out_dim: {out_dim}")
 
     writer = SummaryWriter(f"runs/one_liner_{time.asctime()}")
+    model = Model(in_dim, out_dim)
 
     if classify:
         criterion = nn.CrossEntropyLoss()
@@ -224,10 +237,15 @@ def prep(batch_size=1, classify=False, verbose=False):
         optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
     for i, data in enumerate(train_loader, 0):
-        x, y = data["x"].to(device), data["y"].to(device)
+
+        batch_x, batch_y = data["x"].to(device), data["y"].to(device)
         optimizer.zero_grad()
-        y_hat = model(x.reshape(1, -1).float())
-        loss = criterion(y_hat, y)
+        y_hat = model(batch_x)
+        break
+        if classify:
+            loss = criterion(y_hat, torch.max(batch_y, 1)[1])
+        else:
+            loss = criterion(y_hat, batch_y)
         break
 
     d = {
@@ -240,16 +258,18 @@ def prep(batch_size=1, classify=False, verbose=False):
         "writer": writer,
         "x": x,
         "y": y,
+        "batch_x": batch_x,
+        "batch_y": batch_y,
         "y_hat": y_hat,
-        "loss": loss,
+        # "loss": loss,
     }
     return d
 
 
 def train():
     BATCH_SIZE = 1
-
-    d = prep(classify=True, batch_size=BATCH_SIZE)
+    CLASSIFY = True
+    d = prep(classify=CLASSIFY, batch_size=BATCH_SIZE)
     dataset = d["dataset"]
     train_loader = d["train_loader"]
     test_loader = d["test_loader"]
@@ -259,9 +279,7 @@ def train():
     optimizer = d["optimizer"]
 
     running_loss = 0
-
     for epoch in range(2):
-
         running_loss = 0.0
         print("training")
         model.train()
@@ -272,7 +290,7 @@ def train():
 
             y_hat = model(x.reshape(BATCH_SIZE, -1).float())
 
-            loss = criterion(y_hat, y)
+            loss = criterion(y_hat, torch.max(y, 1)[1])
             loss.backward()
             optimizer.step()
 
@@ -298,22 +316,22 @@ def train():
             optimizer.zero_grad()
 
             test_y_hat = model(test_x.reshape(1, -1).float())
-            test_loss = criterion(test_y_hat, test_y)
+            test_loss = criterion(test_y_hat, torch.max(test_y, 1)[1])
 
             writer.add_scalar("test_loss", test_loss, j +
                               epoch * len(test_loader))
 
+            running_loss += test_loss.item()
             if j % 2000 == 1999:
                 print(f"[{epoch + 1}, {j + 1}] loss: {running_loss / 2000}")
                 print(f"test_y: {test_y}, test_y_hat: {test_y_hat}")
                 running_loss = 0.0
 
-    print("Finished Training")
+        torch.save(model.state_dict(), PATH)
 
-    torch.save(model.state_dict(), PATH)
+    print("Finished Training")
 
 
 if __name__ == "__main__":
 
-    df, wins = merge_stats()
-    # wins.to_csv('wins.csv', index=False)
+    train()

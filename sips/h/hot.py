@@ -8,7 +8,7 @@ from sips.macros import sports as sps
 from sips.h import helpers as h
 
 
-def hot_list(strings, output="np"):
+def to_hot_map(strings, output="np"):
     """
     given a list of strings it will return a dict
     string : one hotted np array
@@ -27,6 +27,13 @@ def hot_list(strings, output="np"):
     return hots
 
 
+def to_hot_maps(columns, strings_list, output="np"):
+    return {
+        col: to_hot_map(strings, output=output)
+        for col, strings in zip(columns, strings_list)
+    }
+
+
 def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
     """
 
@@ -43,7 +50,7 @@ def hot_teams_dict(sports=["nfl", "nba", "nhl"]):
         elif s == "mlb":
             team_list += sps.mlb.teams
 
-    teams_dict = hot_list(team_list, output="list")
+    teams_dict = to_hot_map(team_list, output="list")
     return teams_dict
 
 
@@ -56,13 +63,13 @@ def hot_statuses_dict():
         "None",
         "PRE_GAME",
     ]
-    statuses_dict = hot_list(statuses, output="list")
+    statuses_dict = to_hot_map(statuses, output="list")
     return statuses_dict
 
 
 def hot_sports_dict():
     statuses = ["BASK", "FOOT", "HCKY", "BASE"]
-    statuses_dict = hot_list(statuses, output="list")
+    statuses_dict = to_hot_map(statuses, output="list")
     return statuses_dict
 
 
@@ -121,7 +128,7 @@ def hot(df, hot_maps, drop_cold=True, ret_hots_only=False, verbose=False):
     return ret
 
 
-def hot_col(col, hot_map, on_keyerror="skip"):
+def hot_col(col, hot_map, on_keyerror="skip", verbose=True):
     """
     col: pd.Series
     hot_map: dict
@@ -143,6 +150,8 @@ def hot_col(col, hot_map, on_keyerror="skip"):
             hot_row = hot_map[elt]
         except KeyError:
             if on_keyerror == "skip":
+                if verbose:
+                    print(f"{i}: {elt}")
                 continue
             elif on_keyerror == "set_zero":
                 hot_row = np.zeros(hot_dim)
