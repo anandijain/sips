@@ -37,7 +37,8 @@ def train_epoch(d, epoch):
 
         y_hat = d['model'](x)
 
-        loss = d['criterion'](y_hat, torch.max(y, 1)[1])
+        # loss = d['criterion']((y_hat), torch.max(y, 1)[1])
+        loss = d['criterion'](y_hat, y)
         loss.backward()
         d['optimizer'].step()
 
@@ -63,8 +64,10 @@ def test_epoch(d, epoch):
             test_x, test_y = test_data["x"].to(
                 device), test_data["y"].to(device)
 
+            
             test_y_hat = d['model'](test_x)
-            test_loss = d['criterion'](test_y_hat, torch.max(test_y, 1)[1])
+            # test_loss = d['criterion'](test_y_hat, torch.max(test_y, 1)[1])
+            test_loss = d['criterion'](test_y_hat, test_y)
 
             d['writer'].add_scalar("test_loss", test_loss, i +
                                 epoch * len(d['test_loader']))
@@ -105,7 +108,7 @@ def infer(fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
 
     game_ids = df.pop('Game_id')
     # tdf= torch.tensor(df.values, dtype=torch.float).to(device)
-    tdf= torch.tensor(df.values).to(device)
+    tdf = torch.tensor(df.values, dtype=torch.double).to(device)
     cols = ['Game_id', 'H_win', 'A_win']
     m.eval()
     rows = []
@@ -113,7 +116,10 @@ def infer(fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
     with torch.no_grad():
         for i, g_id in enumerate(game_ids):
             optimizer.zero_grad()
-            yhat = m(tdf[i].view(1, -1)).cpu().numpy()
+            
+            x = tdf[i].view(1, -1)
+
+            yhat = m().cpu().numpy()
             rows.append([g_id, yhat[0][0], yhat[0][1]])
 
     preds = pd.DataFrame(rows, columns=cols)

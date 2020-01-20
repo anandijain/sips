@@ -29,21 +29,22 @@ class Model(nn.Module):
         self.classify = classify
         self.fc1 = nn.Linear(in_dim, in_dim * 2)
         self.fc2 = nn.Linear(in_dim * 2, 500)
-        self.fc3 = nn.Linear(500, 250)
-        self.fc4 = nn.Linear(250, 100)
-        self.fc5 = nn.Linear(100, 100)
-        self.fc6 = nn.Linear(100, out_dim)
+        # self.fc3 = nn.Linear(500, 250)
+        # self.fc4 = nn.Linear(250, 100)
+        # self.fc5 = nn.Linear(100, 100)
+        self.fc6 = nn.Linear(500, out_dim)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
-        x = F.relu(self.fc5(x))
+        # x = F.relu(self.fc3(x))
+        # x = F.relu(self.fc4(x))
+        # x = F.relu(self.fc5(x))
 
         if self.classify:
-            x = self.softmax(self.fc6(x))
+            # x = self.softmax(self.fc6(x))
+            x = torch.sigmoid(self.fc6(x))
         else:
             x = F.relu(self.fc6(x))
 
@@ -71,8 +72,11 @@ class OneLiner(Dataset):
 
     def __getitem__(self, idx):
         x, y = match_rows(self.xs, self.ys, 'Game_id', idx)
-        x = torch.tensor(x.values, dtype=torch.float)
-        y = torch.tensor(y[["H_win", "A_win"]].iloc[0].values)
+        x = x.astype(np.float32)
+        x = torch.tensor(x.values)
+        # y = torch.tensor(y["H_win"].iloc[0], dtype=torch.float).view(-1, 1)
+        y = y["H_win"].iloc[0]
+        y = torch.tensor(y, dtype=torch.float).view(-1)
         return {"x": x, "y": y}
 
     def __repr__(self):
@@ -83,9 +87,9 @@ class OneLiner(Dataset):
 
 def match_rows(df, df2, col, idx):
     x = df.iloc[idx]
-    game_id = x.Game_id
-    x = x.drop(col).astype(np.float32)
-    y = df2[df2[col] == game_id]
+    match_val = x[col]
+    x = x.drop(col)
+    y = df2[df2[col] == match_val]
     return x, y
 
 
@@ -98,6 +102,7 @@ def train_dataset():
     df = fix_columns(df)
     df = hot_teams(df)
     # df = nums_only(df)
+
 
     return df, wins
 
@@ -191,18 +196,23 @@ def loaders(dataset, batch_size=1, train_frac=0.7, verbose=False):
     return train_set, test_set, train_loader, test_loader
 
 
-def prep(batch_size=5, classify=True, verbose=False):
+def prep(batch_size=1, classify=True, verbose=False):
     """
 
     """
     dataset = OneLiner()
+
     x, y = dataset[0]["x"], dataset[0]["y"]
+
     train_set, test_set, train_loader, test_loader = loaders(
         dataset, batch_size=batch_size, verbose=verbose
     )
 
     in_dim = len(dataset[0]["x"])
+    # if classify:
+    #     out_dim = 1
     out_dim = len(dataset[0]["y"].squeeze(0))
+    # out_dim = len(dataset[0]["y"].squeeze(0))
 
     print(f"in_dim: {in_dim}")
     print(f"out_dim: {out_dim}")
@@ -211,19 +221,26 @@ def prep(batch_size=5, classify=True, verbose=False):
     model = Model(in_dim, out_dim).to(device)
 
     if classify:
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        criterion = nn.BCELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.1)
     else:
         criterion = nn.MSELoss()
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        optimizer = optim.Adam(model.parameters(), lr=0.1)
 
     for i, data in enumerate(train_loader, 0):
 
         batch_x, batch_y = data["x"].to(device), data["y"].to(device)
         optimizer.zero_grad()
         y_hat = model(batch_x)
+        print(f'bx : {batch_x}')
+        print(f'by : {batch_y}')
+        print(f'by : {batch_y.dtype}')
+        # print(f'by : {batch_y.dtype}')
+        print(f'yh : {y_hat}')
+        print(f'yh : {y_hat.dtype}')
         if classify:
-            loss = criterion(y_hat, torch.max(batch_y, 1)[1])
+            # loss = criterion(y_hat, torch.max(batch_y, 1)[1])
+            loss = criterion(y_hat, batch_y)
         else:
             loss = criterion(y_hat, batch_y)
         break
