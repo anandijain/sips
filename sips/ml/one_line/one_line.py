@@ -23,7 +23,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 PATH = "./one_liner.pth"
-RUNNING_INTERVAL = 10
+RUNNING_INTERVAL = 1000
 
 
 def train_epoch(d, epoch):
@@ -80,8 +80,8 @@ def test_epoch(d, epoch):
 
 
 def train():
-    EPOCHS = 1
-    BATCH_SIZE = 128
+    EPOCHS = 10
+    BATCH_SIZE = 16
     CLASSIFY = True
 
     d = olutils.prep(classify=CLASSIFY, batch_size=BATCH_SIZE)

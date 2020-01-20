@@ -28,19 +28,24 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.classify = classify
         self.fc1 = nn.Linear(in_dim, in_dim * 2)
-        self.fc2 = nn.Linear(in_dim * 2, 500)
-        self.fc3 = nn.Linear(500, 250)
+        self.fc2 = nn.Linear(in_dim * 2, 250)
+        # self.fc3 = nn.Linear(500, 250)
         self.fc4 = nn.Linear(250, 100)
-        self.fc5 = nn.Linear(100, 100)
+        # self.fc5 = nn.Linear(100, 100)
         self.fc6 = nn.Linear(100, out_dim)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
-        x = torch.sigmoid(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))
-        x = torch.sigmoid(self.fc4(x))
-        x = torch.sigmoid(self.fc5(x))
+        # print(f'X ONE {x}')
+        x = torch.tanh(self.fc1(x))
+        # print(x)
+        x = self.fc2(x)
+        # print(x)
+        # x = self.fc3(x)
+        # print(x)
+        x = self.fc4(x)
+        # print(x)
+        # x = self.fc5(x)
 
         if self.classify:
             x = self.softmax(self.fc6(x))
@@ -54,14 +59,14 @@ class Model(nn.Module):
 class OneLiner(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, verbose=False):
+    def __init__(self, norm=True, verbose=False):
         """
 
         TODO: 
             compare if converting to tensor then indexing is faster than
             using dict to index by game_id then converting to tensor
         """
-        self.xs, self.ys = train_dataset()
+        self.xs, self.ys = train_dataset(norm=norm)
         self.length = len(self.xs)
 
         if verbose:
@@ -93,16 +98,20 @@ def match_rows(df, df2, col, idx):
     return x, y
 
 
-def train_dataset():
+def train_dataset(norm=False):
     df = train_dfs()
 
     wins = df[["Game_id", "H_win", "A_win"]]
     df = df.drop(["A_ML", "H_ML"], axis=1)
 
     df = fix_columns(df)
+    if norm:
+        strs = df[['Game_id', 'A_team', 'H_team']]
+        df = df.drop(strs, axis=1)
+        norm_df = (df-df.min())/(df.max()-df.min())
+        df = pd.concat([strs, norm_df], axis=1)
+    
     df = hot_teams(df)
-    # df = nums_only(df)
-
 
     return df, wins
 
