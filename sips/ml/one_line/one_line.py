@@ -35,7 +35,7 @@ def train_epoch(d, epoch):
 
         d['optimizer'].zero_grad()
 
-        y_hat = d['model'](x.float())
+        y_hat = d['model'](x)
 
         loss = d['criterion'](y_hat, torch.max(y, 1)[1])
         loss.backward()
@@ -59,19 +59,19 @@ def test_epoch(d, epoch):
 
     running_loss = 0.0
     with torch.no_grad():
-        for j, test_data, in enumerate(d['test_loader'], 0):
+        for i, test_data, in enumerate(d['test_loader'], 0):
             test_x, test_y = test_data["x"].to(
                 device), test_data["y"].to(device)
 
-            test_y_hat = d['model'](test_x.float())
+            test_y_hat = d['model'](test_x.)
             test_loss = d['criterion'](test_y_hat, torch.max(test_y, 1)[1])
 
-            d['writer'].add_scalar("test_loss", test_loss, j +
+            d['writer'].add_scalar("test_loss", test_loss, i +
                                 epoch * len(d['test_loader']))
 
             running_loss += test_loss.item()
-            if j % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
-                print(f"[{epoch + 1}, {j + 1}] loss: {running_loss / 2000}")
+            if i % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
+                print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}")
                 print(f"test_y: {test_y}, test_y_hat: {test_y_hat}")
                 running_loss = 0.0
 
@@ -104,7 +104,8 @@ def infer(fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
     df = olutils.hot_teams(df)
 
     game_ids = df.pop('Game_id')
-    tdf= torch.tensor(df.values, dtype=torch.float).to(device)
+    # tdf= torch.tensor(df.values, dtype=torch.float).to(device)
+    tdf= torch.tensor(df.values).to(device)
     cols = ['Game_id', 'H_win', 'A_win']
     m.eval()
     rows = []
