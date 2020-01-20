@@ -23,7 +23,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 PATH = "./one_liner.pth"
-RUNNING_INTERVAL = 50
+RUNNING_INTERVAL = 1
 
 
 def train_epoch(d, epoch):
@@ -37,8 +37,8 @@ def train_epoch(d, epoch):
 
         y_hat = d['model'](x)
 
-        # loss = d['criterion']((y_hat), torch.max(y, 1)[1])
-        loss = d['criterion'](y_hat, y)
+        loss = d['criterion']((y_hat), torch.max(y, 1)[1])
+        # loss = d['criterion'](y_hat, y)
         loss.backward()
         d['optimizer'].step()
 
@@ -66,15 +66,15 @@ def test_epoch(d, epoch):
 
             
             test_y_hat = d['model'](test_x)
-            # test_loss = d['criterion'](test_y_hat, torch.max(test_y, 1)[1])
-            test_loss = d['criterion'](test_y_hat, test_y)
+            test_loss = d['criterion'](test_y_hat, torch.max(test_y, 1)[1])
+            # test_loss = d['criterion'](test_y_hat, test_y)
 
             d['writer'].add_scalar("test_loss", test_loss, i +
                                 epoch * len(d['test_loader']))
 
             running_loss += test_loss.item()
             if i % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
-                print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}")
+                # print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}")
                 print(f"test_y: {test_y}, test_y_hat: {test_y_hat}")
                 running_loss = 0.0
 
@@ -108,18 +108,14 @@ def infer(fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
 
     game_ids = df.pop('Game_id')
     # tdf= torch.tensor(df.values, dtype=torch.float).to(device)
-    tdf = torch.tensor(df.values, dtype=torch.double).to(device)
+    tdf = torch.tensor(df.values, dtype=torch.float).to(device)
     cols = ['Game_id', 'H_win', 'A_win']
     m.eval()
     rows = []
-    optimizer = optim.Adam(m.parameters(), lr=0.001)
     with torch.no_grad():
         for i, g_id in enumerate(game_ids):
-            optimizer.zero_grad()
-            
             x = tdf[i].view(1, -1)
-
-            yhat = m().cpu().numpy()
+            yhat = m(x).cpu().numpy()
             rows.append([g_id, yhat[0][0], yhat[0][1]])
 
     preds = pd.DataFrame(rows, columns=cols)

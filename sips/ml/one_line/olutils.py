@@ -29,18 +29,18 @@ class Model(nn.Module):
         self.classify = classify
         self.fc1 = nn.Linear(in_dim, in_dim * 2)
         self.fc2 = nn.Linear(in_dim * 2, 500)
-        # self.fc3 = nn.Linear(500, 250)
-        # self.fc4 = nn.Linear(250, 100)
-        # self.fc5 = nn.Linear(100, 100)
-        self.fc6 = nn.Linear(500, out_dim)
+        self.fc3 = nn.Linear(500, 250)
+        self.fc4 = nn.Linear(250, 100)
+        self.fc5 = nn.Linear(100, 100)
+        self.fc6 = nn.Linear(100, out_dim)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
-        x = torch.tanh(self.fc1(x))
-        x = torch.tanh(self.fc2(x))
-        # x = F.relu(self.fc3(x))
-        # x = F.relu(self.fc4(x))
-        # x = F.relu(self.fc5(x))
+        x = torch.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        x = torch.sigmoid(self.fc3(x))
+        x = torch.sigmoid(self.fc4(x))
+        x = torch.sigmoid(self.fc5(x))
 
         if self.classify:
             x = self.softmax(self.fc6(x))
@@ -183,11 +183,11 @@ def loaders(dataset, batch_size=1, train_frac=0.7, verbose=False):
         dataset, [split_idx, test_len])
 
     train_loader = DataLoader(
-        train_set, batch_size=batch_size, shuffle=False, num_workers=4
+        train_set, batch_size=batch_size, shuffle=True, num_workers=4
     )
 
     test_loader = DataLoader(
-        test_set, batch_size=batch_size, shuffle=False, num_workers=4
+        test_set, batch_size=batch_size, shuffle=True, num_workers=4
     )
 
     if verbose:
@@ -221,11 +221,12 @@ def prep(batch_size=1, classify=True, verbose=False):
     model = Model(in_dim, out_dim).to(device)
 
     if classify:
-        criterion = nn.BCELoss()
-        optimizer = optim.Adam(model.parameters(), lr=0.1)
+        criterion = nn.CrossEntropyLoss()
+        # criterion = nn.BCELoss()
+        optimizer = optim.Adam(model.parameters())
     else:
         criterion = nn.MSELoss()
-        optimizer = optim.Adam(model.parameters(), lr=0.1)
+        optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     for i, data in enumerate(train_loader, 0):
 
@@ -239,8 +240,8 @@ def prep(batch_size=1, classify=True, verbose=False):
         print(f'yh : {y_hat}')
         print(f'yh : {y_hat.dtype}')
         if classify:
-            # loss = criterion(y_hat, torch.max(batch_y, 1)[1])
-            loss = criterion(y_hat, batch_y)
+            loss = criterion(y_hat, torch.max(batch_y, 1)[1])
+            # loss = criterion(y_hat, batch_y)
         else:
             loss = criterion(y_hat, batch_y)
         break
