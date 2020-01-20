@@ -63,7 +63,7 @@ def test_epoch(d, epoch):
             test_x, test_y = test_data["x"].to(
                 device), test_data["y"].to(device)
 
-            test_y_hat = d['model'](test_x.)
+            test_y_hat = d['model'](test_x)
             test_loss = d['criterion'](test_y_hat, torch.max(test_y, 1)[1])
 
             d['writer'].add_scalar("test_loss", test_loss, i +
