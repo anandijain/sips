@@ -36,15 +36,15 @@ class Model(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = torch.tanh(self.fc1(x))
+        x = torch.tanh(self.fc2(x))
         # x = F.relu(self.fc3(x))
         # x = F.relu(self.fc4(x))
         # x = F.relu(self.fc5(x))
 
         if self.classify:
-            # x = self.softmax(self.fc6(x))
-            x = torch.sigmoid(self.fc6(x))
+            x = self.softmax(self.fc6(x))
+            # x = torch.sigmoid(self.fc6(x))
         else:
             x = F.relu(self.fc6(x))
 
@@ -75,7 +75,7 @@ class OneLiner(Dataset):
         x = x.astype(np.float32)
         x = torch.tensor(x.values)
         # y = torch.tensor(y["H_win"].iloc[0], dtype=torch.float).view(-1, 1)
-        y = y["H_win"].iloc[0]
+        y = y[["H_win", "A_win"]].iloc[0]
         y = torch.tensor(y, dtype=torch.float).view(-1)
         return {"x": x, "y": y}
 
@@ -209,9 +209,9 @@ def prep(batch_size=1, classify=True, verbose=False):
     )
 
     in_dim = len(dataset[0]["x"])
-    # if classify:
-    #     out_dim = 1
-    out_dim = len(dataset[0]["y"].squeeze(0))
+    if classify:
+        out_dim = 2
+    # out_dim = len(dataset[0]["y"].squeeze(0))
     # out_dim = len(dataset[0]["y"].squeeze(0))
 
     print(f"in_dim: {in_dim}")
