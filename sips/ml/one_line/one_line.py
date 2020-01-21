@@ -45,13 +45,15 @@ def train_epoch(d, epoch):
 
         # accuracy
         preds = torch.max(y_hat, 1)[1]
-        total += y.size(0)
+        batch_size = y.size(0)
+        total += batch_size
+
         batch_correct = (preds == class_idxs).sum().item()
         correct += batch_correct
 
         d['writer'].add_scalar("train_loss", loss, i +
                                epoch * len(d['train_loader']))
-        d['writer'].add_scalar("train_acc", batch_correct, i +
+        d['writer'].add_scalar("train_acc", batch_correct / batch_size, i +
                                epoch * len(d['train_loader']))
         running_loss += loss.item()
 
@@ -84,8 +86,8 @@ def test_epoch(d, epoch):
 
             class_idx = torch.max(test_y, 1)[1]
             test_loss = d['criterion'](test_y_hat, class_idx)
-
-            total += test_y.size(0)
+            batch_size = test_y.size(0)
+            total += batch_size
             batch_correct = (predicted == class_idx).sum().item()
             correct += batch_correct
 
@@ -95,7 +97,7 @@ def test_epoch(d, epoch):
 
             d['writer'].add_scalar("test_loss", test_loss, i +
                                    epoch * len(d['test_loader']))
-            d['writer'].add_scalar("test_acc", batch_correct, i +
+            d['writer'].add_scalar("test_acc", batch_correct / batch_size, i +
                                    epoch * len(d['test_loader']))
 
             running_loss += test_loss.item()
@@ -106,7 +108,7 @@ def test_epoch(d, epoch):
     print(f'test accuracy {(100 * correct / total):.2f} %')
 
 
-def train(prepped, epochs=1):
+def train(prepped, epochs=10):
 
     running_loss = 0
     for epoch in range(epochs):
@@ -130,7 +132,7 @@ def infer(d, fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
     normed_df = olutils.norm_testset(df, old)
 
     df = olutils.hot_teams(normed_df)
-    print(df)
+    # print(df)
 
     state = torch.load('one_liner.pth')
     shapes = [l.shape for l in list(state.values())]
