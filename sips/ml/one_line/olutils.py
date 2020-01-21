@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import numpy as np
 import sklearn
+from sklearn.model_selection import train_test_split
 
 import torch
 import torch.nn as nn
@@ -70,7 +71,7 @@ class OneLiner(Dataset):
         """
         self.xs, self.ys = xs, ys
         self.length = len(self.xs)
-
+    
         if verbose:
             self.__repr__()
 
@@ -79,6 +80,7 @@ class OneLiner(Dataset):
 
     def __getitem__(self, idx):
         x, y = match_rows(self.xs, self.ys, 'Game_id', idx)
+        print(y)
         x = x.astype(np.float32)
         x = torch.tensor(x.values)
         # y = torch.tensor(y["H_win"].iloc[0], dtype=torch.float).view(-1, 1)
@@ -108,18 +110,26 @@ def to_normed(df, strcols=['Game_id', 'A_team', 'H_team']):
     return df
 
 
-def train_dataset(df=None, norm=False, hot=True):
-    if not df:
-        df = train_dfs()
+def norm_testset(test: pd.DataFrame, train: pd.DataFrame):
+    # print(list(train.columns))
+    str_cols = ['Game_id', 'A_team', 'H_team']
+    train = train.drop(str_cols, axis=1)
 
-    wins = df[["Game_id", "H_win", "A_win"]]
-    df = df.drop(["A_ML", "H_ML"], axis=1)
+    infer_strs = test[str_cols]  # to reattach post norm
 
-    df = fix_columns(df)
+    test = test.drop(infer_strs, axis=1)
+
+    test = (test-train.min())/(train.max()-train.min())
+
+    normed_df = pd.concat([infer_strs, test], axis=1)
+
+    return normed_df
+
+
+def train_dataset(df, norm=False, hot=True):
 
     if norm:
         df = to_normed(df)
-
     if hot:
         df = hot_teams(df)
 
@@ -128,11 +138,20 @@ def train_dataset(df=None, norm=False, hot=True):
 
 def train_test_sets(frac=0.3):
     df = train_dfs()
-    train, test = sklearn.model_selection.train_test_split(df, frac)
-    train_x, train_y = train_dataset(train)
+    df = df.drop(["A_ML", "H_ML"], axis=1)
+    wins = df[["Game_id", "H_win", "A_win"]]
+
+    train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
+
+    test = norm_testset(test_x, train_x)
+    train = to_normed(train_x)
+
+    train_x = hot_teams(train_x)
     train_set = OneLiner(train_x, train_y)
-    test_x, test_y = train_dataset(test)
+
+    test_x = hot_teams(test_x)
     test_set = OneLiner(test_x, test_y)
+    
     return train_set, test_set
 
 
@@ -163,7 +182,8 @@ def fix_columns(df):
         }
     )
     cols = list(df.columns)
-    cols.remove("Game_id")
+    for x in ["Game_id", 'H_win', 'A_win']:
+        cols.remove(x)
 
     for col in nba.POST_GAME:
         if col in cols:
@@ -185,7 +205,8 @@ def prep(batch_size=1, classify=True, verbose=False):
 
     """
     dataset, test_set = train_test_sets()
-
+    # print(dataset[0])
+    # print(test_set[0])
     train_loader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, num_workers=4
     )
@@ -195,7 +216,6 @@ def prep(batch_size=1, classify=True, verbose=False):
     )
 
     x, y = dataset[0]["x"], dataset[0]["y"]
-
 
     in_dim = len(dataset[0]["x"])
     if classify:

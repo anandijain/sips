@@ -130,17 +130,7 @@ def infer(fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
     return preds
 
 
-def norm_inferset(to_norm, norm_base):
-    str_cols = ['Game_id', 'A_team', 'H_team']
-    norm_base = norm_base.drop(str_cols, axis=1)
-    infer_strs = to_norm[str_cols]
-    to_norm = to_norm.drop(infer_strs, axis=1)
 
-    to_norm = (to_norm-norm_base.min())/(norm_base.max()-norm_base.min())
-
-    normed_df = pd.concat([infer_strs, to_norm], axis=1)
-
-    return normed_df
 
 
 if __name__ == "__main__":
