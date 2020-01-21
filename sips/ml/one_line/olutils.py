@@ -69,7 +69,9 @@ class OneLiner(Dataset):
             compare if converting to tensor then indexing is faster than
             using dict to index by game_id then converting to tensor
         """
-        self.xs, self.ys = xs, ys
+
+        self.xs = xs # .drop(['H_win', 'A_win'], axis=1)
+        self.ys = ys
         # print(ys)
         # print(f'ys.dtype: {type(ys)}')
         self.length = len(self.xs)
@@ -82,13 +84,11 @@ class OneLiner(Dataset):
 
     def __getitem__(self, idx):
         x, y = match_rows(self.xs, self.ys, 'Game_id', idx)
-        # print(f'ys.dtype: {type(y)}')
-        # print(y.shape)
+
         x = x.astype(np.float32)
         x = torch.tensor(x.values)
-        # y = torch.tensor(y["H_win"].iloc[0], dtype=torch.float).view(-1, 1)
+
         y = y[["H_win", "A_win"]].iloc[0]
-        # print(y.values)
         y = torch.tensor(y.values, dtype=torch.float).view(-1)
         return {"x": x, "y": y}
 
@@ -130,51 +130,57 @@ def norm_testset(test: pd.DataFrame, train: pd.DataFrame):
     return normed_df
 
 
-
-def train_test_sets(frac=0.3):
+def train_test_dfs(frac=0.3):
     df = train_dfs()
     df = fix_columns(df)
+    print(f'df: {df}')
     length = df.shape[0]
-    wins = df[["Game_id", "H_win", "A_win"]].copy()
-    # a = df.iloc[:length // 2]
-    # b = df.iloc[length // 2:]
+    # df = sklearn.utils.shuffle(df)
+    split = int(length * frac)
+    train = df.iloc[:split].copy()
+    test = df.iloc[split:].copy()
+    
+    train = train.reset_index(drop=True)
+    test = test.reset_index(drop=True)
+    print(f'train {train}')
+    print(f'test {test}')
+    return train, test
 
-    df = df.drop(["A_win", "H_win", "A_ML", "H_ML"], axis=1)
-    # print("A_team" in list(df.columns))
+def train_test_sets(train, test, frac=0.3):
+
+    train_wins = train[["Game_id", "H_win", "A_win"]].copy()
+    test_wins = test[["Game_id", "H_win", "A_win"]].copy()
+
+    train = train.drop(["A_win", "H_win"], axis=1)
+    test = test.drop(["A_win", "H_win"], axis=1)
+
+    test = norm_testset(test, train)
+    train = to_normed(train)
+
     # train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
-    # print(train_x, test_x, train_y, test_y)
-    # print("A_team" in list(test_x.columns))
-    # test_x = test_x.dropna().copy()
-    # train_x = train_x.dropna().copy()
-    # train_y = train_y.dropna().copy()
-    # test_y = test_y.dropna().copy()
-    # print(f'{test_x} test_x cols')
-    
-    # print(f'{list(test_x.columns)} test_x cols')
-    # test = norm_testset(test_x, train_x)
 
-    train = to_normed(df)
     train = hot_teams(train)
+    test = hot_teams(test)
 
-    train_set = OneLiner(train, wins)
+    train_set = OneLiner(train, train_wins)
+    test_set = OneLiner(test, test_wins)
 
-    # test_x = hot_teams(test_x)
-    # test_set = OneLiner(test_x, test_y)
-    
-    return train_set # , test_set
+    return train_set, test_set
 
 
 def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
     df, df2 = [pd.read_csv(f) for f in fns]
     merged = df.merge(df2, on="Game_id", how=how)
+    merged = merged.drop(["A_ML", "H_ML"], axis=1)
+    merged = merged.dropna()
     return merged
 
 
 def hot_teams(df):
     hm = hot.to_hot_map(nba.teams)
-
     h = hot.hot_col(df.H_team, hm)
     a = hot.hot_col(df.A_team, hm)
+
     a.rename(columns=lambda x: x + "_a", inplace=True)
     df = pd.concat([df, h, a], axis=1)
     df = df.drop(["A_team", "H_team"], axis=1)
@@ -213,24 +219,25 @@ def prep(batch_size=1, classify=True, verbose=False):
     """
 
     """
-    dataset = train_test_sets()
+    train_df, test_df = train_test_dfs()
+    dataset, test_set = train_test_sets(train_df, test_df)
+    old.data_sample(dataset)
 
-    # print(dataset[0])
-    # print(test_set[0])
     train_loader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, num_workers=4
     )
-    old.data_sample(dataset)
-    # test_loader = DataLoader(
-    #     test_set, batch_size=batch_size, shuffle=True, num_workers=4
-    # )
+
+
+    test_loader = DataLoader(
+        test_set, batch_size=batch_size, shuffle=True, num_workers=4
+    )
 
     x, y = dataset[0]["x"], dataset[0]["y"]
 
     in_dim = len(dataset[0]["x"])
     if classify:
         out_dim = 2
-    # out_dim = len(dataset[0]["y"].squeeze(0))
+
     # out_dim = len(dataset[0]["y"].squeeze(0))
 
     print(f"in_dim: {in_dim}")
@@ -280,3 +287,10 @@ def prep(batch_size=1, classify=True, verbose=False):
         "y_hat": y_hat,
     }
     return d
+
+
+if __name__ == "__main__":
+    train, test = train_test_dfs()
+    tr, te = train_test_sets(train, test)
+    print(f'tr: {tr}')
+    print(f'te: {te}')
