@@ -70,12 +70,12 @@ class OneLiner(Dataset):
             using dict to index by game_id then converting to tensor
         """
 
-        self.xs = xs # .drop(['H_win', 'A_win'], axis=1)
+        self.xs = xs  # .drop(['H_win', 'A_win'], axis=1)
         self.ys = ys
         # print(ys)
         # print(f'ys.dtype: {type(ys)}')
         self.length = len(self.xs)
-    
+
         if verbose:
             self.__repr__()
 
@@ -130,21 +130,26 @@ def norm_testset(test: pd.DataFrame, train: pd.DataFrame):
     return normed_df
 
 
-def train_test_dfs(frac=0.3):
+def train_test_dfs(frac=0.7, verbose=True):
     df = train_dfs()
-    df = fix_columns(df)
-    print(f'df: {df}')
     length = df.shape[0]
+
     # df = sklearn.utils.shuffle(df)
+
     split = int(length * frac)
     train = df.iloc[:split].copy()
     test = df.iloc[split:].copy()
-    
+
     train = train.reset_index(drop=True)
     test = test.reset_index(drop=True)
-    print(f'train {train}')
-    print(f'test {test}')
+    if verbose:
+        print(f'df: {df}')
+        print(f'train {train.head()} {train.shape}')
+        print(f'test {test.head()} {test.shape}')
     return train, test
+
+
+
 
 def train_test_sets(train, test, frac=0.3):
 
@@ -173,6 +178,8 @@ def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
     merged = df.merge(df2, on="Game_id", how=how)
     merged = merged.drop(["A_ML", "H_ML"], axis=1)
     merged = merged.dropna()
+    merged = fix_columns(merged)
+
     return merged
 
 
@@ -227,7 +234,6 @@ def prep(batch_size=1, classify=True, verbose=False):
         dataset, batch_size=batch_size, shuffle=True, num_workers=4
     )
 
-
     test_loader = DataLoader(
         test_set, batch_size=batch_size, shuffle=True, num_workers=4
     )
@@ -259,12 +265,6 @@ def prep(batch_size=1, classify=True, verbose=False):
         batch_x, batch_y = data["x"].to(device), data["y"].to(device)
         optimizer.zero_grad()
         y_hat = model(batch_x)
-        print(f'bx : {batch_x}')
-        print(f'by : {batch_y}')
-        print(f'by : {batch_y.dtype}')
-        # print(f'by : {batch_y.dtype}')
-        print(f'yh : {y_hat}')
-        print(f'yh : {y_hat.dtype}')
         if classify:
             loss = criterion(y_hat, torch.max(batch_y, 1)[1])
             # loss = criterion(y_hat, batch_y)
@@ -275,7 +275,9 @@ def prep(batch_size=1, classify=True, verbose=False):
     d = {
         "dataset": dataset,
         "train_loader": train_loader,
-        # "test_loader": test_loader,
+        "test_loader": test_loader,
+        "train_df": train_df,
+        "test_df": test_df,
         "criterion": criterion,
         "optimizer": optimizer,
         "model": model,
