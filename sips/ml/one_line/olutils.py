@@ -134,7 +134,7 @@ def train_test_dfs(frac=0.7, verbose=True):
     df = train_dfs()
     length = df.shape[0]
 
-    # df = sklearn.utils.shuffle(df)
+    df = sklearn.utils.shuffle(df)
 
     split = int(length * frac)
     train = df.iloc[:split].copy()
