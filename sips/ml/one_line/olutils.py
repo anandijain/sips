@@ -2,18 +2,20 @@ import time
 
 import pandas as pd
 import numpy as np
+import sklearn
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from sips.macros.sports import nba
 from sips.h import hot
+
+import old
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -37,7 +39,7 @@ class Model(nn.Module):
 
     def forward(self, x):
         # print(f'X ONE {x}')
-        x = torch.tanh(self.fc1(x))
+        x = torch.relu(self.fc1(x))
         # print(x)
         x = self.fc2(x)
         # print(x)
@@ -59,14 +61,14 @@ class Model(nn.Module):
 class OneLiner(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, norm=True, verbose=False):
+    def __init__(self, xs, ys, norm=True, verbose=False):
         """
 
         TODO: 
             compare if converting to tensor then indexing is faster than
             using dict to index by game_id then converting to tensor
         """
-        self.xs, self.ys = train_dataset(norm=norm)
+        self.xs, self.ys = xs, ys
         self.length = len(self.xs)
 
         if verbose:
@@ -98,28 +100,57 @@ def match_rows(df, df2, col, idx):
     return x, y
 
 
-def train_dataset(norm=False):
-    df = train_dfs()
+def to_normed(df, strcols=['Game_id', 'A_team', 'H_team']):
+    strs = df[strcols]
+    df = df.drop(strs, axis=1)
+    norm_df = (df-df.min())/(df.max()-df.min())
+    df = pd.concat([strs, norm_df], axis=1)
+    return df
+
+
+def train_dataset(df=None, norm=False, hot=True):
+    if not df:
+        df = train_dfs()
 
     wins = df[["Game_id", "H_win", "A_win"]]
     df = df.drop(["A_ML", "H_ML"], axis=1)
 
     df = fix_columns(df)
+
     if norm:
-        strs = df[['Game_id', 'A_team', 'H_team']]
-        df = df.drop(strs, axis=1)
-        norm_df = (df-df.min())/(df.max()-df.min())
-        df = pd.concat([strs, norm_df], axis=1)
-    
-    df = hot_teams(df)
+        df = to_normed(df)
+
+    if hot:
+        df = hot_teams(df)
 
     return df, wins
 
 
-def train_dfs(fns=FILES, how='inner'):
+def train_test_sets(frac=0.3):
+    df = train_dfs()
+    train, test = sklearn.model_selection.train_test_split(df, frac)
+    train_x, train_y = train_dataset(train)
+    train_set = OneLiner(train_x, train_y)
+    test_x, test_y = train_dataset(test)
+    test_set = OneLiner(test_x, test_y)
+    return train_set, test_set
+
+
+def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
     df, df2 = [pd.read_csv(f) for f in fns]
     merged = df.merge(df2, on="Game_id", how=how)
     return merged
+
+
+def hot_teams(df):
+    hm = hot.to_hot_map(nba.teams)
+
+    h = hot.hot_col(df.H_team, hm)
+    a = hot.hot_col(df.A_team, hm)
+    a.rename(columns=lambda x: x + "_a", inplace=True)
+    df = pd.concat([df, h, a], axis=1)
+    df = df.drop(["A_team", "H_team"], axis=1)
+    return df
 
 
 def fix_columns(df):
@@ -149,73 +180,22 @@ def fix_columns(df):
     return df
 
 
-def nums_only(df):
-    df = df.select_dtypes(exclude=["object"])
-    df = df.apply(pd.to_numeric)
-    return df
+def prep(batch_size=1, classify=True, verbose=False):
+    """
 
-
-def hot_teams(df):
-    hm = hot.to_hot_map(nba.teams)
-
-    h = hot.hot_col(df.H_team, hm)
-    a = hot.hot_col(df.A_team, hm)
-    a.rename(columns=lambda x: x + "_a", inplace=True)
-    df = pd.concat([df, h, a], axis=1)
-    df = df.drop(["A_team", "H_team"], axis=1)
-    return df
-
-
-def df_col_type_dict(df):
-    # given a df, returns a dict where key is column name, value is dtype
-    return dict(zip(list(df.columns), list(df.dtypes)))
-
-
-def data_sample(dataset):
-    for i in range(len(dataset)):
-        sample = dataset[i]
-
-        print(i, sample["x"], sample["y"])
-        if i == 0:
-            x_shape = sample["x"].shape
-            y_shape = sample["y"].shape
-            print(f"x_shape: {x_shape}")
-            print(f"y_shape: {y_shape}")
-            break
-
-
-def loaders(dataset, batch_size=1, train_frac=0.7, verbose=False):
-    split_idx = int(len(dataset) * train_frac)
-    test_len = len(dataset) - split_idx
-
-    train_set, test_set = torch.utils.data.random_split(
-        dataset, [split_idx, test_len])
+    """
+    dataset, test_set = train_test_sets()
 
     train_loader = DataLoader(
-        train_set, batch_size=batch_size, shuffle=True, num_workers=4
+        dataset, batch_size=batch_size, shuffle=True, num_workers=4
     )
 
     test_loader = DataLoader(
         test_set, batch_size=batch_size, shuffle=True, num_workers=4
     )
 
-    if verbose:
-        data_sample(dataset)
-
-    return train_set, test_set, train_loader, test_loader
-
-
-def prep(batch_size=1, classify=True, verbose=False):
-    """
-
-    """
-    dataset = OneLiner()
-
     x, y = dataset[0]["x"], dataset[0]["y"]
 
-    train_set, test_set, train_loader, test_loader = loaders(
-        dataset, batch_size=batch_size, verbose=verbose
-    )
 
     in_dim = len(dataset[0]["x"])
     if classify:
