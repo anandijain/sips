@@ -70,6 +70,8 @@ class OneLiner(Dataset):
             using dict to index by game_id then converting to tensor
         """
         self.xs, self.ys = xs, ys
+        # print(ys)
+        # print(f'ys.dtype: {type(ys)}')
         self.length = len(self.xs)
     
         if verbose:
@@ -80,12 +82,14 @@ class OneLiner(Dataset):
 
     def __getitem__(self, idx):
         x, y = match_rows(self.xs, self.ys, 'Game_id', idx)
-        print(y)
+        # print(f'ys.dtype: {type(y)}')
+        # print(y.shape)
         x = x.astype(np.float32)
         x = torch.tensor(x.values)
         # y = torch.tensor(y["H_win"].iloc[0], dtype=torch.float).view(-1, 1)
         y = y[["H_win", "A_win"]].iloc[0]
-        y = torch.tensor(y, dtype=torch.float).view(-1)
+        # print(y.values)
+        y = torch.tensor(y.values, dtype=torch.float).view(-1)
         return {"x": x, "y": y}
 
     def __repr__(self):
@@ -122,30 +126,42 @@ def norm_testset(test: pd.DataFrame, train: pd.DataFrame):
     test = (test-train.min())/(train.max()-train.min())
 
     normed_df = pd.concat([infer_strs, test], axis=1)
-
+    print(normed_df)
     return normed_df
 
 
 
 def train_test_sets(frac=0.3):
     df = train_dfs()
-    print("A_team" in list(test_x.columns))
-    wins = df[["Game_id", "H_win", "A_win"]]
+    df = fix_columns(df)
+    length = df.shape[0]
+    wins = df[["Game_id", "H_win", "A_win"]].copy()
+    # a = df.iloc[:length // 2]
+    # b = df.iloc[length // 2:]
+
     df = df.drop(["A_win", "H_win", "A_ML", "H_ML"], axis=1)
-
-    train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
-    print("A_team" in list(test_x.columns))
-
-    test = norm_testset(test_x, train_x)
-    train = to_normed(train_x)
-
-    train_x = hot_teams(train_x)
-    train_set = OneLiner(train_x, train_y)
-
-    test_x = hot_teams(test_x)
-    test_set = OneLiner(test_x, test_y)
+    # print("A_team" in list(df.columns))
+    # train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
+    # print(train_x, test_x, train_y, test_y)
+    # print("A_team" in list(test_x.columns))
+    # test_x = test_x.dropna().copy()
+    # train_x = train_x.dropna().copy()
+    # train_y = train_y.dropna().copy()
+    # test_y = test_y.dropna().copy()
+    # print(f'{test_x} test_x cols')
     
-    return train_set, test_set
+    # print(f'{list(test_x.columns)} test_x cols')
+    # test = norm_testset(test_x, train_x)
+
+    train = to_normed(df)
+    train = hot_teams(train)
+
+    train_set = OneLiner(train, wins)
+
+    # test_x = hot_teams(test_x)
+    # test_set = OneLiner(test_x, test_y)
+    
+    return train_set # , test_set
 
 
 def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
@@ -197,16 +213,17 @@ def prep(batch_size=1, classify=True, verbose=False):
     """
 
     """
-    dataset, test_set = train_test_sets()
+    dataset = train_test_sets()
+
     # print(dataset[0])
     # print(test_set[0])
     train_loader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, num_workers=4
     )
-
-    test_loader = DataLoader(
-        test_set, batch_size=batch_size, shuffle=True, num_workers=4
-    )
+    old.data_sample(dataset)
+    # test_loader = DataLoader(
+    #     test_set, batch_size=batch_size, shuffle=True, num_workers=4
+    # )
 
     x, y = dataset[0]["x"], dataset[0]["y"]
 
@@ -251,7 +268,7 @@ def prep(batch_size=1, classify=True, verbose=False):
     d = {
         "dataset": dataset,
         "train_loader": train_loader,
-        "test_loader": test_loader,
+        # "test_loader": test_loader,
         "criterion": criterion,
         "optimizer": optimizer,
         "model": model,

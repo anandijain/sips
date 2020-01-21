@@ -87,7 +87,7 @@ def train(prepped, epochs=10):
     for epoch in range(epochs):
 
         train_epoch(prepped, epoch)
-        test_epoch(prepped, epoch)
+        # test_epoch(prepped, epoch)
 
         torch.save(prepped['model'].state_dict(), PATH)
 
@@ -99,7 +99,7 @@ def infer(fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
     
     old = olutils.train_dataset(norm=False, hot=False)[0]
     
-    normed_df = norm_inferset(df, old)
+    normed_df = olutils.norm_inferset(df, old)
     df = olutils.hot_teams(normed_df)
     print(df)
 
