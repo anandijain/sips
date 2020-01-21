@@ -126,22 +126,15 @@ def norm_testset(test: pd.DataFrame, train: pd.DataFrame):
     return normed_df
 
 
-def train_dataset(df, norm=False, hot=True):
-
-    if norm:
-        df = to_normed(df)
-    if hot:
-        df = hot_teams(df)
-
-    return df, wins
-
 
 def train_test_sets(frac=0.3):
     df = train_dfs()
-    df = df.drop(["A_ML", "H_ML"], axis=1)
+    print("A_team" in list(test_x.columns))
     wins = df[["Game_id", "H_win", "A_win"]]
+    df = df.drop(["A_win", "H_win", "A_ML", "H_ML"], axis=1)
 
     train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
+    print("A_team" in list(test_x.columns))
 
     test = norm_testset(test_x, train_x)
     train = to_normed(train_x)
