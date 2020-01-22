@@ -15,8 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from sips.macros.sports import nba
 from sips.h import hot
-
-import old
+from sips.ml import normdf
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -106,28 +105,6 @@ def match_rows(df, df2, col, idx):
     return x, y
 
 
-def to_normed(df, strcols=['Game_id', 'A_team', 'H_team']):
-    strs = df[strcols]
-    df = df.drop(strs, axis=1)
-    norm_df = (df-df.min())/(df.max()-df.min())
-    df = pd.concat([strs, norm_df], axis=1)
-    return df
-
-
-def norm_testset(test: pd.DataFrame, train: pd.DataFrame):
-    # print(list(train.columns))
-    str_cols = ['Game_id', 'A_team', 'H_team']
-    train = train.drop(str_cols, axis=1)
-
-    infer_strs = test[str_cols]  # to reattach post norm
-
-    test = test.drop(infer_strs, axis=1)
-
-    test = (test-train.min())/(train.max()-train.min())
-
-    normed_df = pd.concat([infer_strs, test], axis=1)
-    print(normed_df)
-    return normed_df
 
 
 def train_test_dfs(frac=0.7, verbose=True):
@@ -149,8 +126,6 @@ def train_test_dfs(frac=0.7, verbose=True):
     return train, test
 
 
-
-
 def train_test_sets(train, test, frac=0.3):
 
     train_wins = train[["Game_id", "H_win", "A_win"]].copy()
@@ -159,8 +134,8 @@ def train_test_sets(train, test, frac=0.3):
     train = train.drop(["A_win", "H_win"], axis=1)
     test = test.drop(["A_win", "H_win"], axis=1)
 
-    test = norm_testset(test, train)
-    train = to_normed(train)
+    test = normdf.norm_testset(test, train)
+    train = normdf.to_normed(train)
 
     # train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
 
@@ -193,6 +168,18 @@ def hot_teams(df):
     df = df.drop(["A_team", "H_team"], axis=1)
     return df
 
+
+def data_sample(dataset):
+    for i in range(len(dataset)):
+        sample = dataset[i]
+
+        print(i, sample["x"], sample["y"])
+        if i == 0:
+            x_shape = sample["x"].shape
+            y_shape = sample["y"].shape
+            print(f"x_shape: {x_shape}")
+            print(f"y_shape: {y_shape}")
+            break
 
 def fix_columns(df):
     df = df.rename(
@@ -228,7 +215,7 @@ def prep(batch_size=1, classify=True, verbose=False):
     """
     train_df, test_df = train_test_dfs()
     dataset, test_set = train_test_sets(train_df, test_df)
-    old.data_sample(dataset)
+    data_sample(dataset)
 
     train_loader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, num_workers=4
@@ -287,6 +274,7 @@ def prep(batch_size=1, classify=True, verbose=False):
         "batch_x": batch_x,
         "batch_y": batch_y,
         "y_hat": y_hat,
+        'classify': classify
     }
     return d
 

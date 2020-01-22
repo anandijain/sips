@@ -33,7 +33,7 @@ CONFIG_PATH = m.PROJ_DIR + "lines/config/lines.json"
 
 
 parser = argparse.ArgumentParser(description="configure lines.py")
-parser.add_argument("-d", "--dir", type=str, help="folder name of run", default="run3")
+parser.add_argument("-d", "--dir", type=str, help="folder name of run", default="lines")
 group = parser.add_mutually_exclusive_group()
 group.add_argument(
     "-s",

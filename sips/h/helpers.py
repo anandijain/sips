@@ -94,7 +94,9 @@ def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
     return train_fns, test_fns
 
 
-def remove_string_cols(df):
+
+
+def remove_string_cols(df:pd.DataFrame):
     cols_to_remove = []
     for col in df.columns:
         try:
@@ -107,7 +109,7 @@ def remove_string_cols(df):
     return df
 
 
-def chunk(df, cols=["game_id"], output="list"):
+def chunk(df:pd.DataFrame, cols=["game_id"], output="list"):
     # returns a python dict of dfs, splitting the df arg by unique col value
     # df type pd df, col type string
     if output == "list":
@@ -165,7 +167,7 @@ def filter_unended(dfs, verbose=False):
     return full_games
 
 
-def labels_split(df, cols, drop=True):
+def labels_split(df:pd.DataFrame, cols, drop=True):
     # split df into X and Y, with option to drop Y from X
     X = df
     Y = X[[cols]].copy()
@@ -174,7 +176,7 @@ def labels_split(df, cols, drop=True):
     return X, Y
 
 
-def sk_scale(df, to_df=False):
+def sk_scale(df:pd.DataFrame, to_df=False):
     """
     scales pandas or np data(frame) using StandardScaler 
     returns numpy or dataframe (to_df=True)
