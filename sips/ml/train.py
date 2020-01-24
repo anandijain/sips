@@ -19,7 +19,7 @@ def train_epoch(d, epoch, verbose=False):
         d['optimizer'].zero_grad()
         y_hat = d['model'](x)
         if verbose:
-            print(f'x: {x}')
+            # print(f'x: {x}')
             # print(f'x.shape: {x.shape}')
             print(f'y_hat: {y_hat}')
             print(f'y: {y}')

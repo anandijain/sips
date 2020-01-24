@@ -94,8 +94,6 @@ def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
     return train_fns, test_fns
 
 
-
-
 def remove_string_cols(df:pd.DataFrame):
     cols_to_remove = []
     for col in df.columns:

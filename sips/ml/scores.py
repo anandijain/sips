@@ -23,6 +23,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 RUNNING_INTERVAL = 200
 PATH = "scores.pth"
 
+
 class Model(nn.Module):
     def __init__(self, in_dim, out_dim, classify=True):
         super(Model, self).__init__()
@@ -39,8 +40,41 @@ class Model(nn.Module):
         x = F.relu(self.fc6(x))
         return x
 
+# from pytorch tutorials 
+# https://pytorch.org/tutorials/advanced/dynamic_quantization_tutorial.html
 
+class LSTMModel(nn.Module):
+    """Container module with an encoder, a recurrent module, and a decoder."""
 
+    def __init__(self, ntoken, ninp, nhid, nlayers, dropout=0.5):
+        super(LSTMModel, self).__init__()
+        self.drop = nn.Dropout(dropout)
+        self.encoder = nn.Embedding(ntoken, ninp)
+        self.rnn = nn.LSTM(ninp, nhid, nlayers, dropout=dropout)
+        self.decoder = nn.Linear(nhid, ntoken)
+
+        self.init_weights()
+
+        self.nhid = nhid
+        self.nlayers = nlayers
+
+    def init_weights(self):
+        initrange = 0.1
+        self.encoder.weight.data.uniform_(-initrange, initrange)
+        self.decoder.bias.data.zero_()
+        self.decoder.weight.data.uniform_(-initrange, initrange)
+
+    def forward(self, input, hidden):
+        emb = self.drop(self.encoder(input))
+        output, hidden = self.rnn(emb, hidden)
+        output = self.drop(output)
+        decoded = self.decoder(output)
+        return decoded, hidden
+
+    def init_hidden(self, bsz):
+        weight = next(self.parameters())
+        return (weight.new_zeros(self.nlayers, bsz, self.nhid),
+                weight.new_zeros(self.nlayers, bsz, self.nhid))
 
 def train(d, epochs=10):
 
@@ -52,7 +86,7 @@ def train(d, epochs=10):
 
 def prep_loader():
     FIRST_N = 100
-    LAST_N = 50
+    LAST_N = 2
     MIN_LEN = 150
     SPORT = 'BASK'
     BATCH_SIZE = 1
@@ -68,7 +102,7 @@ def prep_loader():
     model = Model(in_dim=x.shape[0], out_dim=y.shape[0]).to(device)
 
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters()) #, lr=0.0001)
     d = {
         "train_loader": train_loader,
         # "test_loader": test_loader,

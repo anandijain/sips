@@ -158,10 +158,10 @@ def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
     return merged
 
 
-def hot_teams(df):
+def hot_teams(df, cols=['H_team', 'A_team']):
     hm = hot.to_hot_map(nba.teams)
-    h = hot.hot_col(df.H_team, hm)
-    a = hot.hot_col(df.A_team, hm)
+    h = hot.hot_col(df[cols[0]], hm)
+    a = hot.hot_col(df[cols[1]], hm)
 
     a.rename(columns=lambda x: x + "_a", inplace=True)
     df = pd.concat([df, h, a], axis=1)
@@ -180,6 +180,7 @@ def data_sample(dataset):
             print(f"x_shape: {x_shape}")
             print(f"y_shape: {y_shape}")
             break
+
 
 def fix_columns(df):
     df = df.rename(
