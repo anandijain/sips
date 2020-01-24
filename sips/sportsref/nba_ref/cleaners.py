@@ -1,78 +1,127 @@
 import os
+import types
 
 import pandas as pd
 
-GAMES_DATA = '/home/sippycups/absa/sips/data/nba/games/'
+from sips.macros.sports import nba
 
-LINE_SCORES = ['win', 'team', 'q_1', 'q_2', 'q_3', 'q_4', 'T']
-
-FOUR_FACTORS = ['win', 'team', 'Pace',
-                'eFG%', 'TOV%', 'ORB%', 'FT/FGA', 'ORtg']
-
-BASIC = ['index', 'Starters',       'MP',       'FG',      'FGA',      'FG%',
-         '3P',      '3PA',      '3P%',       'FT',      'FTA',      'FT%',
-         'ORB',      'DRB',      'TRB',      'AST',      'STL',      'BLK',
-         'TOV',       'PF',      'PTS',      '+/-']
-
-ADVANCED = ['index', 'Starters', 'MP', 'TS%', 'eFG%', '3PAr', 'FTr', 'ORB%',
-            'DRB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%', 'USG%', 'ORtg', 'DRtg']
-COL_INDEX = {
-    'line_score': LINE_SCORES,
-    'four_factors': FOUR_FACTORS,
-    'basic': BASIC,
-    'advanced': ADVANCED,
-}  # drop rename
+GAMES_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+PLAYER_DATA = "/home/sippycups/absa/sips/data/nba/players/"
 
 
-def clean_dir(dir=GAMES_DATA, write=False):
-    fns = os.listdir(dir)
-    clean_given_fns(fns, write=write)
+def clean_games(write=False):
+    fns = os.listdir(GAMES_DATA)
+    clean_games_files(fns, write=write)
 
 
-def clean_given_fns(fns: list, write=False):
-
-    table_types = list(COL_INDEX.keys())
-    fns.remove('index.csv')
+def clean_games_files(fns: list, write=False):
+    try:
+        fns.remove("index.csv")
+    except ValueError:
+        pass
     for i, fn in enumerate(fns):
         full_fn = GAMES_DATA + fn
-        print(f'{i}: {fn}')
-        if 'line_score' in fn:
-            df = drop_rename_from_fn(full_fn, COL_INDEX['line_score'])
-        elif 'four_factors' in fn:
-            df = drop_rename_from_fn(full_fn, COL_INDEX['four_factors'])
-        elif 'basic' in fn:
-            df = drop_rename_from_fn(full_fn, COL_INDEX['basic'])
-        elif 'advanced' in fn:
-            df = drop_rename_from_fn(full_fn, COL_INDEX['advanced'])
-        elif 'shooting' in fn:
-            # drop first col
-            df = drop_ith_col(full_fn, 0)
-        else:
-            continue
 
-        print(df)
+        df = clean_game_file(full_fn)
+
+        if df is not None:
+            print(f"{i}: {fn} cleaned")
+        else:
+            print(f"{i}: {fn} skipped")
         if write:
             df.to_csv(full_fn)
-            # break
-        if i == 10:
-            return
 
 
-def drop_rename_from_fn(fn, cols):
-    print(fn)
-    df = pd.read_csv(fn)
-    df = drop_rename(df, cols)
-    game_id = full_fn_to_game_id(fn)
-    df['game_id'] = game_id
+def clean_game_file(fn):
+    if "line_score" in fn:
+        df = drop_rename_from_fn(fn, nba.LINE_SCORES)
+    elif "four_factors" in fn:
+        df = drop_rename_from_fn(fn, nba.FOUR_FACTORS)
+    elif "basic" in fn:
+        df = drop_rename_from_fn(fn, nba.GAME_BASIC)
+    elif "advanced" in fn:
+        df = drop_rename_from_fn(fn, nba.GAME_ADVANCED)
+    elif "shooting" in fn:
+        # drop first col
+        df = drop_ith_col(fn, 0)
+    else:
+        return
     return df
 
 
-def drop_rename(df, columns):
-    df = df.drop(0)
+def clean_player_file(fn, verbose=False):
+    # im dumb
+    if "totals" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_TOTALS, id_col='player_id', drop_n=0, verbose=verbose)
+    # elif "highs-po" in fn:
+    #     df = drop_rename_from_fn(
+    #         fn, nba.PLAYER_YEAR_CAREER_HIGHS_PO, id_col='player_id', drop_n=0, verbose=verbose)
+    elif "highs" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_YEAR_CAREER_HIGHS, id_col='player_id', drop_n=1, verbose=verbose)
+    elif "per_minute" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_PER_MIN, id_col='player_id', drop_n=0, verbose=verbose)
+    elif "per_game" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_PER_GAME, id_col='player_id', drop_n=0, verbose=verbose)
+    elif "advanced" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_ADVANCED, id_col='player_id', drop_n=0, verbose=verbose)
+    elif "salaries" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_SALARIES, id_col='player_id', drop_n=0, verbose=verbose)
+    elif "college" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_COLLEGE, id_col='player_id', drop_n=1, verbose=verbose)
+    elif "shooting" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_SHOOTING, id_col='player_id', drop_n=2, verbose=verbose)
+    elif "pbp" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_PBP, id_col='player_id', drop_n=1, verbose=verbose)
+    elif "sim_thru" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_SIM_THRU, id_col='player_id', drop_n=1, verbose=verbose)
+    elif "sim_career" in fn:
+        df = drop_rename_from_fn(
+            fn, nba.PLAYER_SIM_CAREER, id_col='player_id', drop_n=1, verbose=verbose)
+    else:
+        return
+    return df
+
+
+def drop_rename(df, columns, drop_n=0):
+    df = df.drop(range(drop_n))
     df.columns = columns
-    if 'index' in df.columns:
-        df = df.drop('index', axis=1)
+    if "index" in df.columns:
+        df = df.drop("index", axis=1)
     return df
+
+
+def drop_rename_from_fn(fn, cols, id_col='game_id', drop_n=0, verbose=False):
+    df = pd.read_csv(fn)
+    if verbose:
+        print(f'pre: {df}')
+    df = drop_rename(df, cols, drop_n=drop_n)
+    df = add_id_from_fn(df, fn, id_col)
+    return df
+
+
+def add_id_from_fn(df, fn, col='player_id'):
+    obj_id = full_fn_to_game_id(fn)  # player or game
+    df[col] = obj_id
+    return df
+
+
+def key_to_game_id(s: str):
+    return s.split("_")[0]
+
+
+def full_fn_to_game_id(s: str):
+    s = key_to_game_id(s)
+    return s.split("/")[-1]
 
 
 def drop_ith_col(fn, i):
@@ -81,12 +130,34 @@ def drop_ith_col(fn, i):
     return df
 
 
-def key_to_game_id(s: str):
-    return s.split('_')[0]
+def test_player(id=''):
+    for f in TEST_FILES:
+        df = clean_player_file(PLAYER_DATA + f, verbose=True)
+        print(f'post: {df}')
 
-def full_fn_to_game_id(s:str):
-    s = key_to_game_id(s)
-    return s.split('/')[-1]
+
+TEST_FILES = ["curryst01_advanced.csv",
+              "curryst01_all_salaries.csv",
+              "curryst01_all_college_stats.csv",
+              "curryst01_all_star.csv",
+              "curryst01_pbp.csv",
+              "curryst01_per_game.csv",
+              "curryst01_per_minute.csv",
+              "curryst01_playoffs_advanced.csv",
+              "curryst01_per_poss.csv",
+              "curryst01_playoffs_pbp.csv",
+              "curryst01_playoffs_per_game.csv",
+              "curryst01_playoffs_per_minute.csv",
+              "curryst01_playoffs_per_poss.csv",
+              "curryst01_playoffs_shooting.csv",
+              "curryst01_playoffs_totals.csv",
+              "curryst01_shooting.csv",
+              "curryst01_sim_career.csv",
+              "curryst01_sim_thru.csv",
+              "curryst01_totals.csv",
+              "curryst01_year-and-career-highs-po.csv",
+              "curryst01_year-and-career-highs.csv", ]
+
 
 if __name__ == "__main__":
-    clean_dir()
+    test_player()

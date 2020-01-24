@@ -82,7 +82,7 @@ class OneLiner(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        x, y = match_rows(self.xs, self.ys, 'Game_id', idx)
+        x, y = match_rows(self.xs, self.ys, "Game_id", idx)
 
         x = x.astype(np.float32)
         x = torch.tensor(x.values)
@@ -92,9 +92,9 @@ class OneLiner(Dataset):
         return {"x": x, "y": y}
 
     def __repr__(self):
-        return f'xs: {self.xs} \
+        return f"xs: {self.xs} \
                 ys_shape: {self.ys.shape} \
-                len: {self.length}'
+                len: {self.length}"
 
 
 def match_rows(df, df2, col, idx):
@@ -103,8 +103,6 @@ def match_rows(df, df2, col, idx):
     x = x.drop(col)
     y = df2[df2[col] == match_val]
     return x, y
-
-
 
 
 def train_test_dfs(frac=0.7, verbose=True):
@@ -120,9 +118,9 @@ def train_test_dfs(frac=0.7, verbose=True):
     train = train.reset_index(drop=True)
     test = test.reset_index(drop=True)
     if verbose:
-        print(f'df: {df}')
-        print(f'train {train.head()} {train.shape}')
-        print(f'test {test.head()} {test.shape}')
+        print(f"df: {df}")
+        print(f"train {train.head()} {train.shape}")
+        print(f"test {test.head()} {test.shape}")
     return train, test
 
 
@@ -148,7 +146,7 @@ def train_test_sets(train, test, frac=0.3):
     return train_set, test_set
 
 
-def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
+def train_dfs(fns=FILES, how="inner") -> pd.DataFrame:
     df, df2 = [pd.read_csv(f) for f in fns]
     merged = df.merge(df2, on="Game_id", how=how)
     merged = merged.drop(["A_ML", "H_ML"], axis=1)
@@ -158,7 +156,7 @@ def train_dfs(fns=FILES, how='inner') -> pd.DataFrame:
     return merged
 
 
-def hot_teams(df, cols=['H_team', 'A_team']):
+def hot_teams(df, cols=["H_team", "A_team"]):
     hm = hot.to_hot_map(nba.teams)
     h = hot.hot_col(df[cols[0]], hm)
     a = hot.hot_col(df[cols[1]], hm)
@@ -192,7 +190,7 @@ def fix_columns(df):
         }
     )
     cols = list(df.columns)
-    for x in ["Game_id", 'H_win', 'A_win']:
+    for x in ["Game_id", "H_win", "A_win"]:
         cols.remove(x)
 
     for col in nba.POST_GAME:
@@ -275,7 +273,7 @@ def prep(batch_size=1, classify=True, verbose=False):
         "batch_x": batch_x,
         "batch_y": batch_y,
         "y_hat": y_hat,
-        'classify': classify
+        "classify": classify,
     }
     return d
 
@@ -283,5 +281,5 @@ def prep(batch_size=1, classify=True, verbose=False):
 if __name__ == "__main__":
     train, test = train_test_dfs()
     tr, te = train_test_sets(train, test)
-    print(f'tr: {tr}')
-    print(f'te: {te}')
+    print(f"tr: {tr}")
+    print(f"te: {te}")

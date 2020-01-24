@@ -33,31 +33,31 @@ def train(prepped, epochs=10):
         training.train_epoch(prepped, epoch)
         training.test_epoch(prepped, epoch)
 
-        torch.save(prepped['model'].state_dict(), PATH)
+        torch.save(prepped["model"].state_dict(), PATH)
 
     print("Finished Training")
 
 
-def infer(d, fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
+def infer(d, fn="data.csv", preds_fn="data_preds.csv") -> pd.DataFrame:
     df = pd.read_csv(fn)
-    old = d['train_df']
+    old = d["train_df"]
     old = old.drop(["A_win", "H_win"], axis=1)
 
-    print(f'old : {old.shape}')
-    print(f'df : {df.shape}')
+    print(f"old : {old.shape}")
+    print(f"df : {df.shape}")
 
     normed_df = olutils.norm_testset(df, old)
 
     df = olutils.hot_teams(normed_df)
 
-    state = torch.load('one_liner.pth')
+    state = torch.load("one_liner.pth")
     shapes = [l.shape for l in list(state.values())]
 
     m = olutils.Model(shapes[0][1], shapes[-1][0]).to(device)
 
-    game_ids = df.pop('Game_id')
+    game_ids = df.pop("Game_id")
     tdf = torch.tensor(df.values, dtype=torch.float).to(device)
-    cols = ['Game_id', 'H_win', 'A_win']
+    cols = ["Game_id", "H_win", "A_win"]
     m.eval()
     rows = []
 
@@ -65,7 +65,7 @@ def infer(d, fn='data.csv', preds_fn='data_preds.csv') -> pd.DataFrame:
         for i, g_id in enumerate(game_ids):
             x = tdf[i].view(1, -1)
             yhat = m(x).cpu().numpy()
-            print(f'{g_id}: {yhat}')
+            print(f"{g_id}: {yhat}")
             rows.append([g_id, yhat[0][0], yhat[0][1]])
 
     preds = pd.DataFrame(rows, columns=cols)

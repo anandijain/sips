@@ -40,8 +40,10 @@ class Model(nn.Module):
         x = F.relu(self.fc6(x))
         return x
 
-# from pytorch tutorials 
+
+# from pytorch tutorials
 # https://pytorch.org/tutorials/advanced/dynamic_quantization_tutorial.html
+
 
 class LSTMModel(nn.Module):
     """Container module with an encoder, a recurrent module, and a decoder."""
@@ -73,26 +75,27 @@ class LSTMModel(nn.Module):
 
     def init_hidden(self, bsz):
         weight = next(self.parameters())
-        return (weight.new_zeros(self.nlayers, bsz, self.nhid),
-                weight.new_zeros(self.nlayers, bsz, self.nhid))
+        return (
+            weight.new_zeros(self.nlayers, bsz, self.nhid),
+            weight.new_zeros(self.nlayers, bsz, self.nhid),
+        )
+
 
 def train(d, epochs=10):
 
     for epoch in range(epochs):
         training.train_epoch(d, epoch=epoch, verbose=True)
-        torch.save(d['model'].state_dict(), PATH)
-
+        torch.save(d["model"].state_dict(), PATH)
 
 
 def prep_loader():
     FIRST_N = 100
     LAST_N = 2
     MIN_LEN = 150
-    SPORT = 'BASK'
+    SPORT = "BASK"
     BATCH_SIZE = 1
 
-    fs = dls.Scoreset(first_n=FIRST_N, last_n=LAST_N,
-                     min_len=MIN_LEN, sport=SPORT)
+    fs = dls.Scoreset(first_n=FIRST_N, last_n=LAST_N, min_len=MIN_LEN, sport=SPORT)
 
     x, y = fs[0].values()
     train_loader = DataLoader(fs, batch_size=BATCH_SIZE)
@@ -102,7 +105,7 @@ def prep_loader():
     model = Model(in_dim=x.shape[0], out_dim=y.shape[0]).to(device)
 
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters()) #, lr=0.0001)
+    optimizer = optim.Adam(model.parameters())  # , lr=0.0001)
     d = {
         "train_loader": train_loader,
         # "test_loader": test_loader,
@@ -110,10 +113,9 @@ def prep_loader():
         "optimizer": optimizer,
         "model": model,
         "writer": writer,
-        'classify': False,
+        "classify": False,
     }
     return d
-
 
 
 if __name__ == "__main__":

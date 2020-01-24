@@ -26,31 +26,34 @@ def get_games_tables(sport: str) -> dict:
     }
     return games_tables
 
-root = 'https://www.basketball-reference.com/'
 
-GAMES_DATA = '/home/sippycups/absa/sips/data/nba/games/'
-INDEX_FN = 'index.csv'
+root = "https://www.basketball-reference.com/"
+
+GAMES_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+INDEX_FN = "index.csv"
+
 
 def all_games(write=True):
     df = pd.read_csv(GAMES_DATA + INDEX_FN)
     games_dict = {}
-    sfxs = ['boxscores/', 'boxscores/pbp/', 'boxscores/shot-chart/']
+    sfxs = ["boxscores/", "boxscores/pbp/", "boxscores/shot-chart/"]
     for i, game_id in enumerate(df.game_id):
         for sfx in sfxs:
-            link = root + sfx + game_id + '.html'
+            link = root + sfx + game_id + ".html"
 
-            if sfx == 'boxscores/shot-chart/':
+            if sfx == "boxscores/shot-chart/":
                 dfs = shots.link_to_charts_df(link)  # charts not in a table tag
             else:
                 dfs = grab.tables_to_df_dict(link)
 
             if write:
                 for key, val in dfs.items():
-                    val.to_csv(GAMES_DATA + key + '.csv')
+                    val.to_csv(GAMES_DATA + key + ".csv")
 
-            print(f'{i}: {game_id} {len(dfs)}')
+            print(f"{i}: {game_id} {len(dfs)}")
             games_dict.update(dfs)
     return games_dict
+
 
 if __name__ == "__main__":
 

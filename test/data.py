@@ -18,9 +18,7 @@ def test_get_and_window():
     dfs = h.get_dfs(m.PARENT_DIR + "data/lines/lines/")
 
     sets = [
-        h.seq_windows(
-            df.values, df[columns].values, history_size=10, target_size=10
-        )
+        h.seq_windows(df.values, df[columns].values, history_size=10, target_size=10)
         for df in dfs
     ]
     first = sets[0]

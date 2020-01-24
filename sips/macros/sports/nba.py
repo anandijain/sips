@@ -68,7 +68,241 @@ abrvs = [
     "WAS",
 ]
 
+index = {
+    """
+    year/career highs
+    totals
+    per min
+    per game
+    advanced
+    sim thru
 
+    sim career
+    shooting
+    pbp
+    all salaries
+    college stats
+
+
+    """
+}
+
+
+# bk-ref player columns
+PLAYER_TOTALS = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'GS', 'MP', 'FG',
+                 'FGA', 'FG%', '3P', '3PA', '3P%', '2P', '2PA', '2P%', 'eFG%', 'FT',
+                 'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF',
+                 'PTS']
+
+PLAYER_YEAR_CAREER_HIGHS_PO = ['index', 'Season', 'Age',  'Tm',  'Lg',  'MP',  'FG',
+                               'FGA',  'FT', 'FTA', 'TRB', 'AST',  'PF', 'PTS']
+
+# drop 1           
+PLAYER_YEAR_CAREER_HIGHS = ['index',
+                            'Season',
+                            'Age',
+                            'Tm',
+                            'Lg',
+                            'highs_MP',
+                            'highs_FG',
+                            'highs_FGA',
+                            'highs_3P',
+                            'highs_3PA',
+                            'highs_2P',
+                            'highs_2PA',
+                            'highs_FT',
+                            'highs_FTA',
+                            'highs_ORB',
+                            'highs_DRB',
+                            'highs_TRB',
+                            'highs_AST',
+                            'highs_STL',
+                            'highs_BLK',
+                            'highs_TOV',
+                            'highs_PF',
+                            'highs_PTS',
+                            'highs_GmSc']
+
+
+PLAYER_PER_MIN = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'GS', 'MP', 'FG',
+                  'FGA', 'FG%', '3P', '3PA', '3P%', '2P', '2PA', '2P%', 'FT', 'FTA',
+                  'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
+
+PLAYER_PER_GAME = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'GS', 'MP', 'FG',
+                   'FGA', 'FG%', '3P', '3PA', '3P%', '2P', '2PA', '2P%', 'eFG%', 'FT',
+                   'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF',
+                   'PTS']
+
+PLAYER_ADVANCED = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'MP', 'PER',
+                   'TS%', '3PAr', 'FTr', 'ORB%', 'DRB%', 'TRB%', 'AST%', 'STL%', 'BLK%',
+                   'TOV%', 'USG%', 'Unnamed: 19', 'OWS', 'DWS', 'WS', 'WS/48',
+                   'Unnamed: 24', 'OBPM', 'DBPM', 'BPM', 'VORP']
+
+PLAYER_SALARIES = ['index', 'Season', 'Team', 'Lg', 'Salary']
+
+# 2 level, drop a row
+PLAYER_COLLEGE = ['index'
+                  'Season',
+                  'Age',
+                  'College',
+                  'Totals', 'G',
+                  'Totals_MP',
+                  'Totals_FG',
+                  'Totals_FGA',
+                  'Totals_3P',
+                  'Totals_3PA',
+                  'Totals_FT',
+                  'Totals_FTA',
+                  'Totals_ORB',
+                  'Totals_TRB',
+                  'Totals_AST',
+                  'Totals_STL',
+                  'Totals_BLK',
+                  'Totals_TOV',
+                  'Totals_PF',
+                  'Totals_PTS',
+                  'Shooting_FG%',
+                  'Shooting_3P%',
+                  'Shooting_FT%',
+                  'Per Game_MP',
+                  'Per Game_PTS',
+                  'Per Game_TRB',
+                  'Per Game_AST']
+
+
+# 3 level index so drop 2 rows
+PLAYER_SHOOTING = ['index',
+                   'Season',
+                   'Age',
+                   'Tm',
+                   'Lg',
+                   'Pos',
+                   'G',
+                   'MP',
+                   'FG%',
+                   'Dist.',
+                   'pct_FGA_by_Distance_2P',
+                   'pct_FGA_by_Distance_0-3',
+                   'pct_FGA_by_Distance_3-10',
+                   'pct_FGA_by_Distance_10-16',
+                   'pct_FGA_by_Distance_16-3pt',
+                   'pct_FGA_by_Distance_3P',
+                   'FG_pct_by_Distance_2P',
+                   'FG_pct_by_Distance_0-3',
+                   'FG_pct_by_Distance_3-10',
+                   'FG_pct_by_Distance_10-16',
+                   'FG_pct_by_Distance_16-3pt',
+                   'FG_pct_by_Distance_3P',
+                   '2-Pt_Field_Goals_pct_astd',
+                   '2-Pt_Field_Goals_Dunks_pct_FGA',
+                   '2-Pt_Field_Goals.2_Dunks_Md.',
+                   '3-Pt_Field_Goals_pct_astd',
+                   '3-Pt_Field_Goals_Corner_pct_3PA',
+                   '3-Pt_Field_Goals_Corner_3P_pct',
+                   '3-Pt_Field_Goals_Heaves_Att.',
+                   '3-Pt_Field_Goals_Heaves_Md.']
+
+# drop 1 row
+PLAYER_PBP = ['index',
+              'Season',
+              'Age',
+              'Tm',
+              'Lg',
+              'Pos',
+              'G',
+              'MP',
+              'pos_est_PG%',
+              'pos_est_SG%',
+              'pos_est_SF%',
+              'pos_est_PF%',
+              'pos_est_C%',
+              '+/- Per 100 Poss_OnCourt',
+              '+/- Per 100 Poss_On-Off',
+              'Turnovers_BadPass',
+              'Turnovers_1_LostBall',
+              'Fouls Committed_Shoot',
+              'Fouls Committed_1_Off.',
+              'Fouls Drawn_Shoot',
+              'Fouls Drawn_1_Off',
+              'Misc_PGA',
+              'Misc_And1',
+              'Misc_Blkd']
+
+# drop one row
+PLAYER_SIM_THRU = ['index', 'Thru 10 Years', 'Thru 10 Years.1',
+                   'best_to_worst', 'best_to_worst_1',
+                   'best_to_worst_2', 'best_to_worst_3',
+                   'best_to_worst_4', 'best_to_worst_5',
+                   'best_to_worst_6', 'best_to_worst_7',
+                   'best_to_worst_8', 'best_to_worst_9']
+
+
+# drop one row
+PLAYER_SIM_CAREER = ['index', 'Career', 'Career.1', 'best_to_worst',
+                     'best_to_worst_1', 'best_to_worst_2',
+                     'best_to_worst_3', 'best_to_worst_4',
+                     'best_to_worst_5', 'best_to_worst_6',
+                     'best_to_worst_7', 'best_to_worst_8',
+                     'best_to_worst_9', 'best_to_worst_10',
+                     'best_to_worst_11', 'best_to_worst_12',
+                     'best_to_worst_13', 'best_to_worst_14',
+                     'best_to_worst_15', 'best_to_worst_16']
+
+
+# bk-ref boxscore columns
+
+LINE_SCORES = ["win", "team", "q_1", "q_2", "q_3", "q_4", "T"]
+
+FOUR_FACTORS = ["win", "team", "Pace",
+                "eFG%", "TOV%", "ORB%", "FT/FGA", "ORtg"]
+
+GAME_BASIC = [
+    "index",
+    "Starters",
+    "MP",
+    "FG",
+    "FGA",
+    "FG%",
+    "3P",
+    "3PA",
+    "3P%",
+    "FT",
+    "FTA",
+    "FT%",
+    "ORB",
+    "DRB",
+    "TRB",
+    "AST",
+    "STL",
+    "BLK",
+    "TOV",
+    "PF",
+    "PTS",
+    "+/-",
+]
+
+GAME_ADVANCED = [
+    "index",
+    "Starters",
+    "MP",
+    "TS%",
+    "eFG%",
+    "3PAr",
+    "FTr",
+    "ORB%",
+    "DRB%",
+    "TRB%",
+    "AST%",
+    "STL%",
+    "BLK%",
+    "TOV%",
+    "USG%",
+    "ORtg",
+    "DRtg",
+]
+
+
+# TEAM SET COLS FROM HERE DOWN
 POST_GAME = [
     "A_1stq",
     "A_2ndq",

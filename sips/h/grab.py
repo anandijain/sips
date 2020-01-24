@@ -173,14 +173,14 @@ def tables_to_df_dict(link: str):
     game_dict = {}
     p = comments(link)
     game_id = sr_utils.url_to_id(link)
-    ts = p.find_all('table')
+    ts = p.find_all("table")
 
     for t in ts:
-        t_id = t.get('id')
+        t_id = t.get("id")
         if t_id is None:
             continue
         df = parse.get_table(p, t_id, to_pd=True)
-        key = game_id + '_' + t_id
+        key = game_id + "_" + t_id
         game_dict[key] = df
     return game_dict
 
