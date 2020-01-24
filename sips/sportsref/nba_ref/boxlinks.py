@@ -43,7 +43,7 @@ def month_of_boxlinks(link):
     return boxlinks
 
 
-def all_nba_boxlinks(to_pd=True):
+def all_nba_boxlinks(to_pd=False):
     """
 
     """
@@ -66,8 +66,8 @@ def all_nba_boxlinks(to_pd=True):
             print(f'{i}: {link}')
             
     if to_pd:
-        all_boxlinks = pd.DataFrame(all_boxlinks)
-        all_boxlinks.to_csv('nba_boxlinks.csv', columns=['game_id'])
+        all_boxlinks = pd.DataFrame(all_boxlinks, columns=['game_id'])
+        all_boxlinks.to_csv('nba_boxlinks.csv')
 
     return all_boxlinks
 
