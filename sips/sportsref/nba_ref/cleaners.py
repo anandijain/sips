@@ -35,15 +35,15 @@ def clean_games_files(fns: list, write=False):
 def clean_game_file(fn:str, verbose=False):
     if "line_score" in fn:
         df = drop_rename_from_fn(
-            fn, nba.LINE_SCORES, drop_n=0, verbose=verbose)
+            fn, nba.LINE_SCORES, drop_n=1, verbose=verbose)
     elif "four_factors" in fn:
         df = drop_rename_from_fn(fn, nba.FOUR_FACTORS,
-                                 drop_n=0, verbose=verbose)
+                                 drop_n=1, verbose=verbose)
     elif "basic" in fn:
-        df = drop_rename_from_fn(fn, nba.GAME_BASIC, drop_n=0, verbose=verbose)
+        df = drop_rename_from_fn(fn, nba.GAME_BASIC, drop_n=1, verbose=verbose)
     elif "advanced" in fn:
         df = drop_rename_from_fn(
-            fn, nba.GAME_ADVANCED, drop_n=0, verbose=verbose)
+            fn, nba.GAME_ADVANCED, drop_n=1, verbose=verbose)
 
     elif "shooting" in fn:
         # drop first col
@@ -146,10 +146,9 @@ def test_player():
 def test_game():
     for f in GAME_TEST_FILES:
         df = clean_game_file(GAMES_DATA + f, verbose=True)
+        print(f)
         if df is not None:
             print(f'post: {df}')
-        else:
-            print(f)
 
 
 
