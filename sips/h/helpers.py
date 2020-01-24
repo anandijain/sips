@@ -43,9 +43,9 @@ def get_dfs(to_read=None, dict_key=None, output="list"):
     return dfs
 
 
-def window_multivariate(
+def seq_windows(
     dataset,
-    target,
+    target=None,
     start_index=0,
     end_index=None,
     history_size=1,
@@ -59,6 +59,9 @@ def window_multivariate(
     data = []
     labels = []
     start_index = start_index + history_size
+
+    if target is None:
+        target = dataset
 
     if end_index is None:
         end_index = len(dataset) - target_size
@@ -76,6 +79,43 @@ def window_multivariate(
         labels.append(label)
 
     return np.array(data), np.array(labels)
+
+def seq_windows_df(
+    df,
+    target=None,
+    start_index=0,
+    end_index=None,
+    history_size=1,
+    target_size=1,
+    step=1,
+    single_step=False,
+):
+    """
+    create sliding window tuples for training nns on multivar timeseries
+    """
+    data = []
+    labels = []
+    start_index = start_index + history_size
+
+    if target is None:
+        target = df
+
+    if end_index is None:
+        end_index = df.shape[0] - target_size
+
+    for i in range(start_index, end_index):
+        indices = range(i - history_size, i, step)
+        X = df.iloc[indices]
+        data.append(X)
+
+        if single_step:
+            label = target[i + target_size]
+        else:
+            label = target[i : i + target_size]
+
+        labels.append(label)
+
+    return data, labels
 
 
 def train_test_split_list(to_split, train_frac=0.7, shuffle=False):

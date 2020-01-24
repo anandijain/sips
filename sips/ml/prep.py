@@ -6,6 +6,7 @@ import numpy as np
 from sips.h import calc
 from sips.h import helpers
 from sips.ml import normdf
+from sips.ml.one_line import olutils
 
 
 def prep_sportset(df, to_dummies, sport: str, train_frac=0.7):
@@ -39,6 +40,18 @@ def clean(df, to_drop=['a_ou', 'h_ou']):
     return df
 
 
+class Seq(Dataset):
+    def __init__(self, df, group_by='game_id'):
+        self.games = list(df.groupby(group_by))
+        self.teams = pd.read_csv('teams_updated_stats.csv')
+        self.length = len(self.games)
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        g = self.games[idx]
+        
 
 
 def main(train_frac=0.7):
@@ -87,13 +100,14 @@ def main(train_frac=0.7):
         test_status = pd.get_dummies(test_normed.status)
         test_normed = test_normed.join([test_qtrs, test_status])
         test_normed = test_normed.drop(['status', 'quarter'], axis=1)
+        # test_normed = olutils.hot_teams(test_normed, cols=['h_team', 'a_team'])
 
         train_qtrs = pd.get_dummies(train_normed.quarter, prefix='q')
         train_status = pd.get_dummies(train_normed.status)
         train_normed = train_normed.join([train_qtrs, train_status])
         train_normed = train_normed.drop(['status', 'quarter'], axis=1)
+        # train_normed = olutils.hot_teams(train_normed, cols=['h_team', 'a_team'])
         
-
         sets[sport] = {'train': train_normed, 'test': test_normed}
     
     return sets

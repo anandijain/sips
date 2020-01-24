@@ -50,7 +50,7 @@ def link_to_charts_df(link: str, fn=None):
     return df
 
 
-def all_shotcharts():
+def all_shotcharts(write=False):
     """
     outputs one large DataFrame
     game_id, x, y, type, outcome, player
@@ -78,13 +78,15 @@ def all_shotcharts():
         )
 
         if i % 200 == 0:
-            game_id = sfx_to_gameid(sfx)
+            game_id = utils.url_to_id(sfx)
             print(game_id)
-    meta_df.to_csv("./data/meta_shots.csv")
+    if write:
+        meta_df.to_csv("./data/meta_shots.csv")
 
 
 if __name__ == "__main__":
-    # main()
+    all_shotcharts()
+    print(link)
     dl = link_to_charts_df(link=link)
     dl
     dl[0]

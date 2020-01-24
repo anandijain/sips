@@ -165,7 +165,7 @@ def hot_teams(df, cols=['H_team', 'A_team']):
 
     a.rename(columns=lambda x: x + "_a", inplace=True)
     df = pd.concat([df, h, a], axis=1)
-    df = df.drop(["A_team", "H_team"], axis=1)
+    df = df.drop(cols, axis=1)
     return df
 
 
