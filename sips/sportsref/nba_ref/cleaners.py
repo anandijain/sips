@@ -6,13 +6,14 @@ import types
 import pandas as pd
 
 from sips.macros.sports import nba
+from sips.macros import macros as m
 
-GAME_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+GAME_DATA = m.PARENT_DIR + "data/nba/games/"
 TEST_GAME_ID = '202001220ORL'
 GAME_TEST_FILES = glob.glob(GAME_DATA + TEST_GAME_ID + '*')
 
 
-PLAYER_DATA = "/home/sippycups/absa/sips/data/nba/players/"
+PLAYER_DATA = m.PARENT_DIR + "data/nba/players/"
 TEST_PLAYER_ID = 'curryst01'
 PLAYER_TEST_FILES = glob.glob(PLAYER_DATA + TEST_PLAYER_ID + '*')
 
@@ -161,5 +162,5 @@ def test_game():
 
 
 if __name__ == "__main__":
-    # test_player()
-    test_game()
+    test_player()
+    # test_game()

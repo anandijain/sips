@@ -4,6 +4,7 @@ import pandas as pd
 
 from sips.h import grab
 from sips.h import parse
+from sips.macros import macros as m
 from sips.sportsref import utils
 from sips.sportsref.nba_ref import shots
 
@@ -29,7 +30,8 @@ def get_games_tables(sport: str) -> dict:
 
 root = "https://www.basketball-reference.com/"
 
-GAME_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+GAME_DATA = m.PARENT_DIR + "data/nba/games/"
+
 INDEX_FN = "index.csv"
 
 
