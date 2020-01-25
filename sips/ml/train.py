@@ -2,12 +2,12 @@ import torch
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-RUNNING_INTERVAL = 200
+RUNNING_INTERVAL = 10
 
 
 def train_epoch(d, epoch, verbose=False):
     # requires model, train_loader, optimizer, criterion, writer, classify
-    print("training")
+    print(f"training: {epoch}")
     d["model"].train()
     correct = 0
     total = 0
@@ -56,11 +56,12 @@ def train_epoch(d, epoch, verbose=False):
             print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}")
             print(f"y: {y}, y_hat: {y_hat}")
             running_loss = 0.0
+
     if d["classify"]:
         print(f"train accuracy {(100 * correct / total):.2f} %")
 
 
-def test_epoch(d, epoch):
+def test_epoch(d, epoch, verbose=False):
     """ 
     requires model, test_loader, criterion, writer
     and requires dataloader to return {'x', 'y'} dict
@@ -76,23 +77,32 @@ def test_epoch(d, epoch):
             test_x, test_y = test_data["x"].to(device), test_data["y"].to(device)
 
             test_y_hat = d["model"](test_x)
+            if verbose:
+                print(f"test_y_hat: {test_y_hat}")
+                print(f"test_y: {test_y}")
 
-            _, predicted = torch.max(test_y_hat.data, 1)
-
-            class_idx = torch.max(test_y, 1)[1]
-            test_loss = d["criterion"](test_y_hat, class_idx)
             batch_size = test_y.size(0)
             total += batch_size
-            batch_correct = (predicted == class_idx).sum().item()
-            correct += batch_correct
+
+            if d["classify"]:
+                class_idxs = torch.max(test_y, 1)[1]
+                loss = d["criterion"]((test_y_hat), class_idxs)
+                _, predicted = torch.max(test_y_hat.data, 1)
+                test_loss = d["criterion"](test_y_hat, class_idxs)
+
+                batch_correct = (predicted == class_idxs).sum().item()
+                correct += batch_correct
+                d["writer"].add_scalar(
+                    "test_acc",
+                    batch_correct / batch_size,
+                    i + epoch * len(d["test_loader"]),
+                )
+
+            else:
+                test_loss = d["criterion"]((test_y_hat), test_y)
 
             d["writer"].add_scalar(
                 "test_loss", test_loss, i + epoch * len(d["test_loader"])
-            )
-            d["writer"].add_scalar(
-                "test_acc",
-                batch_correct / batch_size,
-                i + epoch * len(d["test_loader"]),
             )
 
             running_loss += test_loss.item()

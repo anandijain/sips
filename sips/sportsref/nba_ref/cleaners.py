@@ -162,5 +162,5 @@ def test_game():
 
 
 if __name__ == "__main__":
-    test_player()
-    # test_game()
+    # test_player()
+    test_game()

@@ -81,24 +81,35 @@ class LSTMModel(nn.Module):
         )
 
 
-def train(d, epochs=10):
+def train(d, epochs=20):
 
     for epoch in range(epochs):
-        training.train_epoch(d, epoch=epoch, verbose=True)
+        training.train_epoch(d, epoch=epoch, verbose=False)
+        training.test_epoch(d, epoch=epoch, verbose=False)
         torch.save(d["model"].state_dict(), PATH)
 
 
 def prep_loader():
-    FIRST_N = 100
+    FIRST_N = 10
     LAST_N = 2
-    MIN_LEN = 150
+    # MIN_LEN = 150
     SPORT = "BASK"
     BATCH_SIZE = 1
 
-    fs = dls.Scoreset(first_n=FIRST_N, last_n=LAST_N, min_len=MIN_LEN, sport=SPORT)
+    # fs = dls.Scoreset(first_n=FIRST_N, last_n=LAST_N, min_len=MIN_LEN, sport=SPORT)
+    train_df, test_df = dls.normed_scoresets()
+    trainset = dls.Scoreset2(train_df, first_n=FIRST_N, last_n=LAST_N)
+    testset = dls.Scoreset2(test_df, first_n=FIRST_N, last_n=LAST_N)
 
-    x, y = fs[0].values()
-    train_loader = DataLoader(fs, batch_size=BATCH_SIZE)
+    x, y = trainset[0].values()
+    print(f'x{x}')
+    print(f'x{x.shape[0]}')
+
+    print(f'y{y}')
+    print(f'y{y.shape[0]}')
+
+    train_loader = DataLoader(trainset, batch_size=BATCH_SIZE)
+    test_loader = DataLoader(testset, batch_size=BATCH_SIZE)
 
     writer = SummaryWriter(f"runs/scores{time.asctime()}")
 
@@ -108,7 +119,7 @@ def prep_loader():
     optimizer = optim.Adam(model.parameters())  # , lr=0.0001)
     d = {
         "train_loader": train_loader,
-        # "test_loader": test_loader,
+        "test_loader": test_loader,
         "criterion": criterion,
         "optimizer": optimizer,
         "model": model,

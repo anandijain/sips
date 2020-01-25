@@ -16,6 +16,8 @@ nba_months = [
     "february",
     "march",
     "april",
+    "may",
+    "june"
 ]
 
 
