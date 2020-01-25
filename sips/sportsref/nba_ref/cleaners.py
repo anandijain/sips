@@ -1,16 +1,24 @@
 import os
+import glob
 import types
+
 
 import pandas as pd
 
 from sips.macros.sports import nba
 
-GAMES_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+GAME_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+TEST_GAME_ID = '202001220ORL'
+GAME_TEST_FILES = glob.glob(GAME_DATA + TEST_GAME_ID + '*')
+
+
 PLAYER_DATA = "/home/sippycups/absa/sips/data/nba/players/"
+TEST_PLAYER_ID = 'curryst01'
+PLAYER_TEST_FILES = glob.glob(PLAYER_DATA + TEST_PLAYER_ID + '*')
 
 
 def clean_games(write=False):
-    fns = os.listdir(GAMES_DATA)
+    fns = os.listdir(GAME_DATA)
     clean_games_files(fns, write=write)
 
 
@@ -20,7 +28,7 @@ def clean_games_files(fns: list, write=False):
     except ValueError:
         pass
     for i, fn in enumerate(fns):
-        full_fn = GAMES_DATA + fn
+        full_fn = GAME_DATA + fn
 
         df = clean_game_file(full_fn)
 
@@ -136,7 +144,7 @@ def drop_ith_col(fn, i):
 
 def test_player():
     for f in PLAYER_TEST_FILES:
-        df = clean_player_file(PLAYER_DATA + f, verbose=True)
+        df = clean_player_file(f, verbose=True)
         if df is not None:
             print(f'post: {df}')
         else:
@@ -145,59 +153,11 @@ def test_player():
 
 def test_game():
     for f in GAME_TEST_FILES:
-        df = clean_game_file(GAMES_DATA + f, verbose=True)
+        df = clean_game_file(f, verbose=True)
         print(f)
         if df is not None:
             print(f'post: {df}')
 
-
-
-PLAYER_TEST_FILES = ["curryst01_advanced.csv",
-                     "curryst01_all_salaries.csv",
-                     "curryst01_all_college_stats.csv",
-                     "curryst01_all_star.csv",
-                     "curryst01_pbp.csv",
-                     "curryst01_per_game.csv",
-                     "curryst01_per_minute.csv",
-                     "curryst01_playoffs_advanced.csv",
-                     "curryst01_per_poss.csv",
-                     "curryst01_playoffs_pbp.csv",
-                     "curryst01_playoffs_per_game.csv",
-                     "curryst01_playoffs_per_minute.csv",
-                     "curryst01_playoffs_per_poss.csv",
-                     "curryst01_playoffs_shooting.csv",
-                     "curryst01_playoffs_totals.csv",
-                     "curryst01_shooting.csv",
-                     "curryst01_sim_career.csv",
-                     "curryst01_sim_thru.csv",
-                     "curryst01_totals.csv",
-                     "curryst01_year-and-career-highs-po.csv",
-                     "curryst01_year-and-career-highs.csv", ]
-
-
-GAME_TEST_FILES = ['202001220ORL_box-OKC-game-basic.csv',
-                   '202001220ORL_box-OKC-q2-basic.csv',
-                   '202001220ORL_box-OKC-q3-basic.csv',
-                   '202001220ORL_box-OKC-q4-basic.csv',
-                   '202001220ORL_box-OKC-h2-basic.csv',
-                   '202001220ORL_box-ORL-game-basic.csv',
-                   '202001220ORL_box-ORL-q1-basic.csv',
-                   '202001220ORL_box-ORL-q2-basic.csv',
-                   '202001220ORL_box-ORL-h1-basic.csv',
-                   '202001220ORL_box-ORL-q4-basic.csv',
-                   '202001220ORL_box-ORL-h2-basic.csv',
-                   '202001220ORL_box-ORL-game-advanced.csv',
-                   '202001220ORL_line_score.csv',
-                   '202001220ORL_four_factors.csv',
-                   '202001220ORL_shooting-OKC.csv',
-                   '202001220ORL_shooting-ORL.csv',
-                   '202001220ORL_OKC_shotchart.csv',
-                   '202001220ORL_ORL_shotchart.csv',
-                   '202001220ORL_box-OKC-q1-basic.csv',
-                   '202001220ORL_box-OKC-h1-basic.csv',
-                   '202001220ORL_box-OKC-game-advanced.csv',
-                   '202001220ORL_box-ORL-q3-basic.csv',
-                   '202001220ORL_pbp.csv']
 
 
 if __name__ == "__main__":

@@ -29,12 +29,12 @@ def get_games_tables(sport: str) -> dict:
 
 root = "https://www.basketball-reference.com/"
 
-GAMES_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+GAME_DATA = "/home/sippycups/absa/sips/data/nba/games/"
 INDEX_FN = "index.csv"
 
 
 def all_games(write=True):
-    df = pd.read_csv(GAMES_DATA + INDEX_FN)
+    df = pd.read_csv(GAME_DATA + INDEX_FN)
     games_dict = {}
     sfxs = ["boxscores/", "boxscores/pbp/", "boxscores/shot-chart/"]
     for i, game_id in enumerate(df.game_id):
@@ -48,7 +48,7 @@ def all_games(write=True):
 
             if write:
                 for key, val in dfs.items():
-                    val.to_csv(GAMES_DATA + key + ".csv")
+                    val.to_csv(GAME_DATA + key + ".csv")
 
             print(f"{i}: {game_id} {len(dfs)}")
             games_dict.update(dfs)
