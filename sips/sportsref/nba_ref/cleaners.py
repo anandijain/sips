@@ -4,7 +4,7 @@ import types
 
 
 import pandas as pd
-
+import numpy as np
 from sips.macros.sports import nba
 from sips.macros import macros as m
 
@@ -41,7 +41,7 @@ def clean_games_files(fns: list, write=False):
             df.to_csv(full_fn)
 
 
-def clean_game_file(fn:str, verbose=False):
+def clean_game_file(fn: str, verbose=False):
     if "line_score" in fn:
         df = drop_rename_from_fn(
             fn, nba.LINE_SCORES, drop_n=1, verbose=verbose)
@@ -147,22 +147,69 @@ def shotchart_tip(df):
     # new_cols = ["index", "p_id", "qtr", "shot_made", "x_pos", "y_pos", "time", 'player_info', 'team_info']
     tips = df.tip
     tmp = tips.str.split('<br>', expand=True)
-    time_remaining = tmp[0].str.split(' ', expand=True)[2]
-    # score = tmp[2].str.split(' ', expand=True)[-1]
-    # df.join([time_remaining, tmp[1], tmp[2]])
-    df['time'] = time_remaining
-    df['player_info'] =
-    df.columns = new_cols
-    # new = pd.concat([df, time_remaining, tmp[1], tmp[2]], axis=1, columns=new_cols)
-    return new
 
-# def strop(s:str):
-#     tips = s.split('<br>')
-#     time = tips[0].split(' ')[2]
-#     player_str = tips[1]
-#     score = tips[1].split(' ')[-1]
-#     team_str = tips[2]
-#     return [time, score, player_str, , team_str]
+    time_remaining = tmp[0].str.split(' ', expand=True)[2]
+    ms = split_str_times(time_remaining)
+    df['mins'] = ms[0]
+    df['secs'] = ms[1]
+
+    df = add_total_time_remaining(df)
+
+    df['player_info'] = tmp[1]
+    df['team_info'] = tmp[2]
+    df = df.drop('tip', axis=1)
+    return df
+
+
+def split_str_times(times: pd.Series):
+    ms = times.str.split(':', expand=True).astype(np.float)
+    return ms
+
+
+def split_str_times_df(df: pd.DataFrame, col='time', out_cols=['mins', 'secs'], drop_old=True):
+    times = df[col]
+    ms = times.str.split(':', expand=True).astype(np.float)
+    df['mins'] = ms[0]
+    df['secs'] = ms[1]
+    if drop_old:
+        df = df.drop(col, axis=1)
+    return df
+
+
+def game_pbp_times(df):
+    # t = df.Time
+    q2_idx = df.index[df.Time == '2nd Q'][0]
+    q3_idx = df.index[df.Time == '3rd Q'][0]
+    q4_idx = df.index[df.Time == '4th Q'][0]
+
+    s = pd.Series(np.full(q2_idx, 1))
+    s = pd.concat([s, pd.Series(np.full(q3_idx - q2_idx, 2))])
+    s = pd.concat([s, pd.Series(np.full(q4_idx - q3_idx, 3))])
+    s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))])
+    s = s.reset_index(drop=True)
+    df['qtr'] = s
+    bad_strs = ['1st Q', '2nd Q', '3rd Q', '4th Q', 'Time']
+    for s in bad_strs:
+        df = df[df.Time != s]
+
+    df = split_str_times_df(df, col='Time')
+    df = add_total_time_remaining(df)
+    return df
+
+
+def add_total_time_remaining(df, new_col='tot_sec', qtr='qtr', mins='mins', secs='secs'):
+    # 720 seconds in nba qtr, 4 qtrs
+    df[new_col] = 720*(4 - df[qtr]) + df[mins] * 60 + df[secs]
+    return df
+
+
+def lines_tot_time(df):
+    df = df[df.qtr != 'None']
+    df = df[df.secs != 'None']
+    df[['qtr', 'secs']] = df[['qtr', 'secs']].astype(int)
+    df.secs = df.secs.replace(-1, 0)
+    df['tot_sec'] = 720*(4 - df['qtr']) + df['secs']
+    return df
 
 
 def test_player():
@@ -180,7 +227,6 @@ def test_game():
         print(f)
         if df is not None:
             print(f'post: {df}')
-
 
 
 if __name__ == "__main__":
