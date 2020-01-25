@@ -181,14 +181,16 @@ def game_pbp_times(df):
     q2_idx = df.index[df.Time == '2nd Q'][0]
     q3_idx = df.index[df.Time == '3rd Q'][0]
     q4_idx = df.index[df.Time == '4th Q'][0]
+    # q4_idx = df.index[df.Time == '1st OT'][0] # TODO
 
     s = pd.Series(np.full(q2_idx, 1))
     s = pd.concat([s, pd.Series(np.full(q3_idx - q2_idx, 2))])
     s = pd.concat([s, pd.Series(np.full(q4_idx - q3_idx, 3))])
+    # s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))]) 
     s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))])
     s = s.reset_index(drop=True)
     df['qtr'] = s
-    bad_strs = ['1st Q', '2nd Q', '3rd Q', '4th Q', 'Time']
+    bad_strs = ['1st Q', '2nd Q', '3rd Q', '4th Q', 'Time', '1st OT']
     for s in bad_strs:
         df = df[df.Time != s]
 

@@ -15,10 +15,14 @@ GAME_ID = '202001070LAL'
 
 def shots_fns(game_id, folder=GAME_DATA):
     home_team = utils.game_id_to_home_code(game_id)
-    charts_fns = glob.glob(f'{folder}{game_id}**shotchart.csv')
-    away_shots_fn = glob.glob(
-        f'{folder}{game_id}_{home_team}**shotchart.csv')[0]
-    home_shots_fn = charts_fns.remove(away_shots_fn)
+    charts_fns = glob.glob(f'{folder + game_id}**shotchart.csv')
+    print(f'charts fns: {charts_fns}')
+    home_shots_fn = glob.glob(
+        f'{folder + game_id}_{home_team}**shotchart.csv')[0]
+    charts_fns.remove(home_shots_fn)
+    away_shots_fn = charts_fns[0]
+    print(f'away fns: {away_shots_fn}')
+    print(f'home fns: {home_shots_fn}')
 
     return home_shots_fn, away_shots_fn
 
@@ -28,9 +32,9 @@ def to_sync_dfs(game_id):
 
     home_shots, away_shots = shots_fns(game_id)
 
-    pbp_fn = game_id + '_pbp.csv'
+    pbp_fn = GAME_DATA + game_id + '_pbp.csv'
 
-    pbp, charth, charta = [pd.read_csv(GAME_DATA + fn)
+    pbp, charth, charta = [pd.read_csv(fn)
                            for fn in [pbp_fn, home_shots, away_shots]]
     return lines, pbp, charth, charta
 
@@ -46,8 +50,7 @@ def sync_shots(home, away):
     return shots
 
 
-def sync(how='inner'):
-    game_id = '201912280MIL'
+def sync(game_id, how='inner'):
     lines, pbp, sch, sca = to_sync_dfs(game_id)
     shots = sync_shots(sch, sca)
 
@@ -60,6 +63,17 @@ def sync(how='inner'):
     synced = reduce(lambda l, r: pd.merge(
         l, r, on='tot_sec', how=how), [shots, lines, pbp])
     synced['game_id'] = game_id
+    return synced
+
+
+def sync_all():
+    df = pd.read_csv(GAME_DATA + 'index.csv')
+    samples = df.game_id.iloc[:4000].sample(20).values
+    synced = {}
+    for s in samples:
+        game = sync(s)
+        synced[s] = game
+
     return synced
 
 
@@ -83,5 +97,5 @@ def compile_shots():
 
 
 if __name__ == "__main__":
-    s = sync()
+    s = sync_all()
     print(s)
