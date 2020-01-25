@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="sips",
-    version="0.14.2",
+    version="0.15",
     description="tools for quantitative sports analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",

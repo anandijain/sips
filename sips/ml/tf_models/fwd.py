@@ -9,8 +9,8 @@ def train_step_classify(
     loss_object,
     x_train,
     y_train,
-    train_loss,
-    train_accuracy,
+    train_loss=None,
+    train_accuracy=None,
     verbose=False,
 ):
     """
@@ -27,9 +27,11 @@ def train_step_classify(
 
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
-
-    tl = train_loss(loss)
-    ta = train_accuracy(y_train, predictions)
+    tl, ta = None, None
+    if train_loss:
+        tl = train_loss(loss)
+    if train_accuracy:
+        ta = train_accuracy(y_train, predictions)
     return tl, ta, predictions
 
 

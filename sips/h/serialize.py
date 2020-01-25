@@ -195,7 +195,9 @@ def serialize_df(
     if df.empty:
         return
 
-    game_id = df.game_id.iloc[0]
+    if "game_id" in df.columns:
+        game_id = df.game_id.iloc[0]
+
     features = df.copy()
 
     if label_cols is not None:

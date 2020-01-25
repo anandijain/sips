@@ -26,6 +26,29 @@ LINE_COLUMNS = [
     "game_start_time",
 ]
 
+LINE_COLUMNS_NO_SCORE = [
+    "sport",
+    "game_id",
+    "a_team",
+    "h_team",
+    "last_mod",
+    "num_markets",
+    "live",
+    "a_ps",
+    "h_ps",
+    "a_hcap",
+    "h_hcap",
+    "a_ml",
+    "h_ml",
+    "a_tot",
+    "h_tot",
+    "a_hcap_tot",
+    "h_hcap_tot",
+    "a_ou",
+    "h_ou",
+    "game_start_time",
+]
+
 TO_SERIALIZE = [
     "sport",
     "a_team",

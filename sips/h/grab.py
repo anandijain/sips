@@ -11,6 +11,7 @@ import requests as r
 from requests_futures.sessions import FuturesSession
 
 from sips.h import parse
+from sips.sportsref import utils as sr_utils
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
@@ -166,6 +167,22 @@ def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
         else:
             all_tables.append(tables)
     return tables
+
+
+def tables_to_df_dict(link: str):
+    game_dict = {}
+    p = comments(link)
+    game_id = sr_utils.url_to_id(link)
+    ts = p.find_all("table")
+
+    for t in ts:
+        t_id = t.get("id")
+        if t_id is None:
+            continue
+        df = parse.get_table(p, t_id, to_pd=True)
+        key = game_id + "_" + t_id
+        game_dict[key] = df
+    return game_dict
 
 
 if __name__ == "__main__":

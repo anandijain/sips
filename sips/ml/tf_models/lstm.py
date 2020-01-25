@@ -53,8 +53,8 @@ def make_lstm_functional(in_shape_tup, out_dim, classify=False):
     return model
 
 
-def make_mlp_functional(in_dim, out_dim, classify=False, verbose=True):
-    inputs = tf.keras.Input(shape=in_dim, batch_size=1)
+def make_mlp_functional(in_dim, out_dim, classify=False, batch_size=1, verbose=True):
+    inputs = tf.keras.Input(shape=in_dim, batch_size=batch_size)
 
     x = tf.keras.layers.Dense(200, activation="relu")(inputs)
     x = tf.keras.layers.Dense(128, activation="relu")(x)

@@ -43,9 +43,9 @@ def get_dfs(to_read=None, dict_key=None, output="list"):
     return dfs
 
 
-def window_multivariate(
+def seq_windows(
     dataset,
-    target,
+    target=None,
     start_index=0,
     end_index=None,
     history_size=1,
@@ -59,6 +59,9 @@ def window_multivariate(
     data = []
     labels = []
     start_index = start_index + history_size
+
+    if target is None:
+        target = dataset
 
     if end_index is None:
         end_index = len(dataset) - target_size
@@ -78,6 +81,44 @@ def window_multivariate(
     return np.array(data), np.array(labels)
 
 
+def seq_windows_df(
+    df,
+    target=None,
+    start_index=0,
+    end_index=None,
+    history_size=1,
+    target_size=1,
+    step=1,
+    single_step=False,
+):
+    """
+    create sliding window tuples for training nns on multivar timeseries
+    """
+    data = []
+    labels = []
+    start_index = start_index + history_size
+
+    if target is None:
+        target = df
+
+    if end_index is None:
+        end_index = df.shape[0] - target_size
+
+    for i in range(start_index, end_index):
+        indices = range(i - history_size, i, step)
+        X = df.iloc[indices]
+        data.append(X)
+
+        if single_step:
+            label = target[i + target_size]
+        else:
+            label = target[i : i + target_size]
+
+        labels.append(label)
+
+    return data, labels
+
+
 def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
     """
 
@@ -94,7 +135,7 @@ def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
     return train_fns, test_fns
 
 
-def remove_string_cols(df):
+def remove_string_cols(df: pd.DataFrame):
     cols_to_remove = []
     for col in df.columns:
         try:
@@ -107,7 +148,7 @@ def remove_string_cols(df):
     return df
 
 
-def chunk(df, cols=["game_id"], output="list"):
+def chunk(df: pd.DataFrame, cols=["game_id"], output="list"):
     # returns a python dict of dfs, splitting the df arg by unique col value
     # df type pd df, col type string
     if output == "list":
@@ -165,7 +206,7 @@ def filter_unended(dfs, verbose=False):
     return full_games
 
 
-def labels_split(df, cols, drop=True):
+def labels_split(df: pd.DataFrame, cols, drop=True):
     # split df into X and Y, with option to drop Y from X
     X = df
     Y = X[[cols]].copy()
@@ -174,7 +215,7 @@ def labels_split(df, cols, drop=True):
     return X, Y
 
 
-def sk_scale(df, to_df=False):
+def sk_scale(df: pd.DataFrame, to_df=False):
     """
     scales pandas or np data(frame) using StandardScaler 
     returns numpy or dataframe (to_df=True)

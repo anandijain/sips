@@ -117,11 +117,17 @@ def serialized_to_datasets(
     datasets = []
     for i in range(len(train_df_vals)):
         data = train_df_vals[i].astype(np.float32)
-        length = len(data)
+        if data.any() == np.nan:
+            continue
+        print(data)
+        try:
+            length = len(data)
+        except:
+            continue
         if length < history_size + pred_size:
             continue
         targets = train_df_labs[i]
-        X_windows, y_windows = h.window_multivariate(
+        X_windows, y_windows = h.seq_windows(
             data,
             targets,
             history_size=history_size,

@@ -94,7 +94,7 @@ def player_links(
         for a_tag in a_tags:
             if not a_tag:
                 continue
-            link = sref.URLS_ns[sport] + a_tag["href"]
+            link = sref.URLS_NS[sport] + a_tag["href"]
             p_id = sru.url_to_id(link)
             name = a_tag.text
             rows.append([name, p_id, link])

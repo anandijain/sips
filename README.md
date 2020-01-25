@@ -1,4 +1,4 @@
-# sips 0.14.2
+# sips 0.15
 
 setup:
 
@@ -27,16 +27,11 @@ pip install -e . [--user]
 2. train LSTM predictor on data
 
     - place `lines.py` output CSVs in `sips/data/lines`
-    - go to `sips/ml/` and `python ml_pred.py`
+    - go to `sips/ml/tf_models` and `python ml_pred.py`
+    - this might have been broken from 0.14.2 to 0.15
 
 ## CHANGELOG / ROADMAP
 
 1. the sports-reference api has been largely revamped
 
-2. preparing for pypi release
-
-3. post will be moved to separate repo and have sips as dependency
-
-4. premature update of master to 0.14.2
-
-5. 0.14.2 fixes some relative import problems, could be lingering instability
+2. pytorch has remerged as the tool of choice

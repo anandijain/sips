@@ -49,8 +49,11 @@ def arr_row(div, sport: str):
 
 
 def div_coords(div, sport: str):
-    div_dict = {"nhl": div_coords_nhl(div), "nba": div_coords_nba(div)}
-    return div_dict[sport]
+    if sport == "nhl":
+        div_dict = div_coords_nhl(div)
+    elif sport == "nba":
+        div_dict = div_coords_nba(div)
+    return div_dict
 
 
 def div_coords_nhl(div):

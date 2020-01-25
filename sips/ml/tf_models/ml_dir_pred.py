@@ -56,6 +56,7 @@ def train_directional_predictor(datasets, test_datasets, NUM_EPOCHS=1):
                 tel, tea = fwd.test_step(
                     model, loss_fxn, xte, yte, test_loss, test_accuracy
                 )
+                print(f"tel: {tel}, tea: {tea}")
                 test_step += 1
 
                 with test_summary_writer.as_default():
@@ -88,6 +89,7 @@ def main():
     all_datasets = tfls.transition_datasets_from_folder(
         tfm.READ_FROM, hot_maps=hot_maps, single_step=True
     )
+    print(all_datasets)
     datasets, test_datasets = h.train_test_split_list(all_datasets, shuffle=True)
     train_directional_predictor(datasets, test_datasets)
 

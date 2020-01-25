@@ -13,3 +13,5 @@ import sips
 
 PROJ_DIR = sips.__path__[0] + "/"
 PARENT_DIR = PROJ_DIR + "../"
+
+LINES_DIR = PROJ_DIR + "../data/lines/lines/"
