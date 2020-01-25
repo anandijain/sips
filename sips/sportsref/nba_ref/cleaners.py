@@ -143,6 +143,28 @@ def drop_ith_col(fn, i):
     return df
 
 
+def shotchart_tip(df):
+    # new_cols = ["index", "p_id", "qtr", "shot_made", "x_pos", "y_pos", "time", 'player_info', 'team_info']
+    tips = df.tip
+    tmp = tips.str.split('<br>', expand=True)
+    time_remaining = tmp[0].str.split(' ', expand=True)[2]
+    # score = tmp[2].str.split(' ', expand=True)[-1]
+    # df.join([time_remaining, tmp[1], tmp[2]])
+    df['time'] = time_remaining
+    df['player_info'] =
+    df.columns = new_cols
+    # new = pd.concat([df, time_remaining, tmp[1], tmp[2]], axis=1, columns=new_cols)
+    return new
+
+# def strop(s:str):
+#     tips = s.split('<br>')
+#     time = tips[0].split(' ')[2]
+#     player_str = tips[1]
+#     score = tips[1].split(' ')[-1]
+#     team_str = tips[2]
+#     return [time, score, player_str, , team_str]
+
+
 def test_player():
     for f in PLAYER_TEST_FILES:
         df = clean_player_file(f, verbose=True)

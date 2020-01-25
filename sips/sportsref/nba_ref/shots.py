@@ -64,7 +64,6 @@ def link_to_charts_df(link: str) -> dict:
 
 def page_to_charts_df(page: bs4.BeautifulSoup, game_id: str):
     """
-    df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
 
     """
     cols = ["p_id", "qtr", "shot_made", "x_pos", "y_pos", "tip"]

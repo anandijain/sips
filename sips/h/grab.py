@@ -159,30 +159,36 @@ def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
 
     """
 
-    all_tables = []
+    all_ts = []
     for link in links:
         tables = [get_table(link, table_ids, to_pd=to_pd) for link in links]
         if flatten:
-            all_tables += tables
+            all_ts += tables
         else:
-            all_tables.append(tables)
+            all_ts.append(tables)
     return tables
 
 
 def tables_to_df_dict(link: str):
-    game_dict = {}
-    p = comments(link)
     game_id = sr_utils.url_to_id(link)
-    ts = p.find_all("table")
+    game_dict = {}
+    ts = all_tables(link)
 
     for t in ts:
         t_id = t.get("id")
         if t_id is None:
             continue
-        df = parse.get_table(p, t_id, to_pd=True)
+        # df = parse.get_table(p, t_id, to_pd=True)
+        df = pd.read_html(t.prettify())
         key = game_id + "_" + t_id
         game_dict[key] = df
     return game_dict
+
+
+def all_tables(link:str):
+    p = comments(link)
+    ts = p.find_all("table")
+    return ts
 
 
 if __name__ == "__main__":

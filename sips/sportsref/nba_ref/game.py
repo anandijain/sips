@@ -30,7 +30,7 @@ def get_games_tables(sport: str) -> dict:
     return games_tables
 
 
-root = "https://www.basketball-reference.com/"
+ROOT = "https://www.basketball-reference.com/"
 
 GAME_DATA = m.PARENT_DIR + "data/nba/games/"
 
@@ -40,7 +40,7 @@ def get_game(game_id:str):
     sfxs = ["boxscores/", "boxscores/pbp/", "boxscores/shot-chart/"]
     game_dict = {}
     for sfx in sfxs:
-        link = root + sfx + game_id + ".html"
+        link = ROOT + sfx + game_id + ".html"
 
         if sfx == "boxscores/shot-chart/":
             # charts not in a table tag
@@ -71,7 +71,7 @@ def get_yesterday():
     sfxs = ["boxscores/", "boxscores/pbp/", "boxscores/shot-chart/"]
 
     sfx = yesterday.strftime("?month=%m&day=%d&year=%Y")
-    to_grab = root + boxsfx + sfx
+    to_grab = ROOT + boxsfx + sfx
     print(f'to_grab: {to_grab}')
     p = grab.page(to_grab)
     # print(p)
