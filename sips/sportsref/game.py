@@ -52,4 +52,4 @@ def all_games(sport:str, start_id=None, write=False, return_data=False):
 
 
 if __name__ == "__main__":
-    all_games('nfl', write=True)
+    all_games('nhl', write=True)

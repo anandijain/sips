@@ -6,23 +6,15 @@ from sips.sportsref import utils
 from sips.sportsref import boxlinks as bl
 
 
-def gen_links(sport: str, start=2020, end=1950):
-    sport_caps = sport.upper()
-    links = [
-        sref.URLS[sport] + f"/leagues/{sport_caps}_{year}_games.html"
-        for year in range(start, end, -1)
-    ]
-    return links
-
 def gen_nfl_week_links(start=2018, end=1940):
     return [sref.URLS['nfl'] + f"years/{year}/games.htm" for year in range(start, end, -1)]
-    
+
 
 def nfl_boxlinks(write=True):
     all_links = []
-    ls = gen_week_links()
+    ls = gen_nfl_week_links()
     for i, l in enumerate(ls):
-        boxes = bl.boxlinks_from_table(l, data_stat='boxscore_word')
+        boxes = bl.boxlinks_from_url(l, data_stat='boxscore_word')
         all_links += boxes
         print(f'{i}: {l} had {len(boxes)} games')
 

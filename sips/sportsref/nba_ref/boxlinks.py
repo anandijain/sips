@@ -68,7 +68,7 @@ def all_nba_boxlinks(to_pd=False):
     ]
     print(links)
     for i, link in enumerate(links):
-        all_boxlinks += bl.boxlinks_from_table(link)
+        all_boxlinks += bl.boxlinks_from_url(link)
         if i % 5 == 0:
             print(f"{i}: {link}")
 
