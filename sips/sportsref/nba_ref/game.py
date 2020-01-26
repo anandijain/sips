@@ -10,26 +10,6 @@ from sips.macros import macros as m
 from sips.sportsref import utils
 from sips.sportsref.nba_ref import shots
 
-
-def get_games_tables(sport: str) -> dict:
-    games_tables = {
-        "/boxscores/": [
-            "line_score",
-            "four_factors",
-            f"box-{sport}-game-basic",
-            f"box-{sport}-q1-basic",
-            f"box-{sport}-q2-basic",
-            f"box-{sport}-h1-basic",
-            f"box-{sport}-q3-basic",
-            f"box-{sport}-q4-basic",
-            f"box-{sport}-h2-basic",
-        ],
-        "/boxscores/pbp/": ["st_0", "st_1", "st_2", "st_3", "st_4", "st_5", "pbp"],
-        "/boxscores/shot-chart/": [f"shooting-{sport}", ],
-    }
-    return games_tables
-
-
 ROOT = "https://www.basketball-reference.com/"
 
 INDEX_FN = "index.csv"

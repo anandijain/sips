@@ -1,5 +1,10 @@
 import pandas as pd
 
+from sips.macros import macros as m
+
+def gamedata_path(sport: str):
+    return m.PARENT_DIR + 'data/' + sport + '/games/'
+
 
 def game_id_to_home_code(game_id: str):
     return game_id[-3:]
