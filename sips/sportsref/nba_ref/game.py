@@ -31,6 +31,7 @@ def get_game(game_id: str):
 
 
 def all_games(start_id=None, write=False):
+    # folder = utils.gamedata_path('nba')
     df = pd.read_csv(m.NBA_GAME_DATA + INDEX_FN)
 
     if start_id:
