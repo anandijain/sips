@@ -8,7 +8,6 @@ import time
 import pandas as pd
 import bs4
 import requests as r
-from requests_futures.sessions import FuturesSession
 
 from sips.h import parse
 from sips.sportsref import utils as sr_utils

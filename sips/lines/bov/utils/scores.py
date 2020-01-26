@@ -6,17 +6,14 @@ from sips.macros import bov as bm
 from sips.lines.bov.utils import bov_utils as u
 
 
-def get_scores(events, session=None):
+def get_scores(events):
     """
     {game_id : quarter, secs, a_pts, h_pts, status}
 
     """
     ids = u.get_ids(events)
     links = [bm.BOV_SCORES_URL + game_id for game_id in ids]
-    if session:
-        raw = g.async_req(links, output="dict", key="eventId", session=session)
-    else:
-        raw = g.reqs_json(links)
+    raw = g.reqs_json(links)
     scores_dict = {g_id: score(j) for g_id, j in raw.items()}
     return scores_dict
 
