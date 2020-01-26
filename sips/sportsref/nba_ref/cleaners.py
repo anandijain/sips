@@ -217,6 +217,7 @@ def game_pbp_times(df):
 # ]
 
     scores = df.score.str.split('-', expand=True)
+    print(scores)
     df[['a_pts', 'h_pts']] = scores
     df.drop('score', axis=1, inplace=True)
     df = split_str_times_df(df, col='Time')

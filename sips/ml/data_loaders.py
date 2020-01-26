@@ -11,20 +11,19 @@ from sips.macros import macros
 from sips.ml import normdf
 
 class Shotset(Dataset):
-    def __init__(self, normed_df, feat_cols, lab_cols):        
-        self.feats = feat_cols
-        self.pred_cols = lab_cols
-
-        self.df = normed_df[self.feats + self.pred_cols]
-        self.length = self.df.shape[0]
+    def __init__(self, tr_x, tr_y):        
+        self.x = tr_x
+        self.y = tr_y
+        self.length = self.x.shape[0]
     
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
-        row = self.df.iloc[idx]
-        x = torch.tensor(row[self.feats].values, dtype=torch.float)
-        y = torch.tensor(row[self.pred_cols].values, dtype=torch.float)
+        x = self.x.iloc[idx]
+        y = self.y.iloc[idx]
+        x = torch.tensor(x.values, dtype=torch.float)
+        y = torch.tensor(y.values, dtype=torch.float)
         return {'x': x, 'y': y}
 
 

@@ -21,7 +21,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.fc1 = nn.Linear(in_dim, in_dim)
         self.fc2 = nn.Linear(in_dim, mid_dim)
-        self.fc4 = nn.Linear(mid_dim, mid_dim)
+        # self.fc4 = nn.Linear(mid_dim, mid_dim)
         self.fc6 = nn.Linear(mid_dim, out_dim)
         
         self.classify = classify
@@ -124,6 +124,14 @@ def test_epoch(d, epoch, verbose=False):
             if d["classify"]:
                 class_idxs = torch.max(test_y, 1)[1]
                 loss = d["criterion"]((test_y_hat), class_idxs)
+            else:
+                test_loss = d["criterion"]((test_y_hat), test_y)                
+
+            d["writer"].add_scalar(
+                "test_loss", test_loss, i + epoch * len(d["test_loader"])
+            )
+
+            if d['classify']:
                 _, predicted = torch.max(test_y_hat.data, 1)
                 test_loss = d["criterion"](test_y_hat, class_idxs)
 
@@ -135,12 +143,7 @@ def test_epoch(d, epoch, verbose=False):
                     i + epoch * len(d["test_loader"]),
                 )
 
-            else:
-                test_loss = d["criterion"]((test_y_hat), test_y)
-
-            d["writer"].add_scalar(
-                "test_loss", test_loss, i + epoch * len(d["test_loader"])
-            )
+            
 
             running_loss += test_loss.item()
             if i % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
@@ -166,7 +169,7 @@ def prep_loader(trainset, testset, model_name, batch_size=1, classify=False):
 
     writer = SummaryWriter(f"runs/{model_name}{time.asctime()}")
 
-    model = Model(in_dim=x.shape[0], out_dim=y.shape[0], classify=True).to(device)
+    model = Model(in_dim=x.shape[0], out_dim=y.shape[0], classify=classify).to(device)
 
     if classify:
         criterion = nn.CrossEntropyLoss()
