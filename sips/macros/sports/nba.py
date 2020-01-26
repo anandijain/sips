@@ -301,6 +301,16 @@ GAME_ADVANCED = [
     "DRtg",
 ]
 
+GAME_PBP = [
+    'index',
+    'Time',
+    'a_team_desc',
+    'a_pt_change',
+    'score',
+    'h_pt_change',
+    'h_team_desc',
+]
+
 
 # TEAM SET COLS FROM HERE DOWN
 POST_GAME = [

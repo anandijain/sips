@@ -190,7 +190,7 @@ def game_pbp_times(df):
     s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))])
     s = s.reset_index(drop=True)
     df['qtr'] = s
-    bad_strs = ['1st Q', '2nd Q', '3rd Q', '4th Q', 'Time', '1st OT']
+    bad_strs = ['1st Q', '2nd Q', '3rd Q', '4th Q', 'Time', '1st OT', '2nd OT']
     for s in bad_strs:
         df = df[df.Time != s]
 
