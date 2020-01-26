@@ -32,15 +32,22 @@ def norm_testset(
     return test_normed
 
 
-def split_norm(df, by='game_id', str_cols=None, train_frac=0.7):
+def split_norm(df, by='game_id', y_cols=['a_pts', 'h_pts'], str_cols=None, train_frac=0.7):
     tr_df, te_df = helpers.split_by(df, by=by, train_frac=train_frac)
+
+    tr_y = tr_df[y_cols]
+    te_y = te_df[y_cols]
+
+    tr_df.drop(y_cols, axis=1, inplace=True)
+    te_df.drop(y_cols, axis=1, inplace=True)
 
     tr_df.drop(by, axis=1, inplace=True)
     te_df.drop(by, axis=1, inplace=True)
     
     te_normed = norm_testset(te_df, tr_df, str_cols=str_cols)
     tr_normed = to_normed(tr_df, str_cols=str_cols)
+    
+    tr_normed[y_cols] = tr_y
+    te_normed[y_cols] = te_y
+
     return tr_normed, te_normed
-
-
-

@@ -11,9 +11,9 @@ from sips.macros import macros
 from sips.ml import normdf
 
 class Shotset(Dataset):
-    def __init__(self, normed_df):        
-        self.feats = ['qtr_x', 'x_pos', 'y_pos', 'tot_sec', 'home']
-        self.pred_cols = ['a_pts', 'h_pts']
+    def __init__(self, normed_df, feat_cols, lab_cols):        
+        self.feats = feat_cols
+        self.pred_cols = lab_cols
 
         self.df = normed_df[self.feats + self.pred_cols]
         self.length = self.df.shape[0]
