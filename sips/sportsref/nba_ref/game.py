@@ -52,7 +52,7 @@ def get_game(game_id: str):
 
 def all_games(start_id=None, write=False):
     df = pd.read_csv(m.NBA_GAME_DATA + INDEX_FN)
-    
+
     if start_id:
         start_idx = df.index[df.game_id == start_id][0]
         if len(start_idx) != 1:
@@ -66,7 +66,8 @@ def all_games(start_id=None, write=False):
         if write:
             for key, val in game_dict.items():
                 val.to_csv(m.NBA_GAME_DATA + key + ".csv")
-
+        
+        games_dict.update(game_dict)
         print(f"{i}: {game_id} {len(game_dict)}")
     return games_dict
 
