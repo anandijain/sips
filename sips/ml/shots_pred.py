@@ -5,7 +5,7 @@ from sips.ml import normdf
 from sips.ml import train
 from sips.ml import data_loaders as dls
 
-MODEL_NAME = 'shots_to_sore'
+MODEL_NAME = 'shots_to_score'
 BATCH_SIZE = 256
 CLASSIFY = False
 X_COLS = ['game_id', 'qtr_x', 'x_pos', 'y_pos',
@@ -16,7 +16,7 @@ Y_COLS = ['a_pts', 'h_pts']
 
 def shots_pred_train():
     d = shots_prep()
-    train.train(d, 'shots_pred_classify.pth')
+    train.train(d, MODEL_NAME)
 
 
 def shots_prep():
@@ -45,6 +45,7 @@ def shots_prep():
                           classify=CLASSIFY, batch_size=BATCH_SIZE)
     return d
 
+
 def shots_tr_te():
     df = pd.read_csv('1000_shots.csv')
     df = df[X_COLS]
@@ -54,11 +55,13 @@ def shots_tr_te():
     te = te.reset_index(drop=True)
     return tr, te
 
+
 def shot_classify(df):
     made_missed = pd.get_dummies(df.shot_made)
     df[['made', 'missed']] = made_missed
     df.drop('shot_made', axis=1, inplace=True)
     return df
+
 
 if __name__ == "__main__":
 

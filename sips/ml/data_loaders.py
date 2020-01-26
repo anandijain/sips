@@ -10,12 +10,13 @@ from torch.utils.data import DataLoader, Dataset
 from sips.macros import macros
 from sips.ml import normdf
 
+
 class Shotset(Dataset):
-    def __init__(self, tr_x, tr_y):        
+    def __init__(self, tr_x, tr_y):
         self.x = tr_x
         self.y = tr_y
         self.length = self.x.shape[0]
-    
+
     def __len__(self):
         return self.length
 
@@ -73,7 +74,7 @@ def col_types(df: pd.DataFrame) -> dict:
     return dict(zip(list(df.columns), list(df.dtypes)))
 
 
-def train_test_ids(game_ids:list, frac=0.3):
+def train_test_ids(game_ids: list, frac=0.3):
     n = len(game_ids)
 
     split = int(n * frac)
@@ -86,17 +87,17 @@ def train_test_ids(game_ids:list, frac=0.3):
 
 def normed_scoresets(dir=macros.LINES_DIR, sport="BASK", frac=0.3, str_cols=['game_id']):
     big = scores_from_lines(dir=dir, sport=sport)
-    
+
     games = list(big.game_id.unique())
 
     train_ids, test_ids = train_test_ids(games, frac=frac)
 
     train = big[big.game_id.isin(train_ids)]
     test = big[big.game_id.isin(test_ids)]
-    
+
     normed_test = normdf.norm_testset(test, train, str_cols=str_cols)
     normed_train = normdf.to_normed(train, str_cols=str_cols)
-    
+
     return normed_train.copy(), normed_test.copy()
 
 
@@ -117,6 +118,7 @@ def scores_from_lines(dir=macros.LINES_DIR, sport="BASK"):
     scores["h_pts"] = scores["h_pts"].astype(np.float32)
     scores["a_pts"] = scores["a_pts"].astype(np.float32)
     return scores
+
 
 if __name__ == "__main__":
     yus = normed_scoresets()

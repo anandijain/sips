@@ -23,10 +23,9 @@ class Model(nn.Module):
         self.fc2 = nn.Linear(in_dim, mid_dim)
         # self.fc4 = nn.Linear(mid_dim, mid_dim)
         self.fc6 = nn.Linear(mid_dim, out_dim)
-        
+
         self.classify = classify
         self.softmax = nn.Softmax(dim=1)
-
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -36,7 +35,6 @@ class Model(nn.Module):
             return self.softmax(self.fc6(x))
         else:
             return F.relu(self.fc6(x))
-        
 
 
 def train_epoch(d, epoch, verbose=False):
@@ -125,7 +123,7 @@ def test_epoch(d, epoch, verbose=False):
                 class_idxs = torch.max(test_y, 1)[1]
                 loss = d["criterion"]((test_y_hat), class_idxs)
             else:
-                test_loss = d["criterion"]((test_y_hat), test_y)                
+                test_loss = d["criterion"]((test_y_hat), test_y)
 
             d["writer"].add_scalar(
                 "test_loss", test_loss, i + epoch * len(d["test_loader"])
@@ -142,8 +140,6 @@ def test_epoch(d, epoch, verbose=False):
                     batch_correct / batch_size,
                     i + epoch * len(d["test_loader"]),
                 )
-
-            
 
             running_loss += test_loss.item()
             if i % RUNNING_INTERVAL == RUNNING_INTERVAL - 1:
@@ -169,7 +165,8 @@ def prep_loader(trainset, testset, model_name, batch_size=1, classify=False):
 
     writer = SummaryWriter(f"runs/{model_name}{time.asctime()}")
 
-    model = Model(in_dim=x.shape[0], out_dim=y.shape[0], classify=classify).to(device)
+    model = Model(in_dim=x.shape[0], out_dim=y.shape[0],
+                  classify=classify).to(device)
 
     if classify:
         criterion = nn.CrossEntropyLoss()

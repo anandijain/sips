@@ -189,7 +189,7 @@ def game_pbp_times(df):
     s = pd.Series(np.full(q2_idx, 1))
     s = pd.concat([s, pd.Series(np.full(q3_idx - q2_idx, 2))])
     s = pd.concat([s, pd.Series(np.full(q4_idx - q3_idx, 3))])
-    # s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))]) 
+    # s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))])
     s = pd.concat([s, pd.Series(np.full(len(df.Time) - q4_idx, 4))])
     s = s.reset_index(drop=True)
     df['qtr'] = s

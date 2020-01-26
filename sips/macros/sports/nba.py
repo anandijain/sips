@@ -97,7 +97,7 @@ PLAYER_TOTALS = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'GS', 'MP', '
 PLAYER_YEAR_CAREER_HIGHS_PO = ['index', 'Season', 'Age',  'Tm',  'Lg',  'MP',  'FG',
                                'FGA',  'FT', 'FTA', 'TRB', 'AST',  'PF', 'PTS']
 
-# drop 1           
+# drop 1
 PLAYER_YEAR_CAREER_HIGHS = ['index',
                             'Season',
                             'Age',

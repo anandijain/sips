@@ -36,7 +36,8 @@ GAME_DATA = m.PARENT_DIR + "data/nba/games/"
 
 INDEX_FN = "index.csv"
 
-def get_game(game_id:str):
+
+def get_game(game_id: str):
     sfxs = ["boxscores/", "boxscores/pbp/", "boxscores/shot-chart/"]
     game_dict = {}
     for sfx in sfxs:

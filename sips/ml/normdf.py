@@ -3,6 +3,7 @@ import numpy as np
 
 from sips.h import helpers
 
+
 def to_normed(df: pd.DataFrame, str_cols=["game_id", "a_team", "h_team"]):
     if str_cols:
         strs = df[str_cols]
@@ -23,7 +24,6 @@ def norm_testset(
         infer_strs = test[str_cols]  # to reattach post norm
         test = test.drop(infer_strs, axis=1)
 
-
     test_normed = (test - train.min()) / (train.max() - train.min())
 
     if str_cols:
@@ -43,10 +43,10 @@ def split_norm(df, by='game_id', y_cols=['a_pts', 'h_pts'], str_cols=None, train
 
     tr_df.drop(by, axis=1, inplace=True)
     te_df.drop(by, axis=1, inplace=True)
-    
+
     te_normed = norm_testset(te_df, tr_df, str_cols=str_cols)
     tr_normed = to_normed(tr_df, str_cols=str_cols)
-    
+
     tr_normed[y_cols] = tr_y
     te_normed[y_cols] = te_y
 
