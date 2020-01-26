@@ -19,7 +19,6 @@ setup(
         "beautifulsoup4",
         "numpy",
         "scikit-learn",
-        "requests-futures",
         "google-cloud-profiler",
         "lxml",
         "flask",

@@ -10,7 +10,6 @@ import time
 import json
 
 from concurrent.futures import ProcessPoolExecutor
-from requests_futures.sessions import FuturesSession
 
 import sips
 
@@ -72,9 +71,7 @@ parser.add_argument(
 parser.add_argument(
     "-M", "--predict", type=bool, help="run lstm Model on it", default=False
 )
-parser.add_argument(
-    "--async_req", type=bool, help="use async_req (broken)", default=False
-)
+
 args = parser.parse_args()
 
 if args.log:
@@ -146,7 +143,6 @@ class Lines:
         print(self.sports)
         self.wait = args.wait
         self.verb = args.verbose
-        self.req_async = args.async_req
         self.start = args.run
         self.espn = args.grab_espn
         self.all_mkts = args.all_mkts
@@ -156,7 +152,6 @@ class Lines:
         self.file_per_game = args.unique
         self.folder_name = args.dir
         self.dir = LINES_DATA_PATH + self.folder_name + "/"
-        self.session = None
 
     def conf_from_file(self):
         """
@@ -169,7 +164,6 @@ class Lines:
 
         self.wait = self.config.get("wait")
         self.verb = self.config.get("verbose")
-        self.req_async = self.config.get("async_req")
         self.start = self.config.get("run")
         self.espn = self.config.get("grab_espn")
         self.all_mkts = self.config.get("all_mkts")
@@ -180,10 +174,6 @@ class Lines:
         self.folder_name = file_conf.get("folder_name")
         self.dir = LINES_DATA_PATH + self.folder_name + "/"
 
-        if self.req_async:
-            self.session = FuturesSession(executor=ProcessPoolExecutor())
-        else:
-            self.session = None
 
     def init_fileio(self):
         """
