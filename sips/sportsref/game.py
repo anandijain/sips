@@ -25,7 +25,7 @@ def get_game(game_id: str, sport:str) -> dict:
     return game_dict
 
 
-def all_games(sport:str, start_id=None, write=False):
+def all_games(sport:str, start_id=None, write=False, return_data=False):
     folder = utils.gamedata_path(sport)
     df = pd.read_csv(folder + 'index.csv')
 
@@ -33,19 +33,23 @@ def all_games(sport:str, start_id=None, write=False):
         start_idx = df.index[df.game_id == start_id][0]
         df = df.iloc[start_idx:]
 
-    games_dict = {}
+    if return_data:
+        games_dict = {}
     for i, game_id in enumerate(df.game_id):
         game_dict = get_game(game_id, sport)
         if write:
             for key, val in game_dict.items():
                 val.to_csv(folder + key + ".csv")
 
-        games_dict.update(game_dict)
+        if return_data:
+            games_dict.update(game_dict)
         print(f"{i}: {game_id} {len(game_dict)}")
-    return games_dict
-
+    
+    if return_data:
+        return games_dict
+    else:
+        return
 
 
 if __name__ == "__main__":
-    x = all_games('nfl', write=True)
-    print(x)
+    all_games('nfl', write=True)
