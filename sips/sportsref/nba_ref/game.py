@@ -50,6 +50,7 @@ def get_game(game_id:str):
         game_dict.update(dfs)
     return game_dict
 
+
 def all_games(write=False):
     df = pd.read_csv(GAME_DATA + INDEX_FN)
     games_dict = {}

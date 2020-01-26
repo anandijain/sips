@@ -135,6 +135,22 @@ def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
     return train_fns, test_fns
 
 
+def split_by(df, by='game_id', train_frac=0.7):
+    g_ids = df[by].unique()
+    random.shuffle(g_ids)
+
+    n = len(g_ids)
+    idx = int(n * train_frac)
+
+    tr_ids = g_ids[:idx]
+    te_ids = g_ids[idx:]
+
+    tr_df = df[df.game_id.isin(tr_ids)]
+    te_df = df[df.game_id.isin(te_ids)]
+    return tr_df, te_df
+
+
+
 def remove_string_cols(df: pd.DataFrame):
     cols_to_remove = []
     for col in df.columns:

@@ -53,7 +53,9 @@ def clean_game_file(fn: str, verbose=False):
     elif "advanced" in fn:
         df = drop_rename_from_fn(
             fn, nba.GAME_ADVANCED, drop_n=1, verbose=verbose)
-
+    elif "pbp" in fn:
+        df = drop_rename_from_fn(fn, nba.GAME_PBP, drop_n=1, verbose=verbose)
+        df = game_pbp_times(df)
     elif "shooting" in fn:
         # drop first col
         df = drop_ith_col(fn, 0)
@@ -177,6 +179,7 @@ def split_str_times_df(df: pd.DataFrame, col='time', out_cols=['mins', 'secs'], 
 
 
 def game_pbp_times(df):
+    # already correct colnames
     # t = df.Time
     q2_idx = df.index[df.Time == '2nd Q'][0]
     q3_idx = df.index[df.Time == '3rd Q'][0]
@@ -194,6 +197,28 @@ def game_pbp_times(df):
     for s in bad_strs:
         df = df[df.Time != s]
 
+# filter_vals = [
+#     'Start of 1st overtime',
+#     'Start of 2nd overtime',
+#     'Start of 3rd overtime',
+#     'Start of 4th overtime',
+#     'End of 1st overtime',
+#     'End of 2nd overtime',
+#     'End of 3rd overtime',
+#     'End of 4th overtime',
+#     "End of 1st quarter",
+#     "End of 2nd quarter",
+#     "End of 3rd quarter",
+#     "End of 4th quarter",
+#     "Start of 1st quarter",
+#     "Start of 2nd quarter",
+#     "Start of 3rd quarter",
+#     "Start of 4th quarter",
+# ]
+
+    scores = df.score.str.split('-', expand=True)
+    df[['a_pts', 'h_pts']] = scores
+    df.drop('score', axis=1, inplace=True)
     df = split_str_times_df(df, col='Time')
     df = add_total_time_remaining(df)
     return df
@@ -231,6 +256,16 @@ def test_game():
             print(f'post: {df}')
 
 
+def test_pbp():
+    fn = '201611120DEN_pbp.csv'
+    df = clean_game_file(GAME_DATA + fn)
+    print(df)
+    return df
+
+
 if __name__ == "__main__":
     # test_player()
-    test_game()
+    # test_game()
+    df = test_pbp()
+    print(df.a_pts.unique())
+    print(df.dtypes)

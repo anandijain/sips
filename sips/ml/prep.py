@@ -7,22 +7,14 @@ from sips.h import calc
 from sips.h import helpers
 from sips.ml import normdf
 from sips.ml.one_line import olutils
+from torch.utils.data import DataLoader, Dataset
 
 
 def prep_sportset(df, to_dummies, sport: str, train_frac=0.7):
     sportdf = df[df.sport == sport]
     sportdf = sportdf.drop("sport", axis=1)
-    g_ids = sportdf.game_id.unique()
-    random.shuffle(g_ids)
 
-    n = len(g_ids)
-    idx = int(n * train_frac)
-
-    tr_ids = g_ids[:idx]
-    te_ids = g_ids[idx:]
-
-    tr_df = sportdf[sportdf.game_id.isin(tr_ids)]
-    te_df = sportdf[sportdf.game_id.isin(te_ids)]
+    tr_df, te_df = helpers.split_by(sportdf, train_frac=train_frac)
 
     test_normed = normdf.norm_testset(te_df, tr_df, str_cols=to_dummies)
     train_normed = normdf.to_normed(tr_df, str_cols=to_dummies)
@@ -37,19 +29,6 @@ def clean(df, to_drop=["a_ou", "h_ou"]):
     df = df.replace("EVEN", 100)
     df.reset_index(inplace=True, drop=True)
     return df
-
-
-class Seq(Dataset):
-    def __init__(self, df, group_by="game_id"):
-        self.games = list(df.groupby(group_by))
-        self.teams = pd.read_csv("teams_updated_stats.csv")
-        self.length = len(self.games)
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, idx):
-        g = self.games[idx]
 
 
 def main(train_frac=0.7):

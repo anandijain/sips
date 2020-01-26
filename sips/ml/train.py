@@ -1,8 +1,36 @@
+import time
+
+import pandas as pd
+import numpy as np
+
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 RUNNING_INTERVAL = 10
+
+
+class Model(nn.Module):
+    def __init__(self, in_dim, out_dim, classify=True):
+        super(Model, self).__init__()
+        self.classify = classify
+        self.fc1 = nn.Linear(in_dim, in_dim)
+        self.fc2 = nn.Linear(in_dim, 100)
+        self.fc4 = nn.Linear(100, 100)
+        self.fc6 = nn.Linear(100, out_dim)
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        x = self.fc4(x)
+        x = F.relu(self.fc6(x))
+        return x
 
 
 def train_epoch(d, epoch, verbose=False):
@@ -35,7 +63,8 @@ def train_epoch(d, epoch, verbose=False):
         if verbose:
             print(f"loss: {loss}")
 
-        d["writer"].add_scalar("train_loss", loss, i + epoch * len(d["train_loader"]))
+        d["writer"].add_scalar("train_loss", loss, i +
+                               epoch * len(d["train_loader"]))
         running_loss += loss.item()
 
         # accuracy
@@ -74,7 +103,8 @@ def test_epoch(d, epoch, verbose=False):
     running_loss = 0.0
     with torch.no_grad():
         for i, test_data, in enumerate(d["test_loader"], 0):
-            test_x, test_y = test_data["x"].to(device), test_data["y"].to(device)
+            test_x, test_y = test_data["x"].to(
+                device), test_data["y"].to(device)
 
             test_y_hat = d["model"](test_x)
             if verbose:
@@ -111,3 +141,35 @@ def test_epoch(d, epoch, verbose=False):
                 print(f"test_y: {test_y}, test_y_hat: {test_y_hat}")
                 running_loss = 0.0
     print(f"test accuracy {(100 * correct / total):.2f} %")
+
+
+def train(d, model_fn, epochs=20):
+    for epoch in range(epochs):
+        train_epoch(d, epoch=epoch, verbose=False)
+        test_epoch(d, epoch=epoch, verbose=False)
+        torch.save(d["model"].state_dict(), model_fn)
+
+
+def prep_loader(trainset, testset, batch_size=1):
+
+    x, y = trainset[0].values()
+
+    train_loader = DataLoader(trainset, batch_size=batch_size)
+    test_loader = DataLoader(testset, batch_size=batch_size)
+
+    writer = SummaryWriter(f"runs/scores{time.asctime()}")
+
+    model = Model(in_dim=x.shape[0], out_dim=y.shape[0]).to(device)
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters())  # , lr=0.0001)
+    d = {
+        "train_loader": train_loader,
+        "test_loader": test_loader,
+        "criterion": criterion,
+        "optimizer": optimizer,
+        "model": model,
+        "writer": writer,
+        "classify": False,
+    }
+    return d

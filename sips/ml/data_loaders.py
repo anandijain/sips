@@ -10,6 +10,23 @@ from torch.utils.data import DataLoader, Dataset
 from sips.macros import macros
 from sips.ml import normdf
 
+class Shotset(Dataset):
+    def __init__(self, normed_df):        
+        self.feats = ['qtr_x', 'x_pos', 'y_pos', 'tot_sec', 'home']
+        self.pred_cols = ['a_pts', 'h_pts']
+
+        self.df = normed_df[self.feats + self.pred_cols]
+        self.length = self.df.shape[0]
+    
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        x = torch.tensor(row[self.feats].values, dtype=torch.float)
+        y = torch.tensor(row[self.pred_cols].values, dtype=torch.float)
+        return {'x': x, 'y': y}
+
 
 class Scoreset(Dataset):
     def __init__(self, df, first_n=100, last_n=5, min_len=200):
@@ -57,44 +74,51 @@ def col_types(df: pd.DataFrame) -> dict:
     return dict(zip(list(df.columns), list(df.dtypes)))
 
 
-def normed_scoresets(dir=macros.LINES_DIR, sport="BASK", frac=0.3):
-    fns = [dir + fn for fn in os.listdir(dir)]
-    # str_cols = ["game_id", "h_team", "h_team"]
-    str_cols = ["game_id"]
-    dfs = [pd.read_csv(fn) for fn in fns]
-
-    big = pd.concat(dfs)
-    print(big)
-    big = big[big.sport == sport]
-
-    big = big[big.status != "PRE_GAME"]
-    big = big[big.a_pts != "None"]
-    big = big[big.h_pts != "None"]
-
-    # big = big[["game_id", "h_team", "a_team", "h_pts", "a_pts"]]
-    big = big[["game_id", "h_pts", "a_pts"]]
-
-    big["h_pts"] = big["h_pts"].astype(np.float32)
-    big["a_pts"] = big["a_pts"].astype(np.float32)
-    print(col_types(big))
-    print(big)
-    games = list(big.game_id.unique())
-    n = len(games)
+def train_test_ids(game_ids:list, frac=0.3):
+    n = len(game_ids)
 
     split = int(n * frac)
 
-    random.shuffle(games)
-    train_ids = games[split:]
-    test_ids = games[:split]
+    random.shuffle(game_ids)
+    train_ids = game_ids[split:]
+    test_ids = game_ids[:split]
+    return train_ids, test_ids
+
+
+def normed_scoresets(dir=macros.LINES_DIR, sport="BASK", frac=0.3, str_cols=['game_id']):
+    big = scores_from_lines(dir=dir, sport=sport)
+    
+    games = list(big.game_id.unique())
+
+    train_ids, test_ids = train_test_ids(games, frac=frac)
 
     train = big[big.game_id.isin(train_ids)]
     test = big[big.game_id.isin(test_ids)]
-    print(col_types(train))
-    print(col_types(test))
+    
     normed_test = normdf.norm_testset(test, train, str_cols=str_cols)
     normed_train = normdf.to_normed(train, str_cols=str_cols)
+    
     return normed_train.copy(), normed_test.copy()
 
 
+def scores_from_lines(dir=macros.LINES_DIR, sport="BASK"):
+    fns = [dir + fn for fn in os.listdir(dir)]
+    dfs = [pd.read_csv(fn) for fn in fns]
+
+    scores = pd.concat(dfs)
+    # print(scores)
+    scores = scores[scores.sport == sport]
+
+    scores = scores[scores.status != "PRE_GAME"]
+    scores = scores[scores.a_pts != "None"]
+    scores = scores[scores.h_pts != "None"]
+
+    scores = scores[["game_id", "h_pts", "a_pts"]]
+
+    scores["h_pts"] = scores["h_pts"].astype(np.float32)
+    scores["a_pts"] = scores["a_pts"].astype(np.float32)
+    return scores
+
 if __name__ == "__main__":
-    normed_scoresets()
+    yus = normed_scoresets()
+    print(yus)
