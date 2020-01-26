@@ -157,7 +157,7 @@ def tables_to_df_dict(link: str):
         if t_id is None:
             continue
         # df = parse.get_table(p, t_id, to_pd=True)
-        df = pd.read_html(t.prettify())
+        df = pd.read_html(t.prettify())[0]
         key = game_id + "_" + t_id
         game_dict[key] = df
     return game_dict

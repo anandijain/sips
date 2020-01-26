@@ -96,6 +96,7 @@ def get_yesterday():
 
 if __name__ == "__main__":
 
-    # games = all_games()
-    urls = get_yesterday()
-    print(urls)
+    games = all_games()
+    print(games)
+    # urls = get_yesterday()
+    # print(urls)
