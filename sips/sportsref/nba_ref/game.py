@@ -50,8 +50,16 @@ def get_game(game_id: str):
     return game_dict
 
 
-def all_games(write=False):
+def all_games(start_id=None, write=False):
     df = pd.read_csv(m.NBA_GAME_DATA + INDEX_FN)
+    
+    if start_id:
+        start_idx = df.index[df.game_id == start_id][0]
+        if len(start_idx) != 1:
+            print(f'couldnt find start_id {start_id}')
+        else:
+            df = df.iloc[start_idx:]
+            
     games_dict = {}
     for i, game_id in enumerate(df.game_id):
         game_dict = get_game(game_id)
