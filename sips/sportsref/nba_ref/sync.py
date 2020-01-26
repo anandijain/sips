@@ -8,14 +8,13 @@ from sips.sportsref import utils
 from sips.macros import macros as m
 from sips.macros.sports import nba
 
-GAME_DATA = m.PARENT_DIR + "data/nba/games/"
 
 
 LINES = '/home/sippycups/absa/sips/data/lines/lines/6584352.csv'
 GAME_ID = '202001070LAL'
 
 
-def check_chart_files(game_id: str, folder=GAME_DATA) -> bool:
+def check_chart_files(game_id: str, folder=m.NBA_GAME_DATA) -> bool:
     glob_charts = glob.glob(f'{folder + game_id}**shotchart.csv')
     if len(glob_charts) < 2:
         return False
@@ -23,12 +22,12 @@ def check_chart_files(game_id: str, folder=GAME_DATA) -> bool:
         return True
 
 
-def check_pbp_file(game_id: str, folder=GAME_DATA) -> bool:
+def check_pbp_file(game_id: str, folder=m.NBA_GAME_DATA) -> bool:
     pbp_fn = folder + game_id + '_pbp.csv'
     return os.path.isfile(pbp_fn)
 
 
-def shots_fns(game_id, folder=GAME_DATA):
+def shots_fns(game_id, folder=m.NBA_GAME_DATA):
     """
 
     by now we should have already verified all 
@@ -53,7 +52,7 @@ def to_sync_dfs(game_id):
     if shots is None:
         return
     home_shots_fn, away_shots_fn = shots
-    pbp_fn = GAME_DATA + game_id + '_pbp.csv'
+    pbp_fn = m.NBA_GAME_DATA + game_id + '_pbp.csv'
 
     try:
         pbp, charth, charta = [pd.read_csv(fn)
@@ -122,7 +121,7 @@ def shotchart(fn: str) -> pd.DataFrame:
 
 
 def compile_all_shotcharts() -> list:
-    files = glob.glob(GAME_DATA + '*shotchart.csv')
+    files = glob.glob(m.NBA_GAME_DATA + '*shotchart.csv')
     dfs = []
     for i, f in enumerate(files):
         df = shotchart(f)
@@ -133,7 +132,7 @@ def compile_all_shotcharts() -> list:
 
 
 def get_shotchart_ids():
-    files = glob.glob(GAME_DATA + '*shotchart.csv')
+    files = glob.glob(m.NBA_GAME_DATA + '*shotchart.csv')
     ids = pd.Series(
         list(map(glob_to_id, files)), )
     df = pd.DataFrame(ids.unique(), columns=['sc_game_ids'])

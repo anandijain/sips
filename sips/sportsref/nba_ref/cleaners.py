@@ -8,9 +8,8 @@ import numpy as np
 from sips.macros.sports import nba
 from sips.macros import macros as m
 
-GAME_DATA = m.PARENT_DIR + "data/nba/games/"
 TEST_GAME_ID = '202001220ORL'
-GAME_TEST_FILES = glob.glob(GAME_DATA + TEST_GAME_ID + '*')
+GAME_TEST_FILES = glob.glob(m.NBA_GAME_DATA + TEST_GAME_ID + '*')
 
 
 PLAYER_DATA = m.PARENT_DIR + "data/nba/players/"
@@ -19,7 +18,7 @@ PLAYER_TEST_FILES = glob.glob(PLAYER_DATA + TEST_PLAYER_ID + '*')
 
 
 def clean_games(write=False):
-    fns = os.listdir(GAME_DATA)
+    fns = os.listdir(m.NBA_GAME_DATA)
     clean_games_files(fns, write=write)
 
 
@@ -29,7 +28,7 @@ def clean_games_files(fns: list, write=False):
     except ValueError:
         pass
     for i, fn in enumerate(fns):
-        full_fn = GAME_DATA + fn
+        full_fn = m.NBA_GAME_DATA + fn
 
         df = clean_game_file(full_fn)
 
@@ -259,7 +258,7 @@ def test_game():
 
 def test_pbp():
     fn = '201611120DEN_pbp.csv'
-    df = clean_game_file(GAME_DATA + fn)
+    df = clean_game_file(m.NBA_GAME_DATA + fn)
     print(df)
     return df
 

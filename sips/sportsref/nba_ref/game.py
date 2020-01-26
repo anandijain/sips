@@ -32,8 +32,6 @@ def get_games_tables(sport: str) -> dict:
 
 ROOT = "https://www.basketball-reference.com/"
 
-GAME_DATA = m.PARENT_DIR + "data/nba/games/"
-
 INDEX_FN = "index.csv"
 
 
@@ -53,13 +51,13 @@ def get_game(game_id: str):
 
 
 def all_games(write=False):
-    df = pd.read_csv(GAME_DATA + INDEX_FN)
+    df = pd.read_csv(m.NBA_GAME_DATA + INDEX_FN)
     games_dict = {}
     for i, game_id in enumerate(df.game_id):
         game_dict = get_game(game_id)
         if write:
             for key, val in game_dict.items():
-                val.to_csv(GAME_DATA + key + ".csv")
+                val.to_csv(m.NBA_GAME_DATA + key + ".csv")
 
         print(f"{i}: {game_id} {len(game_dict)}")
     return games_dict
