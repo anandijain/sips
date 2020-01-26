@@ -96,10 +96,9 @@ def prep_loader():
     SPORT = "BASK"
     BATCH_SIZE = 1
 
-    # fs = dls.Scoreset(first_n=FIRST_N, last_n=LAST_N, min_len=MIN_LEN, sport=SPORT)
     train_df, test_df = dls.normed_scoresets()
-    trainset = dls.Scoreset2(train_df, first_n=FIRST_N, last_n=LAST_N)
-    testset = dls.Scoreset2(test_df, first_n=FIRST_N, last_n=LAST_N)
+    trainset = dls.Scoreset(train_df, first_n=FIRST_N, last_n=LAST_N)
+    testset = dls.Scoreset(test_df, first_n=FIRST_N, last_n=LAST_N)
 
     x, y = trainset[0].values()
     print(f'x{x}')
