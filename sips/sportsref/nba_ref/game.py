@@ -55,10 +55,7 @@ def all_games(start_id=None, write=False):
 
     if start_id:
         start_idx = df.index[df.game_id == start_id][0]
-        if len(start_idx) != 1:
-            print(f'couldnt find start_id {start_id}')
-        else:
-            df = df.iloc[start_idx:]
+        df = df.iloc[start_idx:]
             
     games_dict = {}
     for i, game_id in enumerate(df.game_id):
