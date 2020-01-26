@@ -10,6 +10,10 @@ def game_id_to_home_code(game_id: str):
     return game_id[-3:]
 
 
+def mlb_game_id_to_home_code(game_id: str):
+    return game_id[:3]
+
+
 def url_to_id(url: str) -> str:
     """
 

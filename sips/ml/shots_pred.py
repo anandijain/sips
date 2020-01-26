@@ -12,7 +12,7 @@ X_COLS = ['game_id', 'qtr_x', 'x_pos', 'y_pos',
           'tot_sec', 'home', 'a_pts', 'h_pts', 'shot_made']
 Y_COLS = ['a_pts', 'h_pts']
 # Y_COLS = ['made', 'missed']
-
+# todo sequential model, given first 10 shots and made miss, predict w/l
 
 def shots_pred_train():
     d = shots_prep()

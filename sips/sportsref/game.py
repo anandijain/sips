@@ -12,14 +12,15 @@ from sips.sportsref import utils
 
 
 def get_game(game_id: str, sport:str) -> dict:
-    box_sfx = "boxscores/"
-    if sport == 'nfl':
-        sfx = '.htm'
-    else:
-        sfx = '.html'
-
+    box_sfx = sref.REF_BOX_SFX[sport]
+    sfx = sref.REF_SFX[sport]
     game_dict = {}
-    link = sref.URLS[sport] + box_sfx + game_id + sfx
+    if sport == 'mlb':
+        h_team = utils.mlb_game_id_to_home_code(game_id)
+        link = sref.URLS[sport] + box_sfx + h_team + '/' + game_id + sfx
+    else:
+        link = sref.URLS[sport] + box_sfx + game_id + sfx
+    print(link)
     dfs = grab.tables_to_df_dict(link)
     game_dict.update(dfs)
     return game_dict
@@ -52,4 +53,4 @@ def all_games(sport:str, start_id=None, write=False, return_data=False):
 
 
 if __name__ == "__main__":
-    all_games('nhl', write=True)
+    all_games('mlb', write=True)

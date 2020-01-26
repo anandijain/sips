@@ -37,6 +37,13 @@ class Model(nn.Module):
             return F.relu(self.fc6(x))
 
 
+def train(d, model_name, epochs=20):
+    for epoch in range(epochs):
+        train_epoch(d, epoch=epoch, verbose=False)
+        test_epoch(d, epoch=epoch, verbose=False)
+        torch.save(d["model"].state_dict(), model_name + '.pth')
+
+
 def train_epoch(d, epoch, verbose=False):
     # requires model, train_loader, optimizer, criterion, writer, classify
     print(f"training: {epoch}")
@@ -51,11 +58,8 @@ def train_epoch(d, epoch, verbose=False):
         d["optimizer"].zero_grad()
         y_hat = d["model"](x)
         if verbose:
-            # print(f'x: {x}')
-            # print(f'x.shape: {x.shape}')
             print(f"y_hat: {y_hat}")
             print(f"y: {y}")
-            # print(f'y_hat: {y_hat.shape}')
 
         if d["classify"]:
             class_idxs = torch.max(y, 1)[1]
@@ -116,12 +120,11 @@ def test_epoch(d, epoch, verbose=False):
                 print(f"test_y_hat: {test_y_hat}")
                 print(f"test_y: {test_y}")
 
-            batch_size = test_y.size(0)
-            total += batch_size
+
 
             if d["classify"]:
                 class_idxs = torch.max(test_y, 1)[1]
-                loss = d["criterion"]((test_y_hat), class_idxs)
+                test_loss = d["criterion"]((test_y_hat), class_idxs)
             else:
                 test_loss = d["criterion"]((test_y_hat), test_y)
 
@@ -130,6 +133,8 @@ def test_epoch(d, epoch, verbose=False):
             )
 
             if d['classify']:
+                batch_size = test_y.size(0)
+                total += batch_size
                 _, predicted = torch.max(test_y_hat.data, 1)
                 test_loss = d["criterion"](test_y_hat, class_idxs)
 
@@ -146,14 +151,8 @@ def test_epoch(d, epoch, verbose=False):
                 # print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}")
                 print(f"test_y: {test_y}, test_y_hat: {test_y_hat}")
                 running_loss = 0.0
-    print(f"test accuracy {(100 * correct / total):.2f} %")
-
-
-def train(d, model_name, epochs=20):
-    for epoch in range(epochs):
-        train_epoch(d, epoch=epoch, verbose=False)
-        test_epoch(d, epoch=epoch, verbose=False)
-        torch.save(d["model"].state_dict(), model_name + '.pth')
+    if d['classify']:
+        print(f"test accuracy {(100 * correct / total):.2f} %")
 
 
 def prep_loader(trainset, testset, model_name, batch_size=1, classify=False):

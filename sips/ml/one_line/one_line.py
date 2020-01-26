@@ -16,6 +16,7 @@ from sips.macros.sports import nba
 from sips.h import hot
 
 from sips.ml.one_line import olutils
+from sips.ml import normdf
 from sips.ml import train as training
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -46,7 +47,7 @@ def infer(d, fn="data.csv", preds_fn="data_preds.csv") -> pd.DataFrame:
     print(f"old : {old.shape}")
     print(f"df : {df.shape}")
 
-    normed_df = olutils.norm_testset(df, old)
+    normed_df = normdf.norm_testset(df, old)
 
     df = olutils.hot_teams(normed_df)
 
