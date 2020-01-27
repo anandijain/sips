@@ -1,3 +1,4 @@
+import argparse
 import os
 import time
 import datetime
@@ -12,19 +13,26 @@ from sips.macros import macros as m
 from sips.macros import sports_ref as sref
 from sips.sportsref import utils
 
+parser = argparse.ArgumentParser(description="configure lines.py")
+parser.add_argument("-s", "--sport", type=str, help="", default="nba")
+parser.add_argument("-w", "--write", type=bool, help="", default=False)
+parser.add_argument("-c", "--cloud", type=bool, help="", default=False)
+args = parser.parse_args()
 
-def get_game(game_id: str, sport:str) -> dict:
+def make_boxlink(game_id:str, sport:str):
     box_sfx = sref.REF_BOX_SFX[sport]
     sfx = sref.REF_SFX[sport]
-    game_dict = {}
     if sport == 'mlb':
         h_team = utils.mlb_game_id_to_home_code(game_id)
         link = sref.URLS[sport] + box_sfx + h_team + '/' + game_id + sfx
     else:
         link = sref.URLS[sport] + box_sfx + game_id + sfx
-    print(link)
-    dfs = grab.tables_to_df_dict(link)
-    game_dict.update(dfs)
+    return link
+
+
+def get_game(game_id: str, sport:str) -> dict:
+    link = make_boxlink(game_id, sport)
+    game_dict = grab.tables_to_df_dict(link)
     return game_dict
 
 
@@ -60,7 +68,13 @@ def all_games(sport: str, start_id=None, write=False, return_data=False, cloud=F
 
 
 if __name__ == "__main__":
-    cloudz.profile('micro_lon_games')
-    all_games('mlb', start_id='SDN201909080', write=True, cloud=True)
-    # all_games('nba', start_id='201001180CHA', write=True, cloud=True)
-    # all_games('nfl', start_id='199312120den', write=True, cloud=True)
+    if args.cloud:
+        cloudz.profile('micro_lon_games')
+
+    d = {
+        'mlb': 'TOR201909120',
+        'nba': None,
+        'nfl': '197912080phi'
+    }
+    
+    all_games(args.sport, start_id=d[args.sport], write=args.write, cloud=args.cloud)
