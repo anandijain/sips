@@ -76,6 +76,19 @@ def get_table(page, table_id, find_all=False, to_pd=False):
     return ret
 
 
+def soupfind(p: bs4.BeautifulSoup, tup: tuple, find_all=True):
+    """
+    tup is 3tuple with ('th', 'data-stat', 'season') for example
+
+    """
+    if find_all:
+        ret = p.find_all(tup[0], {tup[1]: tup[2]})
+    else:
+        ret = p.find(tup[0], {tup[1]: tup[2]})
+    return ret
+
+
+
 def links(html, prefix=None):
     links = []
     a_tags = html.find_all("a")

@@ -53,4 +53,6 @@ def all_games(sport:str, start_id=None, write=False, return_data=False):
 
 
 if __name__ == "__main__":
-    all_games('mlb', write=True)
+    all_games('mlb', start_id='SDN201909080', write=True)
+    all_games('nba', start_id='201001180CHA', write=True)
+    all_games('nfl', start_id='199312120den', write=True)
