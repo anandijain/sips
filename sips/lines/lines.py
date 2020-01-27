@@ -75,7 +75,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 if args.log:
-    cloudz.main()
+    cloudz.profile(f'lines_{time.asctime()}')
 
 if args.predict:
     from sips.ml import lstm
