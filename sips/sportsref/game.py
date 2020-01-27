@@ -46,7 +46,8 @@ def all_games(sport: str, start_id=None, write=False, return_data=False, cloud=F
                 if cloud:
                     val.to_csv('tmp.csv')
                     cloudz.upload_blob(bn, 'tmp.csv', to_write_fn)
-                val.to_csv()
+                else:
+                    val.to_csv(to_write_fn)
 
         if return_data:
             games_dict.update(game_dict)
