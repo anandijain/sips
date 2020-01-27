@@ -5,7 +5,7 @@ from sips.macros import macros as m
 
 def gamedata_path(sport: str, cloud=False):
     if cloud:
-        path = f'/mnt/disks/drive/{sport}/games',
+        path = ''
     else:
         path = m.PARENT_DIR + 'data/' + sport + '/games/'
     return path
