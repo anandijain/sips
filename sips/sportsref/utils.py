@@ -2,6 +2,7 @@ import pandas as pd
 
 from sips.macros import macros as m
 
+
 def gamedata_path(sport: str, cloud=False):
     if cloud:
         path = f'/mnt/disks/drive/{sport}/games',

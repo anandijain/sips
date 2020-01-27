@@ -16,7 +16,7 @@ import sips
 import sips.h.fileio as io
 import sips.h.serialize as s
 
-from sips.h.cloud import profiler
+from sips.h import cloudz
 from sips.h import analyze
 from sips.h import hot
 
@@ -45,7 +45,7 @@ group.add_argument("-A", "--all", type=bool, help="run on all sports")
 parser.add_argument(
     "-m", "--all_mkts", type=bool, help="grabs extra markets", default=False
 )
-parser.add_argument("-l", "--log", type=bool, help="add gcloud profiler")
+parser.add_argument("-l", "--log", type=bool, help="add gcloud cloudz")
 parser.add_argument("-n", "--new_only", type=bool, help="", default=True)
 parser.add_argument(
     "-w", "--wait", type=float, help="how long to wait after each step", default=0.25
@@ -75,7 +75,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 if args.log:
-    profiler.main()
+    cloudz.main()
 
 if args.predict:
     from sips.ml import lstm

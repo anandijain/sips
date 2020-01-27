@@ -6,6 +6,8 @@ import pandas as pd
 
 from sips.h import grab
 from sips.h import parse
+from sips.h import cloudz
+
 from sips.macros import macros as m
 from sips.macros import sports_ref as sref
 from sips.sportsref import utils
@@ -26,10 +28,10 @@ def get_game(game_id: str, sport:str) -> dict:
     return game_dict
 
 
-def all_games(sport:str, start_id=None, write=False, return_data=False):
-    folder = utils.gamedata_path(sport)
+def all_games(sport: str, start_id=None, write=False, return_data=False, cloud=False):
+    folder = utils.gamedata_path(sport, cloud=cloud)
     df = pd.read_csv(folder + 'index.csv')
-
+    bn = cloudz.GAMES_BUCKETS[sport]
     if start_id:
         start_idx = df.index[df.game_id == start_id][0]
         df = df.iloc[start_idx:]
@@ -40,7 +42,11 @@ def all_games(sport:str, start_id=None, write=False, return_data=False):
         game_dict = get_game(game_id, sport)
         if write:
             for key, val in game_dict.items():
-                val.to_csv(folder + key + ".csv")
+                to_write_fn = folder + key + ".csv"
+                if cloud:
+                    val.to_csv('tmp.csv')
+                    cloudz.upload_blob(bn, 'tmp.csv', to_write_fn)
+                val.to_csv()
 
         if return_data:
             games_dict.update(game_dict)
@@ -53,6 +59,7 @@ def all_games(sport:str, start_id=None, write=False, return_data=False):
 
 
 if __name__ == "__main__":
-    all_games('mlb', start_id='SDN201909080', write=True)
-    all_games('nba', start_id='201001180CHA', write=True)
-    all_games('nfl', start_id='199312120den', write=True)
+    cloudz.profile('micro_lon_games')
+    all_games('mlb', start_id='SDN201909080', write=True, cloud=True)
+    # all_games('nba', start_id='201001180CHA', write=True, cloud=True)
+    # all_games('nfl', start_id='199312120den', write=True, cloud=True)
