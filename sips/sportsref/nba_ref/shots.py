@@ -91,7 +91,7 @@ def all_shotcharts(write=True):
 
     """
 
-    GAMES_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+    GAMES_DATA = "m.DATA_DIR + 'nba/games/"
     INDEX_FN = "index.csv"
     df = pd.read_csv(GAMES_DATA + INDEX_FN)
     all_dfs = {}

@@ -20,8 +20,8 @@ from sips.ml import normdf
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 FILES = [
-    "/home/sippycups/absa/sips/data/nba/nba_history.csv",
-    "/home/sippycups/absa/sips/data/nba/nba_history_with_stats.csv",
+    "m.DATA_DIR + 'nba/nba_history.csv",
+    "m.DATA_DIR + 'nba/nba_history_with_stats.csv",
 ]
 
 

@@ -9,8 +9,7 @@ from sips.macros import macros as m
 from sips.macros.sports import nba
 
 
-
-LINES = '/home/sippycups/absa/sips/data/lines/lines/6584352.csv'
+LINES = m.DATA_DIR + 'lines/lines/6584352.csv'
 GAME_ID = '202001070LAL'
 
 
