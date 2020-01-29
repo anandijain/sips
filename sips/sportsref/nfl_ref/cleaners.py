@@ -6,6 +6,7 @@ import re
 
 import pandas as pd
 import numpy as np
+
 from sips.sportsref import utils
 from sips.macros.sports import nba
 from sips.macros import macros as m
@@ -28,32 +29,28 @@ def transpose_fix(df):
     # print(ret)
     return ret
 
-# patterns = {
-#     'temp' : temp,
-#     'humidity%' : humidity,
-#     'wind_mph' : wind_speed,
-#     'wind_chill': wind_chill
-# }
+
+def 
 
 
-def weather():
+def get_extract():
     df = pd.read_csv(
         '/home/sippycups/absa/sips/data/nfl/nfl_game_info.csv')
-    w = df[['game_id', 'Weather']]
-
-    temp = r'(\d+(\s\bdegrees))'
-    humidity = r'(\d+(\%))'
-    wind_speed = r'(\sno wind)|(\swind \d+(\smph))'
-    wind_chill = r'(\swind chill \d+)'
-
+    df = df.fillna(np.nan)
 
     pattern = r'((?P<temp>-?\d+)\sdegrees)|((?P<humidity>\d+)\%)|(?P<no_wind>\bno wind)|(\bwind (?P<wind_mph>\d+)\smph)|(\bwind chill (?P<wind_chill>-?\d+))'
-    ret2 = w.Weather.str.extractall(pattern)
-    ret2.drop([0, 2, 5, 7], axis=1, inplace=True)
-    ret2.reset_index(inplace=True)
-    ret2 = ret2.fillna('')
-    ret2 = ret2.groupby('level_0').agg(''.join)
-    return df, w, ret2
+    
+    ret = df.Weather.str.extractall(pattern)
+    ret.drop([0, 2, 5, 7], axis=1, inplace=True)
+    ret = ret.groupby(level=0).first()
+    df = df.join(ret)
+    ret.drop('Weather', axis=1, inplace=True)
+    return df
+
+def weather():
+    df, ret = get_extract()
+
+    return ret
 
 def fix_levels(df, level=0):
     ret = []
