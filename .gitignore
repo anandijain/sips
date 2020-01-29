@@ -3,11 +3,12 @@ __pycache__/
 *.swp
 *.out
 *.csv
+*.csv#
+*.~lock*
 *.pyc
 *.json
 *.pth
 .vscode
-
 local/
 data/
 models/
