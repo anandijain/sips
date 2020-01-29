@@ -64,4 +64,4 @@ def prep_loader():
 
 if __name__ == "__main__":
     d = prep_loader()
-    train.train(d)
+    train.train(d, 'scores', epochs=5)

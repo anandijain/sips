@@ -41,6 +41,7 @@ def train(d, model_name, epochs=20):
     for epoch in range(epochs):
         train_epoch(d, epoch=epoch, verbose=False)
         test_epoch(d, epoch=epoch, verbose=False)
+        
         torch.save(d["model"].state_dict(), model_name + '.pth')
 
 
