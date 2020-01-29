@@ -25,7 +25,7 @@ def nfl_boxlinks(write=True):
         df.to_csv(folder + fn)
     return df
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     x = nfl_boxlinks()
     print(x)

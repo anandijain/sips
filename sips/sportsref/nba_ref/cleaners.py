@@ -131,14 +131,7 @@ def split_str_times(times: pd.Series):
     return ms
 
 
-def split_str_times_df(df: pd.DataFrame, col='time', out_cols=['mins', 'secs'], drop_old=True):
-    times = df[col]
-    ms = times.str.split(':', expand=True).astype(np.float)
-    df['mins'] = ms[0]
-    df['secs'] = ms[1]
-    if drop_old:
-        df = df.drop(col, axis=1)
-    return df
+
 
 
 def game_pbp_times(df:pd.DataFrame):
@@ -164,9 +157,11 @@ def game_pbp_times(df:pd.DataFrame):
     print(scores)
     df[['a_pts', 'h_pts']] = scores
     df.drop('score', axis=1, inplace=True)
-    df = split_str_times_df(df, col='Time')
+    df = utils.split_str_times_df(df, col='Time')
     df = add_total_time_remaining(df)
     return df
+
+
 
 
 def add_total_time_remaining(df:pd.DataFrame, new_col='tot_sec', qtr='qtr', mins='mins', secs='secs'):

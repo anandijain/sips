@@ -5,6 +5,7 @@ __pycache__/
 *.csv
 *.csv#
 *.~lock*
+*.~lock#*
 *.pyc
 *.json
 *.pth

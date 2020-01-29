@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from sips.sportsref import utils
-from sips.macros.sports import nba
+from sips.macros.sports import nfl
 from sips.macros import macros as m
 
 
@@ -40,7 +40,7 @@ def duration_fix(t: pd.Series) -> pd.Series:
 
 def weather():
     df = pd.read_csv(
-        m.NFL_GAME_DATA + 'nfl/nfl_game_info.csv')
+        m.NFL_DATA + 'nfl_game_info.csv')
     df = df.fillna(np.nan)
 
     pattern = r'((?P<temp>-?\d+)\sdegrees)|((?P<humidity>\d+)\%)|(?P<no_wind>\bno wind)|(\bwind (?P<wind_mph>\d+)\smph)|(\bwind chill (?P<wind_chill>-?\d+))'
@@ -48,9 +48,10 @@ def weather():
     ret = df.Weather.str.extractall(pattern)
     ret.drop([0, 2, 5, 7], axis=1, inplace=True)
     ret = ret.groupby(level=0).first()
+
     df = df.join(ret)
-    df = df.no_wind.replace('no wind', 1)
-    df = df.no_wind.astype(np.float)
+    df['no_wind'] = df.no_wind.replace('no wind', 1)
+    df['no_wind'] = df.no_wind.astype(np.float)
     print(df.columns)
     df.drop('Weather', axis=1, inplace=True)
     return df
@@ -64,26 +65,20 @@ def main():
     return df
 
 
-def scoring(dfs=None):
+def scoring():
     table_type = 'scoring'
-    if dfs is not None:
-        if isinstance(dfs, list):
-            dfs_list = dfs
-        elif isinstance(dfs, dict):
-            dfs_list = list(dfs.values())
-    else:
-        dfs = utils.group_read(table_type, sport='nfl')
-
-    dfs_list = list(dfs.values())
+    dfs = utils.group_read(table_type, sport='nfl')
     new_dfs = []
-    for df in dfs_list:
-        if len(df.columns) == 7:
+    for key, df in dfs.items():
+        if len(df.columns) == 8:
+            df = utils.drop_rename(df, nfl.GAME_SCORING)
             new_dfs.append(df)
     return new_dfs
 
 
 if __name__ == "__main__":
-    dfs = utils.group_read('game_info', sport='nfl')
-    biggo = pd.concat(dfs.values())
+    dfs = utils.group_read('scoring', sport='nfl')
+    dfs = scoring()
+    biggo = pd.concat(dfs)
 
     print(biggo)

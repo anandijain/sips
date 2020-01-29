@@ -1,4 +1,5 @@
 import glob
+import numpy as np
 import pandas as pd
 
 from sips.macros import macros as m
@@ -11,7 +12,6 @@ def group_read(table_type: str, sport: str, apply:list=[]):
     fns = glob.glob(path_to_data + f'**{table_type}.csv')
     print(f'reading {len(fns)} files')
     for i, fn in enumerate(fns):
-        game_id = path_to_id(fn)
         try:
             df = pd.read_csv(fn)
         except:
@@ -20,17 +20,20 @@ def group_read(table_type: str, sport: str, apply:list=[]):
         for fxn in apply:
             df = fxn(df)
 
+        game_id = path_to_id(fn)
         df['game_id'] = game_id
         dfs[game_id] = df
     return dfs
 
 
-def gamedata_path(sport: str, cloud=False):
-    if cloud:
-        path = ''
-    else:
-        path = m.PARENT_DIR + 'data/' + sport + '/games/'
-    return path
+def split_str_times_df(df: pd.DataFrame, col='time', out_cols=['mins', 'secs'], drop_old=True):
+    times = df[col]
+    ms = times.str.split(':', expand=True).astype(np.float)
+    df['mins'] = ms[0]
+    df['secs'] = ms[1]
+    if drop_old:
+        df = df.drop(col, axis=1)
+    return df
 
 
 def drop_rename(df: pd.DataFrame, columns, drop_n=0):
@@ -90,6 +93,14 @@ def url_to_id(url: str) -> str:
 
 def path_to_id(path:str) -> str:
     return url_to_id(path).split('_')[0]
+
+
+def gamedata_path(sport: str, cloud=False):
+    if cloud:
+        path = ''
+    else:
+        path = m.PARENT_DIR + 'data/' + sport + '/games/'
+    return path
 
 
 def id_to_sfx(id: str) -> str:
