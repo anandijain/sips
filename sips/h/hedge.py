@@ -43,7 +43,7 @@ class Hedge:
 
     def __init__(self, bet, bet2):
         # input args is two Bets
-        self.net = calc.net(bet, bet2)
+        self.net = net(bet, bet2)
         self.made_profit = self.net > 0
         self.bet = bet
         self.bet2 = bet2
@@ -60,15 +60,15 @@ class Hedge:
         print("\n")
 
 
-def net(bet: Bet, bet2: Bet) -> Number:
+def net(bet: Bet, bet2: Bet) -> float:
     """
     bet_sum = bet.amt + bet2.amt
-    
+
     """
     if bet.team == 0:
-        return bet.amt * eq(bet.a_odds) - bet2.amt
+        return bet.amt * calc.eq(bet.a_odds) - bet2.amt
     else:
-        return bet.amt * eq(bet.h_odds) - bet2.amt
+        return bet.amt * calc.eq(bet.h_odds) - bet2.amt
 
 
 def hedge_amt(bet, cur_odds):
@@ -77,9 +77,9 @@ def hedge_amt(bet, cur_odds):
 
     """
     if bet.team == 0:
-        return (bet.amt * (eq(bet.a_odds) + 1)) / (eq(cur_odds[1]) + 1)
+        return (bet.amt * (calc.eq(bet.a_odds) + 1)) / (calc.eq(cur_odds[1]) + 1)
     else:
-        return (bet.amt * (eq(bet.h_odds) + 1)) / (eq(cur_odds[0]) + 1)
+        return (bet.amt * (calc.eq(bet.h_odds) + 1)) / (calc.eq(cur_odds[0]) + 1)
 
 
 def net_given_odds(bet: Bet, cur_odds):
@@ -90,6 +90,6 @@ def net_given_odds(bet: Bet, cur_odds):
     bet2_amt = hedge_amt(bet, cur_odds)
     # bet_sum = bet.amt + bet2_amt
     if bet.team == 0:
-        return bet.amt * eq(bet.a_odds) - bet2_amt
+        return bet.amt * calc.eq(bet.a_odds) - bet2_amt
     else:
-        return bet.amt * eq(bet.h_odds) - bet2_amt
+        return bet.amt * calc.eq(bet.h_odds) - bet2_amt
