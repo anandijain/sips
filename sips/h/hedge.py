@@ -58,3 +58,38 @@ class Hedge:
         if self.made_profit:
             print("$$$$$$$$$$$$$$$$$ made money")
         print("\n")
+
+
+def net(bet: Bet, bet2: Bet) -> Number:
+    """
+    bet_sum = bet.amt + bet2.amt
+    
+    """
+    if bet.team == 0:
+        return bet.amt * eq(bet.a_odds) - bet2.amt
+    else:
+        return bet.amt * eq(bet.h_odds) - bet2.amt
+
+
+def hedge_amt(bet, cur_odds):
+    """
+    amt to hedge for risk free profit
+
+    """
+    if bet.team == 0:
+        return (bet.amt * (eq(bet.a_odds) + 1)) / (eq(cur_odds[1]) + 1)
+    else:
+        return (bet.amt * (eq(bet.h_odds) + 1)) / (eq(cur_odds[0]) + 1)
+
+
+def net_given_odds(bet: Bet, cur_odds):
+    """
+    given a bet:Bet and the current odds, calculate net
+
+    """
+    bet2_amt = hedge_amt(bet, cur_odds)
+    # bet_sum = bet.amt + bet2_amt
+    if bet.team == 0:
+        return bet.amt * eq(bet.a_odds) - bet2_amt
+    else:
+        return bet.amt * eq(bet.h_odds) - bet2_amt
