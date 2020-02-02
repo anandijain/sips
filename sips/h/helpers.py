@@ -74,7 +74,7 @@ def seq_windows(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 
@@ -112,7 +112,7 @@ def seq_windows_df(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 
@@ -145,10 +145,9 @@ def split_by(df, by='game_id', train_frac=0.7):
     tr_ids = g_ids[:idx]
     te_ids = g_ids[idx:]
 
-    tr_df = df[df.game_id.isin(tr_ids)]
-    te_df = df[df.game_id.isin(te_ids)]
+    tr_df = df[df[by].isin(tr_ids)]
+    te_df = df[df[by].isin(te_ids)]
     return tr_df, te_df
-
 
 
 def remove_string_cols(df: pd.DataFrame):

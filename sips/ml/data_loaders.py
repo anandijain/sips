@@ -28,6 +28,23 @@ class Shotset(Dataset):
         return {'x': x, 'y': y}
 
 
+class Salaryset(Dataset):
+    def __init__(self, tr_x, tr_y):
+        self.x = tr_x
+        self.y = tr_y
+        self.length = self.x.shape[0]
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        x = self.x.iloc[idx]
+        y = self.y.iloc[idx]
+        x = torch.tensor(x.values, dtype=torch.float)
+        y = torch.tensor(y, dtype=torch.float)
+        return {'x': x, 'y': y}
+
+
 class Scoreset(Dataset):
     def __init__(self, df, first_n=100, last_n=5, min_len=200):
         """

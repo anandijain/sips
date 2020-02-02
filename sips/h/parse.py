@@ -88,7 +88,6 @@ def soupfind(p: bs4.BeautifulSoup, tup: tuple, find_all=True):
     return ret
 
 
-
 def links(html, prefix=None):
     links = []
     a_tags = html.find_all("a")

@@ -163,7 +163,7 @@ def tables_to_df_dict(link: str):
     return game_dict
 
 
-def all_tables(link:str):
+def all_tables(link: str):
     p = comments(link)
     ts = p.find_all("table")
     return ts

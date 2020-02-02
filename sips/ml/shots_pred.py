@@ -1,6 +1,6 @@
 import pandas as pd
-
-
+from sips.macros import macros as m
+from sips.ml import prep
 from sips.ml import normdf
 from sips.ml import train
 from sips.ml import data_loaders as dls
@@ -20,8 +20,7 @@ def shots_pred_train():
 
 
 def shots_prep():
-
-    tr, te = shots_tr_te()
+    tr, te = prep.fn_to_tr_te(m.DATA_DIR + '1000_shots.csv', xcols=X_COLS, ycols=Y_COLS)
     tr_y = tr[Y_COLS]
     tr.drop(Y_COLS, axis=1, inplace=True)
     tr_x = tr
@@ -44,16 +43,6 @@ def shots_prep():
     d = train.prep_loader(trset, teset, MODEL_NAME,
                           classify=CLASSIFY, batch_size=BATCH_SIZE)
     return d
-
-
-def shots_tr_te():
-    df = pd.read_csv('1000_shots.csv')
-    df = df[X_COLS]
-    df = df.sample(frac=1).reset_index(drop=True)
-    tr, te = normdf.split_norm(df, y_cols=Y_COLS)
-    tr = tr.reset_index(drop=True)
-    te = te.reset_index(drop=True)
-    return tr, te
 
 
 def shot_classify(df):

@@ -10,6 +10,22 @@ from sips.ml.one_line import olutils
 from torch.utils.data import DataLoader, Dataset
 
 
+def fn_to_tr_te(fn, by: str, xcols: list = None, ycols: list = None, norm_y=False):
+    df = pd.read_csv(fn)
+    df = df.dropna()
+    df = df[xcols]
+
+    df = df.sample(frac=1).reset_index(drop=True)
+    if norm_y:
+        tr, te = normdf.splitnorm(df, y_cols=ycols, by=by)
+    else:
+        tr, te = normdf.split_norm(df, y_cols=ycols, by=by)
+    
+    tr = tr.reset_index(drop=True)
+    te = te.reset_index(drop=True)
+    return tr, te
+
+
 def prep_sportset(df, to_dummies, sport: str, train_frac=0.7):
     sportdf = df[df.sport == sport]
     sportdf = sportdf.drop("sport", axis=1)
