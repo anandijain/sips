@@ -5,7 +5,7 @@ import pandas as pd
 from sips.macros import macros as m
 
 
-def group_read(table_type: str, sport: str, apply:list=[]):
+def group_read(table_type: str, sport: str, apply: list = []):
     dfs = {}
     path_to_data = gamedata_path(sport)
 
@@ -24,6 +24,10 @@ def group_read(table_type: str, sport: str, apply:list=[]):
         df['game_id'] = game_id
         dfs[game_id] = df
     return dfs
+
+
+def sal_to_int(s:str) -> int:
+    return int(s.strip('$').strip(','))
 
 
 def split_str_times_df(df: pd.DataFrame, col='time', out_cols=['mins', 'secs'], drop_old=True):
@@ -91,7 +95,7 @@ def url_to_id(url: str) -> str:
     return url.split("/")[-1].split(".")[0]
 
 
-def path_to_id(path:str) -> str:
+def path_to_id(path: str) -> str:
     return url_to_id(path).split('_')[0]
 
 

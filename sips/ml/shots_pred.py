@@ -20,7 +20,7 @@ def shots_pred_train():
 
 
 def shots_prep():
-    tr, te = prep.fn_to_tr_te(m.DATA_DIR + '1000_shots.csv', xcols=X_COLS, ycols=Y_COLS)
+    tr, te = prep.fn_to_tr_te(m.DATA_DIR + '1000_shots.csv', by='game_id', xcols=X_COLS, ycols=Y_COLS)
     tr_y = tr[Y_COLS]
     tr.drop(Y_COLS, axis=1, inplace=True)
     tr_x = tr

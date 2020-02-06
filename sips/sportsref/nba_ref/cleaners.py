@@ -46,14 +46,16 @@ def clean_game_file(fn: str, verbose=False):
             fn, nba.LINE_SCORES, drop_n=1, verbose=verbose)
     elif "four_factors" in fn:
         df = utils.drop_rename_from_fn(fn, nba.FOUR_FACTORS,
-                                 drop_n=1, verbose=verbose)
+                                       drop_n=1, verbose=verbose)
     elif "basic" in fn:
-        df = utils.drop_rename_from_fn(fn, nba.GAME_BASIC, drop_n=1, verbose=verbose)
+        df = utils.drop_rename_from_fn(
+            fn, nba.GAME_BASIC, drop_n=1, verbose=verbose)
     elif "advanced" in fn:
         df = utils.drop_rename_from_fn(
             fn, nba.GAME_ADVANCED, drop_n=1, verbose=verbose)
     elif "pbp" in fn:
-        df = utils.drop_rename_from_fn(fn, nba.GAME_PBP, drop_n=1, verbose=verbose)
+        df = utils.drop_rename_from_fn(
+            fn, nba.GAME_PBP, drop_n=1, verbose=verbose)
         df = game_pbp_times(df)
     elif "shooting" in fn:
         # drop first col
@@ -63,7 +65,7 @@ def clean_game_file(fn: str, verbose=False):
     return df
 
 
-def clean_player_file(fn:str, verbose=False):
+def clean_player_file(fn: str, verbose=False):
     # im dumb
     if "totals" in fn:
         df = utils.drop_rename_from_fn(
@@ -106,9 +108,7 @@ def clean_player_file(fn:str, verbose=False):
     return df
 
 
-
-
-def shotchart_tip(df:pd.DataFrame):
+def shotchart_tip(df: pd.DataFrame):
     # new_cols = ["index", "p_id", "qtr", "shot_made", "x_pos", "y_pos", "time", 'player_info', 'team_info']
     tips = df.tip
     tmp = tips.str.split('<br>', expand=True)
@@ -131,10 +131,7 @@ def split_str_times(times: pd.Series):
     return ms
 
 
-
-
-
-def game_pbp_times(df:pd.DataFrame):
+def game_pbp_times(df: pd.DataFrame):
     # already correct colnames
     # t = df.Time
     q2_idx = df.index[df.Time == '2nd Q'][0]
@@ -162,15 +159,13 @@ def game_pbp_times(df:pd.DataFrame):
     return df
 
 
-
-
-def add_total_time_remaining(df:pd.DataFrame, new_col='tot_sec', qtr='qtr', mins='mins', secs='secs'):
+def add_total_time_remaining(df: pd.DataFrame, new_col='tot_sec', qtr='qtr', mins='mins', secs='secs'):
     # 720 seconds in nba qtr, 4 qtrs
     df[new_col] = 720*(4 - df[qtr]) + df[mins] * 60 + df[secs]
     return df
 
 
-def lines_tot_time(df:pd.DataFrame):
+def lines_tot_time(df: pd.DataFrame):
     df = df[df.qtr != 'None']
     df = df[df.secs != 'None']
     df[['qtr', 'secs']] = df[['qtr', 'secs']].astype(int)
@@ -178,6 +173,25 @@ def lines_tot_time(df:pd.DataFrame):
     df['tot_sec'] = 720*(4 - df['qtr']) + df['secs']
     return df
 
+
+def salaries(season:str=None, write=False, fn='player_salaries.csv', verbose=False):
+    fns = glob.glob(m.NBA_PLAYER_DATA + '**salaries.csv')
+    d = {utils.path_to_id(fn) : pd.read_csv(fn) for fn in fns}
+    for p_id, df in d.items():
+        df['player_id'] = p_id
+    df = pd.concat(d.values())
+    df.Salary = df.Salary.apply(utils.sal_to_int)
+    
+    if season:
+        df = df[df.Season == season]
+
+    if write:
+        df.to_csv(fn)
+
+    if verbose:
+        print(df)
+
+    return df
 
 def test_player():
     for f in PLAYER_TEST_FILES:
@@ -206,6 +220,11 @@ def test_pbp():
 if __name__ == "__main__":
     # test_player()
     # test_game()
-    df = test_pbp()
-    print(df.a_pts.unique())
-    print(df.dtypes)
+
+    # df = test_pbp()
+    # print(df.a_pts.unique())
+    # print(df.dtypes)
+
+    df = salaries(season='Career', write=True, fn='player_career_sals.csv')
+
+    print(df)
