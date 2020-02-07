@@ -41,70 +41,94 @@ def clean_games_files(fns: list, write=False):
 
 
 def clean_game_file(fn: str, verbose=False):
-    if "line_score" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.LINE_SCORES, drop_n=1, verbose=verbose)
-    elif "four_factors" in fn:
-        df = utils.drop_rename_from_fn(fn, nba.FOUR_FACTORS,
-                                       drop_n=1, verbose=verbose)
-    elif "basic" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.GAME_BASIC, drop_n=1, verbose=verbose)
-    elif "advanced" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.GAME_ADVANCED, drop_n=1, verbose=verbose)
-    elif "pbp" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.GAME_PBP, drop_n=1, verbose=verbose)
-        df = game_pbp_times(df)
-    elif "shooting" in fn:
-        # drop first col
-        df = drop_ith_col(fn, 0)
-    else:
-        return
+
+    mapping = {
+        "line_score": line_score(fn),
+        "four_factors": four_factors(fn),
+        "basic": game_basic(fn),
+        "advanced": game_advanced(fn),
+        "pbp": game_pbp(fn),
+    }
+    for m in mapping.keys():
+        if m in fn:
+            df = mapping[m](fn)
     return df
 
 
-def clean_player_file(fn: str, verbose=False):
-    # im dumb
-    if "totals" in fn:
+def line_score(fn):
+    return utils.drop_rename_from_fn(
+        fn, nba.LINE_SCORES, drop_n=1)
+
+
+def all_four_factors(path=''):
+    basic_fns = glob.glob(path + '**four_factors.csv')
+    skipped = []
+    dfs = []
+    for i, fn in enumerate(basic_fns):
+        try:
+            df = four_factors(fn)
+            if df is not None:
+                dfs.append(df)
+                print(f'{i}: {fn}')
+        except:
+            skipped.append(utils.path_to_id(fn))
+            continue
+    return dfs, skipped
+
+
+def four_factors(fn):
+    # print(fn)
+    try:
         df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_TOTALS, id_col='player_id', drop_n=0, verbose=verbose)
-    # elif "highs-po" in fn:
-    #     df = utils.drop_rename_from_fn(
-    #         fn, nba.PLAYER_YEAR_CAREER_HIGHS_PO, id_col='player_id', drop_n=0, verbose=verbose)
-    elif "highs" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_YEAR_CAREER_HIGHS, id_col='player_id', drop_n=1, verbose=verbose)
-    elif "per_minute" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_PER_MIN, id_col='player_id', drop_n=0, verbose=verbose)
-    elif "per_game" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_PER_GAME, id_col='player_id', drop_n=0, verbose=verbose)
-    elif "advanced" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_ADVANCED, id_col='player_id', drop_n=0, verbose=verbose)
-    elif "salaries" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_SALARIES, id_col='player_id', drop_n=0, verbose=verbose)
-    elif "college" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_COLLEGE, id_col='player_id', drop_n=1, verbose=verbose)
-    elif "shooting" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_SHOOTING, id_col='player_id', drop_n=2, verbose=verbose)
-    elif "pbp" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_PBP, id_col='player_id', drop_n=1, verbose=verbose)
-    elif "sim_thru" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_SIM_THRU, id_col='player_id', drop_n=1, verbose=verbose)
-    elif "sim_career" in fn:
-        df = utils.drop_rename_from_fn(
-            fn, nba.PLAYER_SIM_CAREER, id_col='player_id', drop_n=1, verbose=verbose)
-    else:
+            fn, nba.FOUR_FACTORS, id_col='game_id', drop_n=1)
+        return df 
+    except:
         return
+
+
+def game_pbp(fn):
+    df = utils.drop_rename_from_fn(fn, nba.GAME_PBP, drop_n=1)
+    df = game_pbp_times(df)
+    return df
+
+
+def all_basic(path=''):
+    basic_fns = glob.glob(path + '**game-basic.csv')
+    dfs = []
+    skipped = []
+
+    for i, fn in enumerate(basic_fns):
+        try:
+            df = game_basic(fn)
+            if df is not None:
+                dfs.append(df)
+                print(f'{i}: {fn}')
+        except:
+            skipped.append(utils.path_to_id(fn))
+            continue
+    return dfs, skipped
+
+
+def game_basic(fn):
+    try:
+        df = utils.drop_rename_from_fn(fn, nba.GAME_BASIC, drop_n=1)
+        return df
+    except:
+        return
+
+
+def game_advanced(fn):
+    df = utils.drop_rename_from_fn(fn, nba.GAME_ADVANCED, drop_n=1)
+    return df
+
+def clean_player_file(fn: str, verbose=False):
+    table_name = utils.player_table_type(fn)
+    try:
+        drop_n = nba.PLAYER_DROP_N[table_name]
+        cols = nba.PLAYER_TABLES[table_name]
+        df = utils.drop_rename_from_fn(fn, cols, id_col='player_id', drop_n=drop_n)
+    except:
+        df = pd.read_csv(fn)
     return df
 
 
@@ -174,14 +198,14 @@ def lines_tot_time(df: pd.DataFrame):
     return df
 
 
-def salaries(season:str=None, write=False, fn='player_salaries.csv', verbose=False):
+def salaries(season: str = None, write=False, fn='player_salaries.csv', verbose=False):
     fns = glob.glob(m.NBA_PLAYER_DATA + '**salaries.csv')
-    d = {utils.path_to_id(fn) : pd.read_csv(fn) for fn in fns}
+    d = {utils.path_to_id(fn): pd.read_csv(fn) for fn in fns}
     for p_id, df in d.items():
         df['player_id'] = p_id
     df = pd.concat(d.values())
     df.Salary = df.Salary.apply(utils.sal_to_int)
-    
+
     if season:
         df = df[df.Season == season]
 
@@ -192,6 +216,7 @@ def salaries(season:str=None, write=False, fn='player_salaries.csv', verbose=Fal
         print(df)
 
     return df
+
 
 def test_player():
     for f in PLAYER_TEST_FILES:

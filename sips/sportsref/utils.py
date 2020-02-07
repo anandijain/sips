@@ -44,21 +44,25 @@ def drop_rename(df: pd.DataFrame, columns, drop_n=0):
     """
 
     """
+    row1 = df.iloc[0]
     df = df.drop(range(drop_n))
-    df.columns = columns
+    try:
+        df.columns = columns
+    except ValueError:
+        df.columns = row1
     if "index" in df.columns:
         df = df.drop("index", axis=1)
     return df
 
 
-def drop_rename_from_fn(fn: str, cols, id_col='game_id', drop_n=0, verbose=False):
+def drop_rename_from_fn(fn: str, columns, id_col='game_id', drop_n=0, verbose=False):
     """
 
     """
     df = pd.read_csv(fn)
     if verbose:
         print(f'pre: {df}')
-    df = drop_rename(df, cols, drop_n=drop_n)
+    df = drop_rename(df, columns, drop_n=drop_n)
     df = add_id_from_fn(df, fn, id_col)
     return df
 
@@ -105,6 +109,9 @@ def gamedata_path(sport: str, cloud=False):
     else:
         path = m.PARENT_DIR + 'data/' + sport + '/games/'
     return path
+
+def player_table_type(path:str):
+    return path.split('/')[-1].split('_', 1)[1].split('.')[0]
 
 
 def id_to_sfx(id: str) -> str:
