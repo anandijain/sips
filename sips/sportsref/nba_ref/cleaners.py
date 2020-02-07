@@ -60,20 +60,22 @@ def line_score(fn):
         fn, nba.LINE_SCORES, drop_n=1)
 
 
-def all_four_factors(path=''):
+def all_four_factors(path='', write=True):
     basic_fns = glob.glob(path + '**four_factors.csv')
-    skipped = []
-    dfs = []
+    # skipped = []
+    # dfs = []
     for i, fn in enumerate(basic_fns):
         try:
             df = four_factors(fn)
             if df is not None:
-                dfs.append(df)
+                # dfs.append(df)
                 print(f'{i}: {fn}')
+                if write:
+                    df.to_csv(fn)
         except:
-            skipped.append(utils.path_to_id(fn))
+            # skipped.append(utils.path_to_id(fn))
             continue
-    return dfs, skipped
+    # return dfs, skipped
 
 
 def four_factors(fn):
@@ -81,7 +83,7 @@ def four_factors(fn):
     try:
         df = utils.drop_rename_from_fn(
             fn, nba.FOUR_FACTORS, id_col='game_id', drop_n=1)
-        return df 
+        return df
     except:
         return
 
@@ -92,21 +94,23 @@ def game_pbp(fn):
     return df
 
 
-def all_basic(path=''):
+def all_game_basic(path='', write=True):
     basic_fns = glob.glob(path + '**game-basic.csv')
-    dfs = []
-    skipped = []
+    # dfs = []
+    # skipped = []
 
     for i, fn in enumerate(basic_fns):
         try:
             df = game_basic(fn)
             if df is not None:
-                dfs.append(df)
+                # dfs.append(df)
                 print(f'{i}: {fn}')
+                if write:
+                    df.to_csv(fn)
         except:
-            skipped.append(utils.path_to_id(fn))
+            # skipped.append(utils.path_to_id(fn))
             continue
-    return dfs, skipped
+    # return dfs, skipped
 
 
 def game_basic(fn):
@@ -121,12 +125,14 @@ def game_advanced(fn):
     df = utils.drop_rename_from_fn(fn, nba.GAME_ADVANCED, drop_n=1)
     return df
 
+
 def clean_player_file(fn: str, verbose=False):
     table_name = utils.player_table_type(fn)
     try:
         drop_n = nba.PLAYER_DROP_N[table_name]
         cols = nba.PLAYER_TABLES[table_name]
-        df = utils.drop_rename_from_fn(fn, cols, id_col='player_id', drop_n=drop_n)
+        df = utils.drop_rename_from_fn(
+            fn, cols, id_col='player_id', drop_n=drop_n)
     except:
         df = pd.read_csv(fn)
     return df
@@ -218,6 +224,77 @@ def salaries(season: str = None, write=False, fn='player_salaries.csv', verbose=
     return df
 
 
+def gen_cols():
+    a_reserves, h_reserves = [[team_pre + '_reserve' +
+                               str(i) for i in range(1, 11)] for team_pre in ['A', 'H']]
+
+    a_starters, h_starters = [[team_pre + '_starter' +
+                               str(i) for i in range(1, 6)] for team_pre in ['A', 'H']]
+    return a_reserves, h_reserves, a_starters, h_starters
+
+def players_and_teams():
+    fns = ['nba_advanced_player_history.csv', 'nba_history_wt_and_p.csv']
+    path = '/home/sippycups/absa/sips/data/misc/'
+    num_cols_team = 15 * 17
+    player_data, ids_stats_og = [pd.read_csv(path + fn) for fn in fns]
+    a_reserves, h_reserves, a_starters, h_starters = gen_cols()
+
+    union_ids = player_data.Game_id.unique()
+    ids_stats_df = ids_stats_og[ids_stats_og.Game_id.isin(union_ids)]
+
+    a_pids = a_starters + a_reserves
+    h_pids = h_starters + h_reserves
+
+    p_id_cols = a_pids + h_pids
+    p_id_cols.append('Game_id')
+    ids_df = ids_stats_df[p_id_cols]
+    drop_cols = ['Date', 'MP', 'Players', 'Game_id']
+    all_ids = ids_df.drop('Game_id', axis=1)
+    gs_dict = {k: v for k, v in player_data.groupby('Game_id')}
+    stuff = []
+    for (idx, row) in ids_stats_df.iterrows():
+        g_id = row.Game_id
+        g = gs_dict[g_id]
+        
+        dropped_g = g.drop(drop_cols, axis=1)
+
+        row_ids = row[p_id_cols].drop('Game_id')
+
+        a_ids = row_ids[a_pids]
+        h_ids = row_ids[h_pids]
+
+        a_stats = g[g.Players.isin(a_ids)]
+        h_stats = g[g.Players.isin(h_ids)]
+        
+        h_data = h_stats.drop(drop_cols, axis=1).values
+        a_data = a_stats.drop(drop_cols, axis=1).values
+
+        h_data = pad(h_data, num_cols_team)
+        a_data = pad(a_data, num_cols_team)
+        if h_data is None or a_data is None:
+            continue
+        to_add = list(np.concatenate([a_data, h_data]))
+        to_add.append(g_id)
+        stuff.append(to_add)
+
+    to_merge = pd.DataFrame(stuff)
+    
+    df = pd.merge(ids_stats_og, to_merge, how='inner', left_on='Game_id', right_on=510)
+
+    return df
+
+
+
+def pad(x, nzeros=255):
+    try:
+        result = np.zeros(nzeros)
+        result[0:x.size] = x.reshape(x.size)
+        return result
+    except ValueError:
+        return 
+    
+
+
 def test_player():
     for f in PLAYER_TEST_FILES:
         df = clean_player_file(f, verbose=True)
@@ -250,6 +327,11 @@ if __name__ == "__main__":
     # print(df.a_pts.unique())
     # print(df.dtypes)
 
-    df = salaries(season='Career', write=True, fn='player_career_sals.csv')
+    # df = salaries(season='Career', write=True, fn='player_career_sals.csv')
+    # all_four_factors(path='/home/sippycups/absa/sips/data/nba/games/')
+    # all_game_basic(path='/home/sippycups/absa/sips/data/nba/games/')
+#
+    # print(df)
 
+    df = players_and_teams()
     print(df)
