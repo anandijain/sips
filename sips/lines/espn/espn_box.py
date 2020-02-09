@@ -2,7 +2,7 @@
 
 """
 import time
-from sips.h import grab as g
+from sips.h import grab
 
 ESPN_ROOT = "https://www.espn.com/"
 
@@ -26,21 +26,24 @@ def get_sports():
 def time_ids(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all("a", {"name": "&lpos=" + sport + ":schedule:time"})
+    unparsed_ids = page.find_all(
+        "a", {"name": "&lpos=" + sport + ":schedule:time"})
     return unparsed_ids
 
 
 def score_ids(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all("a", {"name": "&lpos=" + sport + ":schedule:score"})
+    unparsed_ids = page.find_all(
+        "a", {"name": "&lpos=" + sport + ":schedule:score"})
     return unparsed_ids
 
 
 def live_ids(page=None, sport="football/nfl"):
     if not page:
         page = schedule(sport)
-    unparsed_ids = page.find_all("a", {"name": "&lpos=" + sport + ":schedule:live"})
+    unparsed_ids = page.find_all(
+        "a", {"name": "&lpos=" + sport + ":schedule:live"})
     live_ids = parse_live_ids(unparsed_ids)
     return live_ids
 
@@ -67,14 +70,14 @@ def schedules(sports=["football/nfl"]):
     pages = []
     for sport in sports:
         espn_id_link = "/" + sport + "/schedule"
-        p = g.page(espn_id_link)
+        p = grab.page(espn_id_link)
         pages.append(p)
     return pages
 
 
 def schedule(sport="football/nfl"):
     espn_id_link = ESPN_ROOT + sport + "/schedule"
-    p = g.page(espn_id_link)
+    p = grab.page(espn_id_link)
     return p
 
 
@@ -98,7 +101,7 @@ def get_live_pages():
     pages = []
     # add multithreading
     for id in ids:
-        pages.append(g.page(id_to_boxlink(id)))
+        pages.append(grab.page(id_to_boxlink(id)))
     return pages
 
 
@@ -239,7 +242,7 @@ def box_teamnames(page):
     return a_team, h_team
 
 
-def boxlinks(ids=None, sports=["football/nfl"], live_only=True):
+def boxlinks(ids=None, sports=["football/nfl"], live_only=True, verbose=False):
     """
 
     """
@@ -250,15 +253,16 @@ def boxlinks(ids=None, sports=["football/nfl"], live_only=True):
         url = ESPN_ROOT + sport + "/boxscore?gameId="
         sport_links = [url + id for id in ids]
         links += sport_links
+    if verbose:
+        print(f'links: {links}')
     return links
 
 
-def boxscores(sports=["football/nfl"], output="dict"):
+def boxscores(sports=["basketball/nba"], output="dict", live_only=True, verbose=False):
     """
     ~ 10 seconds
     """
-    links = boxlinks(sports=sports)
-    # print(f'links: {links}')
+    links = boxlinks(sports=sports, live_only=live_only, verbose=verbose)
     boxes = [boxscore(link) for link in links]
     return boxes
 
@@ -267,7 +271,7 @@ def boxscore(link):
     """
 
     """
-    page = g.page(link)
+    page = grab.page(link)
     teams = box_teamnames(page)
     if teams:
         a_team, h_team = teams
@@ -280,11 +284,10 @@ def boxscore(link):
 
 
 def main():
-    enum = enumerate
     start = time.time()
 
-    real_stats = boxscores()
-    for i, rs in enum(real_stats):
+    real_stats = boxscores(live_only=False, verbose=True)
+    for i, rs in enumerate(real_stats):
         print(f"{i}: {len(rs)}")
         print(rs)
     print(real_stats)
