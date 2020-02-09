@@ -150,7 +150,7 @@ def split_by(df, by='game_id', train_frac=0.7):
     return tr_df, te_df
 
 
-def remove_string_cols(df: pd.DataFrame):
+def remove_string_cols(df: pd.DataFrame) -> pd.DataFrame:
     cols_to_remove = []
     for col in df.columns:
         try:
@@ -209,7 +209,7 @@ def apply_length_bounds(
     return games
 
 
-def filter_unended(dfs, verbose=False):
+def filter_unended(dfs, verbose=False) -> list:
     # filters dfs, removing df.iloc[-1].status != "GAME_END"
     full_games = []
     total_count = len(dfs)
@@ -252,20 +252,20 @@ def sk_scale(df: pd.DataFrame, to_df=False):
     return scaled
 
 
-def filter_then_apply_min(dfs, verbose=False):
+def filter_then_apply_min(dfs, verbose=False) -> list:
     dfs = filter_unended(dfs, verbose=verbose)
     dfs = apply_length_bounds(dfs, verbose=verbose)
     return dfs
 
 
-def apply_min_then_filter(dfs, verbose=False):
+def apply_min_then_filter(dfs, verbose=False) -> list:
     # faster than filter and apply
     dfs = apply_length_bounds(dfs, verbose=verbose)
     dfs = filter_unended(dfs, verbose=verbose)
     return dfs
 
 
-def get_full_games(folder:str=None, sport:str=None):
+def get_full_games(folder: str = None, sport: str = None) -> list:
     # sport: BASK, FOOT, etc
     dfs = get_dfs(folder)
     dfs = filter_then_apply_min(dfs)
@@ -273,10 +273,11 @@ def get_full_games(folder:str=None, sport:str=None):
         dfs = filter_sport(dfs, sport)
     return dfs
 
-def filter_sport(dfs:list, sport:str):
+
+def filter_sport(dfs: list, sport: str) -> list:
     return [df for df in dfs if df.sport[0] == sport]
 
 
 if __name__ == "__main__":
-    
+
     pass

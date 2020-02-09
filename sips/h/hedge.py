@@ -8,20 +8,15 @@ from sips.h import calc
 class Bet:
     """
     class storing bet info, will be stored in pair (hedged-bet)
+
     """
-
-    def __init__(self, amt, action, odds, cur_state):
-        """
-        initialize bet
-
+    def __init__(self, amt:float, action:bool, odds:tuple):
         """
 
+        """
         self.amt = amt
         self.team = action  # 0 for away, 1 for home
-        self.a_odds = odds[0]
-        self.h_odds = odds[1]
-        self.cur_state = cur_state
-        self.wait_amt = 0
+        self.a_odds, self.h_odds = odds[0], odds[1]
 
     def reset_odds(self):
         # reset both odds
@@ -31,8 +26,8 @@ class Bet:
     def __repr__(self):
         # simple console log of a bet
         print(self.team)
-        print("bet amt: " + str(self.amt) + " | team: " + str(self.team))
-        print("a_odds: " + str(self.a_odds) + " | h_odds: " + str(self.h_odds))
+        print(f"bet amt: {str(self.amt)}\nteam: {str(self.team)}")
+        print(f"a_odds: {str(self.a_odds)}\nh_odds: {str(self.h_odds)}")
 
 
 class Hedge:
@@ -41,7 +36,7 @@ class Hedge:
 
     """
 
-    def __init__(self, bet, bet2):
+    def __init__(self, bet:Bet, bet2:Bet):
         # input args is two Bets
         self.net = net(bet, bet2)
         self.made_profit = self.net > 0
@@ -49,15 +44,9 @@ class Hedge:
         self.bet2 = bet2
 
     def __repr__(self):
-        print("BET 1 of 2")
-        self.bet.__repr__()
-        print("BET 2 of 2")
-        self.bet2.__repr__()
+        print(self.bet)
+        print(self.bet2)
         print("hedged profit: " + str(self.net))
-        print("steps waited: " + str(self.bet.wait_amt))
-        if self.made_profit:
-            print("$$$$$$$$$$$$$$$$$ made money")
-        print("\n")
 
 
 def net(bet: Bet, bet2: Bet) -> float:
@@ -71,7 +60,7 @@ def net(bet: Bet, bet2: Bet) -> float:
         return bet.amt * calc.eq(bet.h_odds) - bet2.amt
 
 
-def hedge_amt(bet, cur_odds):
+def hedge_amt(bet: Bet, cur_odds:tuple) -> float:
     """
     amt to hedge for risk free profit
 
@@ -82,7 +71,7 @@ def hedge_amt(bet, cur_odds):
         return (bet.amt * (calc.eq(bet.h_odds) + 1)) / (calc.eq(cur_odds[0]) + 1)
 
 
-def net_given_odds(bet: Bet, cur_odds):
+def net_given_odds(bet: Bet, cur_odds:tuple) -> float:
     """
     given a bet:Bet and the current odds, calculate net
 

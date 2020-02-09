@@ -37,21 +37,17 @@ def parse_json(json, keys, output="dict"):
         return None
 
 
-def comments(page, join=False, to_soup=False, verbose=False):
+def comments(page, to_soup=False, verbose=False):
     # finds all of the bs4.Comments for a page
     comments = page.findAll(text=lambda text: isinstance(text, bs4.Comment))
 
-    if join:
-        comments = "".join(comments)
-        if to_soup:
-            comments = bs4.BeautifulSoup(comments, "html.parser")
-    else:
-        if to_soup:
-            comments = [bs4.BeautifulSoup(c, "html.parser") for c in comments]
+    comments = "".join(comments)
+    if to_soup:
+        comments = bs4.BeautifulSoup(comments, "html.parser")
 
     if verbose:
-        for i, c in enumerate(comments):
-            print(f"$CS$: {i} : {c}")
+        print(f"comments : {comments}")
+
     return comments
 
 
@@ -73,18 +69,6 @@ def get_table(page, table_id, find_all=False, to_pd=False):
             ret = pd.read_html(table.prettify())[0]
     else:
         ret = table
-    return ret
-
-
-def soupfind(p: bs4.BeautifulSoup, tup: tuple, find_all=True):
-    """
-    tup is 3tuple with ('th', 'data-stat', 'season') for example
-
-    """
-    if find_all:
-        ret = p.find_all(tup[0], {tup[1]: tup[2]})
-    else:
-        ret = p.find(tup[0], {tup[1]: tup[2]})
     return ret
 
 

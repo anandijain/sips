@@ -34,7 +34,7 @@ def comments(link: str, verbose=False):
     return page_with_comments
 
 
-def page(link: str):
+def page(link: str) -> bs4.BeautifulSoup:
     """
     request and bs4 parse html
 
@@ -83,8 +83,7 @@ def reqs_json(urls, sleep=0.5, verbose=False):
     simple list concat on req_json
 
     """
-    jsons = [req_json(url) for url in urls]
-    return jsons
+    return [req_json(url, sleep=sleep) for url in urls]
 
 
 def req_json(url, sleep=0.5, verbose=False):
@@ -108,6 +107,7 @@ def req_json(url, sleep=0.5, verbose=False):
 
     if verbose:
         print(f"req'd url: {url}")
+        
     return json_data
 
 
@@ -131,7 +131,7 @@ def get_table(link: str, table_ids: list, to_pd=True):
     return tables
 
 
-def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
+def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False) -> list:
     """
     get tables from a list of links
 
@@ -147,7 +147,7 @@ def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
     return tables
 
 
-def tables_to_df_dict(link: str):
+def tables_to_df_dict(link: str) -> dict:
     game_id = sr_utils.url_to_id(link)
     game_dict = {}
     ts = all_tables(link)
