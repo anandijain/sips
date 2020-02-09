@@ -170,6 +170,10 @@ def chunk(df: pd.DataFrame, cols=["game_id"], output="list"):
         games = [game[1] for game in df.groupby(cols)]
     elif output == "dict":
         games = {key: val for key, val in df.groupby(cols)}
+    elif output == 'df':
+        games = {key: val for key, val in df.groupby(cols)}
+        games = pd.DataFrame.from_dict(games, orient='index')
+        games = games.iloc[:, 0]
     else:
         games = df.groupby(cols)
     return games
