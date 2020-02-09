@@ -334,4 +334,5 @@ if __name__ == "__main__":
     # print(df)
 
     df = players_and_teams()
+    df.to_csv('players_and_teams.csv')
     print(df)
