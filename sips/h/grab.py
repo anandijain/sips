@@ -22,7 +22,7 @@ def comments(link: str, verbose=False):
     """
     page_no_comments = page(link)
     page_comments = parse.comments(
-        page_no_comments, join=True, to_soup=False, verbose=verbose
+        page_no_comments, to_soup=False, verbose=verbose
     )
 
     both = str(page_no_comments) + page_comments
