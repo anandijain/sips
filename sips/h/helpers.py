@@ -265,12 +265,18 @@ def apply_min_then_filter(dfs, verbose=False):
     return dfs
 
 
-def get_full_games(dir=None):
-    dfs = get_dfs(dir)
+def get_full_games(folder:str=None, sport:str=None):
+    # sport: BASK, FOOT, etc
+    dfs = get_dfs(folder)
     dfs = filter_then_apply_min(dfs)
+    if sport is not None:
+        dfs = filter_sport(dfs, sport)
     return dfs
+
+def filter_sport(dfs:list, sport:str):
+    return [df for df in dfs if df.sport[0] == sport]
 
 
 if __name__ == "__main__":
+    
     pass
-    # print(data[0])
