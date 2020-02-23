@@ -1,4 +1,95 @@
+import glob
+import numpy as np
 import pandas as pd
+
+from sips.macros import macros as m
+
+
+def group_read(table_type: str, sport: str, apply: list = []):
+    dfs = {}
+    path_to_data = gamedata_path(sport)
+
+    fns = glob.glob(path_to_data + f'**{table_type}.csv')
+    print(f'reading {len(fns)} files')
+    for i, fn in enumerate(fns):
+        try:
+            df = pd.read_csv(fn)
+        except:
+            continue
+
+        for fxn in apply:
+            df = fxn(df)
+
+        game_id = path_to_id(fn)
+        df['game_id'] = game_id
+        dfs[game_id] = df
+    return dfs
+
+
+def sal_to_int(s:str) -> int:
+    return int(s.strip('$').strip(','))
+
+
+def split_str_times_df(df: pd.DataFrame, col='time', out_cols=['mins', 'secs'], drop_old=True):
+    times = df[col]
+    ms = times.str.split(':', expand=True).astype(np.float)
+    df['mins'] = ms[0]
+    df['secs'] = ms[1]
+    if drop_old:
+        df = df.drop(col, axis=1)
+    return df
+
+
+def drop_rename(df: pd.DataFrame, columns, drop_n=0):
+    """
+
+    """
+    row1 = df.iloc[0]
+    df = df.drop(range(drop_n))
+    try:
+        df.columns = columns
+    except ValueError:
+        df.columns = row1
+    if "index" in df.columns:
+        df = df.drop("index", axis=1)
+    return df
+
+
+def drop_rename_from_fn(fn: str, columns, id_col='game_id', drop_n=0, verbose=False):
+    """
+
+    """
+    df = pd.read_csv(fn)
+    if verbose:
+        print(f'pre: {df}')
+    df = drop_rename(df, columns, drop_n=drop_n)
+    df = add_id_from_fn(df, fn, id_col)
+    return df
+
+
+def add_id_from_fn(df: pd.DataFrame, fn: str, col='player_id'):
+    """
+    given a dataframe and a filename
+    adds a id col to the dataframe for the id obtained from filename
+    """
+    obj_id = path_to_id(fn)  # player or game
+    df[col] = obj_id
+    return df
+
+
+def drop_ith_col(fn: str, i):
+    # drop a col by index
+    df = pd.read_csv(fn)
+    df = df.drop(df.columns[i], axis=1)
+    return df
+
+
+def game_id_to_home_code(game_id: str):
+    return game_id[-3:]
+
+
+def mlb_game_id_to_home_code(game_id: str):
+    return game_id[:3]
 
 
 def url_to_id(url: str) -> str:
@@ -6,6 +97,21 @@ def url_to_id(url: str) -> str:
 
     """
     return url.split("/")[-1].split(".")[0]
+
+
+def path_to_id(path: str) -> str:
+    return url_to_id(path).split('_')[0]
+
+
+def gamedata_path(sport: str, cloud=False):
+    if cloud:
+        path = ''
+    else:
+        path = m.PARENT_DIR + 'data/' + sport + '/games/'
+    return path
+
+def player_table_type(path:str):
+    return path.split('/')[-1].split('_', 1)[1].split('.')[0]
 
 
 def id_to_sfx(id: str) -> str:

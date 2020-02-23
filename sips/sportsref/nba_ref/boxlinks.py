@@ -7,6 +7,7 @@ import pandas as pd
 import sips.h.grab as g
 import sips.h.parse as p
 from sips.sportsref import utils
+from sips.sportsref import boxlinks as bl
 
 nba_months = [
     "october",
@@ -16,6 +17,8 @@ nba_months = [
     "february",
     "march",
     "april",
+    "may",
+    "june"
 ]
 
 
@@ -50,6 +53,8 @@ def month_of_boxlinks(link):
     return boxlinks
 
 
+
+
 def all_nba_boxlinks(to_pd=False):
     """
 
@@ -63,15 +68,7 @@ def all_nba_boxlinks(to_pd=False):
     ]
     print(links)
     for i, link in enumerate(links):
-        page = g.page(link)
-        boxlinks = page.find_all("td", {"data-stat": "box_score_text"})
-        # print(boxlinks)
-        for bl in boxlinks:
-            a_tag = bl.a
-            if a_tag is not None:
-                game_id = utils.url_to_id(a_tag["href"])
-                # print(game_id)
-                all_boxlinks.append(game_id)
+        all_boxlinks += bl.boxlinks_from_url(link)
         if i % 5 == 0:
             print(f"{i}: {link}")
 

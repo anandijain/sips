@@ -11,9 +11,9 @@ from sips.ml import lstm
 import random
 from sips.macros import tfm
 
-DIR = "/home/sippycups/absa/sips/data/nba/"
+DIR = m.DATA_DIR + 'nba/'
 FILES = ["nba_history_with_stats.csv", "nba_history.csv"]
-"/home/sippycups/absa/sips/data/nba/nba_history_with_stats.csv"
+m.DATA_DIR + 'nba/nba_history_with_stats.csv"
 
 
 class WL(Model):

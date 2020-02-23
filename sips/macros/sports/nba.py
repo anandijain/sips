@@ -87,8 +87,9 @@ index = {
     """
 }
 
-
 # bk-ref player columns
+
+
 PLAYER_TOTALS = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'GS', 'MP', 'FG',
                  'FGA', 'FG%', '3P', '3PA', '3P%', '2P', '2PA', '2P%', 'eFG%', 'FT',
                  'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF',
@@ -97,7 +98,7 @@ PLAYER_TOTALS = ['index', 'Season', 'Age', 'Tm', 'Lg', 'Pos', 'G', 'GS', 'MP', '
 PLAYER_YEAR_CAREER_HIGHS_PO = ['index', 'Season', 'Age',  'Tm',  'Lg',  'MP',  'FG',
                                'FGA',  'FT', 'FTA', 'TRB', 'AST',  'PF', 'PTS']
 
-# drop 1           
+# drop 1
 PLAYER_YEAR_CAREER_HIGHS = ['index',
                             'Season',
                             'Age',
@@ -249,6 +250,37 @@ PLAYER_SIM_CAREER = ['index', 'Career', 'Career.1', 'best_to_worst',
                      'best_to_worst_15', 'best_to_worst_16']
 
 
+PLAYER_TABLES = {
+    'totals': PLAYER_TOTALS,
+    'year-and-career-highs-po': PLAYER_YEAR_CAREER_HIGHS_PO,
+    'year-and-career-highs': PLAYER_YEAR_CAREER_HIGHS,
+    'per_minute': PLAYER_PER_MIN,
+    'per_game': PLAYER_PER_GAME,
+    'advanced': PLAYER_ADVANCED,
+    'all_salaries': PLAYER_SALARIES,
+    'all_college_stats': PLAYER_COLLEGE,
+    'shooting': PLAYER_SHOOTING,
+    'pbp': PLAYER_PBP,
+    'sim_thru': PLAYER_SIM_THRU,
+    'sim_career': PLAYER_SIM_CAREER,
+}
+
+PLAYER_DROP_N = {
+    'totals': 0,
+    'year-and-career-highs-po': 0,
+    'year-and-career-highs': 1,
+    'per_minute':  0,
+    'per_game': 0,
+    'advanced':  0,
+    'all_salaries':  0,
+    'all_college_stats':  1,
+    'shooting':  2,
+    'pbp':  1,
+    'sim_thru':  1,
+    'sim_career':  1,
+}
+
+
 # bk-ref boxscore columns
 
 LINE_SCORES = ["win", "team", "q_1", "q_2", "q_3", "q_4", "T"]
@@ -299,6 +331,16 @@ GAME_ADVANCED = [
     "USG%",
     "ORtg",
     "DRtg",
+]
+
+GAME_PBP = [
+    'index',
+    'Time',
+    'a_team_desc',
+    'a_pt_change',
+    'score',
+    'h_pt_change',
+    'h_team_desc',
 ]
 
 

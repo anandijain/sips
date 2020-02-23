@@ -1,8 +1,9 @@
 import pandas as pd
 
-import sips.h.parse as p
-import sips.h.grab as g
+import sips.h.parse
+import sips.h.grab
 
+# TODO depr
 
 def main(years=(2000, 2019)):
     """
@@ -21,9 +22,9 @@ def get_df(year, write=True):
 
     """
     url = get_url(year=year)
-    page = g.page(url)
-    table = p.get_table(page, "combine")
-    cols = p.columns_from_table(table)
+    page = grab.page(url)
+    table = parse.get_table(page, "combine")
+    cols = parse.columns_from_table(table)
     player_ids = get_ids(table)
     raw_df = pd.read_html(table.prettify())[0]
     df = cat_ids(raw_df, player_ids)

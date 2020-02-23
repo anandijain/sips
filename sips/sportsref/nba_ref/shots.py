@@ -64,7 +64,6 @@ def link_to_charts_df(link: str) -> dict:
 
 def page_to_charts_df(page: bs4.BeautifulSoup, game_id: str):
     """
-    df.columns = ['i', 'x', 'y', 'type', 'outcome', 'player', 'game_id']
 
     """
     cols = ["p_id", "qtr", "shot_made", "x_pos", "y_pos", "tip"]
@@ -92,7 +91,7 @@ def all_shotcharts(write=True):
 
     """
 
-    GAMES_DATA = "/home/sippycups/absa/sips/data/nba/games/"
+    GAMES_DATA = "m.DATA_DIR + 'nba/games/"
     INDEX_FN = "index.csv"
     df = pd.read_csv(GAMES_DATA + INDEX_FN)
     all_dfs = {}

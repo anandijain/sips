@@ -32,3 +32,5 @@ teams = [
     "Tennessee Titans",
     "Washington Redskins",
 ]
+
+GAME_SCORING = ['index', 'Quarter', 'Time', 'Tm', 'Detail', 'home', 'away', 'game_id']

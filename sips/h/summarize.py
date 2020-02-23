@@ -102,4 +102,4 @@ if __name__ == "__main__":
     cols_to_summarize = ["a_ml", "h_ml", "a_hcap", "h_hcap", "a_ps", "h_ps"]
     dfs = helpers.get_dfs()
     sdfs = s.serialize_dfs(dfs, to_numpy=False, astype=np.float32, norm=False)
-    summs = summaries(sdfs, columns=cols_to_summarize, verbose=True)
+    summs = summaries(sdfs, columns=cols_to_summarize)

@@ -8,7 +8,6 @@ import time
 import pandas as pd
 import bs4
 import requests as r
-from requests_futures.sessions import FuturesSession
 
 from sips.h import parse
 from sips.sportsref import utils as sr_utils
@@ -23,7 +22,7 @@ def comments(link: str, verbose=False):
     """
     page_no_comments = page(link)
     page_comments = parse.comments(
-        page_no_comments, join=True, to_soup=False, verbose=verbose
+        page_no_comments, to_soup=False, verbose=verbose
     )
 
     both = str(page_no_comments) + page_comments
@@ -35,7 +34,7 @@ def comments(link: str, verbose=False):
     return page_with_comments
 
 
-def page(link: str):
+def page(link: str) -> bs4.BeautifulSoup:
     """
     request and bs4 parse html
 
@@ -84,8 +83,7 @@ def reqs_json(urls, sleep=0.5, verbose=False):
     simple list concat on req_json
 
     """
-    jsons = [req_json(url) for url in urls]
-    return jsons
+    return [req_json(url, sleep=sleep) for url in urls]
 
 
 def req_json(url, sleep=0.5, verbose=False):
@@ -109,28 +107,8 @@ def req_json(url, sleep=0.5, verbose=False):
 
     if verbose:
         print(f"req'd url: {url}")
+        
     return json_data
-
-
-def async_req(links, output="list", session=None, max_workers=10, key=None):
-    """
-    asyncronous request of list of links
-
-    Todo: depr
-
-    """
-    if not session:
-        session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
-
-    jsons = [session.get(link).result().json() for link in links]
-    if output == "dict":
-        if not key:
-            print("no key provided, enumerating")
-            jsons = {i: game for i, game in enumerate(jsons)}
-        else:
-            jsons = {game.get(key): game for game in jsons}
-
-    return jsons
 
 
 def get_table(link: str, table_ids: list, to_pd=True):
@@ -153,36 +131,42 @@ def get_table(link: str, table_ids: list, to_pd=True):
     return tables
 
 
-def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False):
+def tables_from_links(links: str, table_ids: list, to_pd=True, flatten=False) -> list:
     """
     get tables from a list of links
 
     """
 
-    all_tables = []
+    all_ts = []
     for link in links:
         tables = [get_table(link, table_ids, to_pd=to_pd) for link in links]
         if flatten:
-            all_tables += tables
+            all_ts += tables
         else:
-            all_tables.append(tables)
+            all_ts.append(tables)
     return tables
 
 
-def tables_to_df_dict(link: str):
-    game_dict = {}
-    p = comments(link)
+def tables_to_df_dict(link: str) -> dict:
     game_id = sr_utils.url_to_id(link)
-    ts = p.find_all("table")
+    game_dict = {}
+    ts = all_tables(link)
 
     for t in ts:
         t_id = t.get("id")
         if t_id is None:
             continue
-        df = parse.get_table(p, t_id, to_pd=True)
+        # df = parse.get_table(p, t_id, to_pd=True)
+        df = pd.read_html(t.prettify())[0]
         key = game_id + "_" + t_id
         game_dict[key] = df
     return game_dict
+
+
+def all_tables(link: str):
+    p = comments(link)
+    ts = p.find_all("table")
+    return ts
 
 
 if __name__ == "__main__":

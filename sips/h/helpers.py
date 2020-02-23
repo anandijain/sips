@@ -74,7 +74,7 @@ def seq_windows(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 
@@ -112,7 +112,7 @@ def seq_windows_df(
         if single_step:
             label = target[i + target_size]
         else:
-            label = target[i : i + target_size]
+            label = target[i: i + target_size]
 
         labels.append(label)
 
@@ -135,7 +135,22 @@ def train_test_split_list(to_split, train_frac=0.7, shuffle=False):
     return train_fns, test_fns
 
 
-def remove_string_cols(df: pd.DataFrame):
+def split_by(df, by='game_id', train_frac=0.7):
+    g_ids = df[by].unique()
+    random.shuffle(g_ids)
+
+    n = len(g_ids)
+    idx = int(n * train_frac)
+
+    tr_ids = g_ids[:idx]
+    te_ids = g_ids[idx:]
+
+    tr_df = df[df[by].isin(tr_ids)]
+    te_df = df[df[by].isin(te_ids)]
+    return tr_df, te_df
+
+
+def remove_string_cols(df: pd.DataFrame) -> pd.DataFrame:
     cols_to_remove = []
     for col in df.columns:
         try:
@@ -155,6 +170,10 @@ def chunk(df: pd.DataFrame, cols=["game_id"], output="list"):
         games = [game[1] for game in df.groupby(cols)]
     elif output == "dict":
         games = {key: val for key, val in df.groupby(cols)}
+    elif output == 'df':
+        games = {key: val for key, val in df.groupby(cols)}
+        games = pd.DataFrame.from_dict(games, orient='index')
+        games = games.iloc[:, 0]
     else:
         games = df.groupby(cols)
     return games
@@ -190,7 +209,7 @@ def apply_length_bounds(
     return games
 
 
-def filter_unended(dfs, verbose=False):
+def filter_unended(dfs, verbose=False) -> list:
     # filters dfs, removing df.iloc[-1].status != "GAME_END"
     full_games = []
     total_count = len(dfs)
@@ -233,25 +252,32 @@ def sk_scale(df: pd.DataFrame, to_df=False):
     return scaled
 
 
-def filter_then_apply_min(dfs, verbose=False):
+def filter_then_apply_min(dfs, verbose=False) -> list:
     dfs = filter_unended(dfs, verbose=verbose)
     dfs = apply_length_bounds(dfs, verbose=verbose)
     return dfs
 
 
-def apply_min_then_filter(dfs, verbose=False):
+def apply_min_then_filter(dfs, min_lines=200, max_lines=5000, verbose=False) -> list:
     # faster than filter and apply
-    dfs = apply_length_bounds(dfs, verbose=verbose)
+    dfs = apply_length_bounds(dfs,  min_lines=200, max_lines=5000, verbose=verbose)
     dfs = filter_unended(dfs, verbose=verbose)
     return dfs
 
 
-def get_full_games(dir=None):
-    dfs = get_dfs(dir)
+def get_full_games(folder: str = None, sport: str = None) -> list:
+    # sport: BASK, FOOT, etc
+    dfs = get_dfs(folder)
     dfs = filter_then_apply_min(dfs)
+    if sport is not None:
+        dfs = filter_sport(dfs, sport)
     return dfs
+
+
+def filter_sport(dfs: list, sport: str) -> list:
+    return [df for df in dfs if df.sport[0] == sport]
 
 
 if __name__ == "__main__":
+
     pass
-    # print(data[0])

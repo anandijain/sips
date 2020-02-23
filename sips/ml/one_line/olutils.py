@@ -20,8 +20,8 @@ from sips.ml import normdf
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 FILES = [
-    "/home/sippycups/absa/sips/data/nba/nba_history.csv",
-    "/home/sippycups/absa/sips/data/nba/nba_history_with_stats.csv",
+    "m.DATA_DIR + 'nba/nba_history.csv",
+    "m.DATA_DIR + 'nba/nba_history_with_stats.csv",
 ]
 
 
@@ -125,6 +125,7 @@ def train_test_dfs(frac=0.7, verbose=True):
 
 
 def train_test_sets(train, test, frac=0.3):
+    str_cols = ["Game_id", "A_team", "H_team"]
 
     train_wins = train[["Game_id", "H_win", "A_win"]].copy()
     test_wins = test[["Game_id", "H_win", "A_win"]].copy()
@@ -132,8 +133,8 @@ def train_test_sets(train, test, frac=0.3):
     train = train.drop(["A_win", "H_win"], axis=1)
     test = test.drop(["A_win", "H_win"], axis=1)
 
-    test = normdf.norm_testset(test, train)
-    train = normdf.to_normed(train)
+    test = normdf.norm_testset(test, train, str_cols=str_cols)
+    train = normdf.to_normed(train, str_cols=str_cols)
 
     # train_x, test_x, train_y, test_y = train_test_split(df, wins, test_size=frac)
 

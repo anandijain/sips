@@ -1,6 +1,5 @@
 import pandas as pd
 
-import sips
 from sips.h import grab
 from sips.h import parse
 from sips.macros import sports_ref as sref
@@ -10,7 +9,7 @@ def coaches():
     """
 
     """
-    p = sips.page(sref.NBA_URL + "/coaches/")
+    p = grab.page(sref.NBA_URL + "/coaches/")
     t = p.find("table", {"id": "coaches"})
     ctags = t.find_all("th", {"data-stat": "coach"})
     links = []

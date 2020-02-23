@@ -1,6 +1,8 @@
 """
 directional moneyline transition classes
 
+# TODO revamp analysis tool completely to be split-apply-combine ops 
+
 """
 import numpy as np
 

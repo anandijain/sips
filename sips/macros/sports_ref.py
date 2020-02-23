@@ -16,6 +16,19 @@ URLS = {"mlb": MLB_URL, "nba": NBA_URL, "fb": FB_URL, "nfl": NFL_URL, "nhl": NHL
 
 URLS_NS = {"mlb": MLB_NS, "nba": NBA_NS, "fb": FB_NS, "nfl": NFL_NS, "nhl": NHL_NS}
 
+REF_SFX = {
+    'nfl': '.htm',
+    'nba': '.html',
+    'mlb': '.shtml',
+    'nhl': 'html',
+}
+
+REF_BOX_SFX = {
+    'nfl': 'boxscores/',
+    'nba': 'boxscores/',
+    'mlb': 'boxes/',
+    'nhl': 'boxscores/',
+}
 
 LETTERS = [
     "a",
