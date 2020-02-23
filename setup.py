@@ -22,6 +22,7 @@ setup(
         "google-cloud-profiler",
         "lxml",
         "flask",
+        "torch",
     ],  # external packages as dependencies
     python_requires=">=3.6",
 )

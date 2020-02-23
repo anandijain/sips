@@ -1,13 +1,21 @@
+import time
 import random
 
 import pandas as pd
 import numpy as np
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DataLoader, Dataset
+
+
 from sips.h import calc
 from sips.h import helpers
 from sips.ml import normdf
+from sips.ml import models
 from sips.ml.one_line import olutils
-from torch.utils.data import DataLoader, Dataset
 
 
 def fn_to_tr_te(fn, by: str, xcols: list = None, ycols: list = None, norm_y=False):
@@ -123,6 +131,40 @@ def main(train_frac=0.7):
         sets[sport] = {"train": train_normed, "test": test_normed}
 
     return sets
+
+
+def prep_loader(trainset, testset, model_name, device, batch_size=1, classify=False, shuffle=True):
+
+    x, y = trainset[0].values()
+
+    train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=shuffle)
+    test_loader = DataLoader(testset, batch_size=batch_size, shuffle=shuffle)
+
+    writer = SummaryWriter(f"runs/{model_name}{time.asctime()}")
+    if y.dim() == 0:
+        y_shape = 1
+    else:
+        y_shape = y.shape[0]
+
+    model = models.Model(in_dim=x.shape[0], out_dim=y_shape,
+                  classify=classify).to(device)
+
+    if classify:
+        criterion = nn.CrossEntropyLoss()
+    else:
+        criterion = nn.MSELoss()
+
+    optimizer = optim.Adam(model.parameters())  # , lr=0.0001)
+    d = {
+        "train_loader": train_loader,
+        "test_loader": test_loader,
+        "criterion": criterion,
+        "optimizer": optimizer,
+        "model": model,
+        "writer": writer,
+        "classify": classify,
+    }
+    return d
 
 
 if __name__ == "__main__":
