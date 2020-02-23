@@ -258,9 +258,9 @@ def filter_then_apply_min(dfs, verbose=False) -> list:
     return dfs
 
 
-def apply_min_then_filter(dfs, verbose=False) -> list:
+def apply_min_then_filter(dfs, min_lines=200, max_lines=5000, verbose=False) -> list:
     # faster than filter and apply
-    dfs = apply_length_bounds(dfs, verbose=verbose)
+    dfs = apply_length_bounds(dfs,  min_lines=200, max_lines=5000, verbose=verbose)
     dfs = filter_unended(dfs, verbose=verbose)
     return dfs
 
