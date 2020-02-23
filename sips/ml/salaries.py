@@ -1,9 +1,13 @@
 import pandas as pd
+import torch 
 
 from sips.ml import normdf
 from sips.ml import train
 from sips.ml import prep
 from sips.ml import data_loaders as dls
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 X_COLS = ['G',
           'MP',
@@ -57,7 +61,7 @@ def prep_sets():
 
 def train_sals(n:int=150):
     train_set, test_set = prep_sets()
-    d = train.prep_loader(train_set, test_set, "sals", batch_size=64, classify=False, shuffle=True)
+    d = prep.prep_loader(train_set, test_set, "sals", device, batch_size=64, classify=False, shuffle=True)
     print(d)
     train.train(d, 'sals', n, verbose=False)
 

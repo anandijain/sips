@@ -17,6 +17,7 @@ from sips.h import hot
 
 from sips.ml.one_line import olutils
 import sips.ml.data_loaders as dls
+from sips.ml import models
 from sips.ml import train
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -46,7 +47,7 @@ def prep_loader():
 
     writer = SummaryWriter(f"runs/scores{time.asctime()}")
 
-    model = train.Model(in_dim=x.shape[0], out_dim=y.shape[0]).to(device)
+    model = models.Model(in_dim=x.shape[0], out_dim=y.shape[0]).to(device)
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters())  # , lr=0.0001)

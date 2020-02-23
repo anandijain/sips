@@ -1,9 +1,14 @@
 import pandas as pd
+import torch
+
 from sips.macros import macros as m
 from sips.ml import prep
 from sips.ml import normdf
 from sips.ml import train
 from sips.ml import data_loaders as dls
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 MODEL_NAME = 'shots_to_score'
 BATCH_SIZE = 256
@@ -40,7 +45,7 @@ def shots_prep():
     print(f'y{y}')
     print(f'y{y.shape[0]}')
 
-    d = train.prep_loader(trset, teset, MODEL_NAME,
+    d = prep.prep_loader(trset, teset, MODEL_NAME, device,
                           classify=CLASSIFY, batch_size=BATCH_SIZE)
     return d
 
